@@ -6,7 +6,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "scooters")
-public class ScooterEntity {
+public class Scooter {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
@@ -21,33 +21,33 @@ public class ScooterEntity {
     private Integer batteryLevel;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zone", referencedColumnName = "id")
-    private ZoneEntity zone;
+    private Zone zone;
     @Basic
     @Column(name = "speed_limit", nullable = false)
     private Integer speedLimit;
     @ManyToMany(mappedBy = "scooters")
-    private Set<OrderEntity> orders;
+    private Set<Order> orders;
     @OneToMany(mappedBy = "scooter", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<OrderScooterEntity> orderScooters;
+    private Set<OrderScooter> orderScooters;
 
-    public ScooterEntity() {
+    public Scooter() {
     }
 
     // getters and setters
 
-    public Set<OrderEntity> getOrders() {
+    public Set<Order> getOrders() {
         return orders;
     }
 
-    public void setOrders(Set<OrderEntity> orders) {
+    public void setOrders(Set<Order> orders) {
         this.orders = orders;
     }
 
-    public Set<OrderScooterEntity> getOrderScooters() {
+    public Set<OrderScooter> getOrderScooters() {
         return orderScooters;
     }
 
-    public void setOrderScooters(Set<OrderScooterEntity> orderScooters) {
+    public void setOrderScooters(Set<OrderScooter> orderScooters) {
         this.orderScooters = orderScooters;
     }
 
@@ -83,11 +83,11 @@ public class ScooterEntity {
         this.batteryLevel = batteryLevel;
     }
 
-    public ZoneEntity getZone() {
+    public Zone getZone() {
         return zone;
     }
 
-    public void setZone(ZoneEntity zone) {
+    public void setZone(Zone zone) {
         this.zone = zone;
     }
 

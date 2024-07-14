@@ -1,9 +1,9 @@
 package com.izzy.service;
 
-import com.izzy.model.OrderEntity;
-import com.izzy.model.OrderScooterEntity;
+import com.izzy.model.Order;
+import com.izzy.model.OrderScooter;
 import com.izzy.model.OrderScooterId;
-import com.izzy.model.ScooterEntity;
+import com.izzy.model.Scooter;
 import com.izzy.repository.OrderRepository;
 import com.izzy.repository.OrderScooterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +21,11 @@ public class OrderService {
     @Autowired
     private OrderScooterRepository orderScooterRepository;
 
-    public List<OrderEntity> getAllOrders() {
+    public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
 
-    public List<OrderEntity> getOrders(String action, String status, Long createdBy, Long assignedTo) {
+    public List<Order> getOrders(String action, String status, Long createdBy, Long assignedTo) {
         if (action != null || status != null || createdBy != null || assignedTo != null) {
             return orderRepository.findOrdersByFilters(action, status, createdBy, assignedTo);
         } else {
@@ -33,15 +33,15 @@ public class OrderService {
         }
     }
 
-    public OrderEntity getOrderById(Long id) {
+    public Order getOrderById(Long id) {
         return orderRepository.findById(id).orElse(null);
     }
 
-    public OrderEntity createOrder(OrderEntity order) {
+    public Order createOrder(Order order) {
         return orderRepository.save(order);
     }
 
-    public OrderEntity updateOrder(Long id, OrderEntity order) {
+    public Order updateOrder(Long id, Order order) {
         return orderRepository.findById(id).map(existingOrder -> {
             existingOrder.setAction(order.getAction());
             existingOrder.setName(order.getName());
@@ -66,18 +66,18 @@ public class OrderService {
         }).orElse(false);
     }
 
-    public Set<ScooterEntity> getScootersByOrderId(Long orderId) {
-        OrderEntity order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+    public Set<Scooter> getScootersByOrderId(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         return order.getScooters();
     }
 
-    public List<OrderScooterEntity> getOrderScootersByOrderId(Long orderId) {
+    public List<OrderScooter> getOrderScootersByOrderId(Long orderId) {
         return orderScooterRepository.findByOrderId(orderId);
     }
 
-    public OrderScooterEntity updatePriority(Long orderId, Long scooterId, Integer priority) {
+    public OrderScooter updatePriority(Long orderId, Long scooterId, Integer priority) {
         OrderScooterId id = new OrderScooterId(orderId, scooterId);
-        OrderScooterEntity orderScooter = orderScooterRepository.findById(id)
+        OrderScooter orderScooter = orderScooterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("OrderScooter not found"));
         orderScooter.setPriority(priority);
         return orderScooterRepository.save(orderScooter);

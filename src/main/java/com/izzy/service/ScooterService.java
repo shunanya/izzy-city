@@ -1,6 +1,6 @@
 package com.izzy.service;
 
-import com.izzy.model.ScooterEntity;
+import com.izzy.model.Scooter;
 import com.izzy.repository.ScooterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,19 +12,19 @@ public class ScooterService {
     @Autowired
     private ScooterRepository scooterRepository;
 
-    public List<ScooterEntity> getAllScooters() {
+    public List<Scooter> getAllScooters() {
         return scooterRepository.findAll();
     }
 
-    public ScooterEntity getScooterById(Long id) {
+    public Scooter getScooterById(Long id) {
         return scooterRepository.findById(id).orElse(null);
     }
 
-    public ScooterEntity createScooter(ScooterEntity scooter) {
+    public Scooter createScooter(Scooter scooter) {
         return scooterRepository.save(scooter);
     }
 
-    public ScooterEntity updateScooter(Long id, ScooterEntity scooter) {
+    public Scooter updateScooter(Long id, Scooter scooter) {
         return scooterRepository.findById(id).map(existingScooter -> {
             existingScooter.setIdentifier(scooter.getIdentifier());
             existingScooter.setStatus(scooter.getStatus());

@@ -9,7 +9,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
-public class UserEntity {
+public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
@@ -31,32 +31,32 @@ public class UserEntity {
     private LocalDate date_of_birth;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zone", referencedColumnName = "id")
-    private ZoneEntity zone;
+    private Zone zone;
     @Basic
     @Column(name = "shift", nullable = true, length = 100)
     private String shift;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private UserEntity created_by;
+    private User created_by;
     @Basic
     @Column(name = "created_at", nullable = false)
     private Timestamp created_at;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "head_for_user", referencedColumnName = "id")
-    private UserEntity head_for_user;
+    private User head_for_user;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<RoleEntity> roles;
+    private Set<Role> roles;
 
-    public UserEntity() {
+    public User() {
     }
 
     // getters and setters
 
-    public  Set<RoleEntity> getRoles(){
+    public  Set<Role> getRoles(){
         return roles;
     }
 
@@ -116,11 +116,11 @@ public class UserEntity {
         this.date_of_birth = dateOfBirth;
     }
 
-    public ZoneEntity getZone() {
+    public Zone getZone() {
         return zone;
     }
 
-    public void setZone(ZoneEntity zone) {
+    public void setZone(Zone zone) {
         this.zone = zone;
     }
 
@@ -132,11 +132,11 @@ public class UserEntity {
         this.shift = shift;
     }
 
-    public UserEntity getCreatedBy() {
+    public User getCreatedBy() {
         return created_by;
     }
 
-    public void setCreatedBy(UserEntity createdBy) {
+    public void setCreatedBy(User createdBy) {
         this.created_by = createdBy;
     }
 
@@ -148,11 +148,11 @@ public class UserEntity {
         this.created_at = createdAt;
     }
 
-    public UserEntity getHeadForUser() {
+    public User getHeadForUser() {
         return head_for_user;
     }
 
-    public void setHeadForUser(UserEntity headForUser) {
+    public void setHeadForUser(User headForUser) {
         this.head_for_user = headForUser;
     }
 }

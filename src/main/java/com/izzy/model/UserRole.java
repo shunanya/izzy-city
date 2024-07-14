@@ -8,19 +8,19 @@ import jakarta.persistence.*;
                 @UniqueConstraint(columnNames = "user_id"),
                 @UniqueConstraint(columnNames = "role_id")
         })
-public class UserRoleEntity {
+public class UserRole {
     @EmbeddedId
     private UserRoleKey id;
     @ManyToOne
     @MapsId("user_id")
     @JoinColumn(name = "user_id")
-    private UserEntity user;
+    private User user;
     @ManyToOne
     @MapsId("role_id")
     @JoinColumn(name = "role_id")
-    private RoleEntity role;
+    private Role role;
 
-    public UserRoleEntity() {
+    public UserRole() {
     }
 
     // getters and setters
@@ -33,19 +33,19 @@ public class UserRoleEntity {
         this.id = id;
     }
 
-    public UserEntity getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(UserEntity user) {
+    public void setUser(User user) {
         this.user = user;
     }
 
-    public RoleEntity getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(RoleEntity role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 }

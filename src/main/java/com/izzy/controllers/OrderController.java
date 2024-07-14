@@ -1,7 +1,7 @@
 package com.izzy.controllers;
 
-import com.izzy.model.OrderEntity;
-import com.izzy.model.OrderScooterEntity;
+import com.izzy.model.Order;
+import com.izzy.model.OrderScooter;
 import com.izzy.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping
-    public List<OrderEntity> getOrders(
+    public List<Order> getOrders(
             @RequestParam(required = false) String action,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long createdBy,
@@ -26,8 +26,8 @@ public class OrderController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderEntity> getOrderById(@PathVariable Long id) {
-        OrderEntity order = orderService.getOrderById(id);
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+        Order order = orderService.getOrderById(id);
         if (order != null) {
             return ResponseEntity.ok(order);
         }
@@ -35,14 +35,14 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderEntity> createOrder(@RequestBody OrderEntity order) {
-        OrderEntity createdOrder = orderService.createOrder(order);
+    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+        Order createdOrder = orderService.createOrder(order);
         return ResponseEntity.ok(createdOrder);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<OrderEntity> updateOrder(@PathVariable Long id, @RequestBody OrderEntity order) {
-        OrderEntity updatedOrder = orderService.updateOrder(id, order);
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+        Order updatedOrder = orderService.updateOrder(id, order);
         if (updatedOrder != null) {
             return ResponseEntity.ok(updatedOrder);
         }
@@ -58,12 +58,12 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/scooters")
-    public List<OrderScooterEntity> getOrderScootersByOrderId(@PathVariable Long orderId) {
+    public List<OrderScooter> getOrderScootersByOrderId(@PathVariable Long orderId) {
         return orderService.getOrderScootersByOrderId(orderId);
     }
 
     @PutMapping("/{orderId}/scooters/{scooterId}/priority")
-    public OrderScooterEntity updatePriority(
+    public OrderScooter updatePriority(
             @PathVariable Long orderId,
             @PathVariable Long scooterId,
             @RequestParam Integer priority) {

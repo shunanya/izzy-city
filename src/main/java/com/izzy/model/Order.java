@@ -8,7 +8,7 @@ import java.util.Set;
 @Table(name = "orders",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "name")})
-public class OrderEntity {
+public class Order {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
@@ -23,23 +23,23 @@ public class OrderEntity {
     private String description;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private UserEntity created_by;
+    private User created_by;
     private Timestamp created_at;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by", referencedColumnName = "id")
-    private UserEntity updated_by;
+    private User updated_by;
     @Basic
     @Column(name = "updated_at")
     private Timestamp updated_at;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to", referencedColumnName = "id")
-    private UserEntity assigned_to;
+    private User assigned_to;
     @Basic
     @Column(name = "status", nullable = false, length = 50)
     private String status;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taken_by", referencedColumnName = "id")
-    private UserEntity taken_by;
+    private User taken_by;
     @Basic
     @Column(name = "taken_at")
     private Timestamp taken_at;
@@ -51,28 +51,28 @@ public class OrderEntity {
             name = "order_scooter",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "scooter_id"))
-    private Set<ScooterEntity> scooters;
+    private Set<Scooter> scooters;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<OrderScooterEntity> orderScooters;
+    private Set<OrderScooter> orderScooters;
 
     // getters and setters
 
-    public OrderEntity() {
+    public Order() {
     }
 
-    public Set<OrderScooterEntity> getOrderScooters() {
+    public Set<OrderScooter> getOrderScooters() {
         return orderScooters;
     }
 
-    public void setOrderScooters(Set<OrderScooterEntity> orderScooters) {
+    public void setOrderScooters(Set<OrderScooter> orderScooters) {
         this.orderScooters = orderScooters;
     }
 
-    public  Set<ScooterEntity> getScooters(){
+    public  Set<Scooter> getScooters(){
         return scooters;
     }
 
-    public void setScooters(Set<ScooterEntity> scooters) {
+    public void setScooters(Set<Scooter> scooters) {
         this.scooters = scooters;
     }
 
@@ -108,11 +108,11 @@ public class OrderEntity {
         this.description = description;
     }
 
-    public UserEntity getCreatedBy() {
+    public User getCreatedBy() {
         return created_by;
     }
 
-    public void setCreatedBy(UserEntity created_by) {
+    public void setCreatedBy(User created_by) {
         this.created_by = created_by;
     }
 
@@ -124,11 +124,11 @@ public class OrderEntity {
         this.created_at = created_at;
     }
 
-    public UserEntity getUpdatedBy() {
+    public User getUpdatedBy() {
         return updated_by;
     }
 
-    public void setUpdatedBy(UserEntity updated_by) {
+    public void setUpdatedBy(User updated_by) {
         this.updated_by = updated_by;
     }
 
@@ -140,11 +140,11 @@ public class OrderEntity {
         this.updated_at = updated_at;
     }
 
-    public UserEntity getAssignedTo() {
+    public User getAssignedTo() {
         return assigned_to;
     }
 
-    public void setAssignedTo(UserEntity assigned_to) {
+    public void setAssignedTo(User assigned_to) {
         this.assigned_to = assigned_to;
     }
 
@@ -156,11 +156,11 @@ public class OrderEntity {
         this.status = status;
     }
 
-    public UserEntity getTakenBy() {
+    public User getTakenBy() {
         return taken_by;
     }
 
-    public void setTakenBy(UserEntity taken_by) {
+    public void setTakenBy(User taken_by) {
         this.taken_by = taken_by;
     }
 

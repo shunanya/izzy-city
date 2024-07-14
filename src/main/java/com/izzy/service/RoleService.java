@@ -1,6 +1,6 @@
 package com.izzy.service;
 
-import com.izzy.model.RoleEntity;
+import com.izzy.model.Role;
 import com.izzy.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,19 +12,19 @@ public class RoleService {
     @Autowired
     private RoleRepository roleRepository;
 
-    public List<RoleEntity> getAllRoles() {
+    public List<Role> getAllRoles() {
         return roleRepository.findAll();
     }
 
-    public RoleEntity getRoleById(Long id) {
+    public Role getRoleById(Long id) {
         return roleRepository.findById(id).orElse(null);
     }
 
-    public RoleEntity createRole(RoleEntity role) {
+    public Role createRole(Role role) {
         return roleRepository.save(role);
     }
 
-    public RoleEntity updateRole(Long id, RoleEntity role) {
+    public Role updateRole(Long id, Role role) {
         return roleRepository.findById(id).map(existingRole -> {
             existingRole.setName(role.getName());
             return roleRepository.save(existingRole);

@@ -1,6 +1,6 @@
 package com.izzy.service;
 
-import com.izzy.model.ZoneEntity;
+import com.izzy.model.Zone;
 import com.izzy.repository.ZoneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,19 +12,19 @@ public class ZoneService {
     @Autowired
     private ZoneRepository zoneRepository;
 
-    public List<ZoneEntity> getAllZones() {
+    public List<Zone> getAllZones() {
         return zoneRepository.findAll();
     }
 
-    public ZoneEntity getZoneById(Long id) {
+    public Zone getZoneById(Long id) {
         return zoneRepository.findById(id).orElse(null);
     }
 
-    public ZoneEntity createZone(ZoneEntity zone) {
+    public Zone createZone(Zone zone) {
         return zoneRepository.save(zone);
     }
 
-    public ZoneEntity updateZone(Long id, ZoneEntity zone) {
+    public Zone updateZone(Long id, Zone zone) {
         return zoneRepository.findById(id).map(existingZone -> {
             existingZone.setName(zone.getName());
             return zoneRepository.save(existingZone);

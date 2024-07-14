@@ -1,6 +1,6 @@
 package com.izzy.controllers;
 
-import com.izzy.model.RoleEntity;
+import com.izzy.model.Role;
 import com.izzy.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +15,13 @@ public class RoleController {
     private RoleService roleService;
 
     @GetMapping
-    public List<RoleEntity> getAllRoles() {
+    public List<Role> getAllRoles() {
         return roleService.getAllRoles();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleEntity> getRoleById(@PathVariable Long id) {
-        RoleEntity role = roleService.getRoleById(id);
+    public ResponseEntity<Role> getRoleById(@PathVariable Long id) {
+        Role role = roleService.getRoleById(id);
         if (role != null) {
             return ResponseEntity.ok(role);
         }
@@ -29,14 +29,14 @@ public class RoleController {
     }
 
     @PostMapping
-    public ResponseEntity<RoleEntity> createRole(@RequestBody RoleEntity role) {
-        RoleEntity createdRole = roleService.createRole(role);
+    public ResponseEntity<Role> createRole(@RequestBody Role role) {
+        Role createdRole = roleService.createRole(role);
         return ResponseEntity.ok(createdRole);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RoleEntity> updateRole(@PathVariable Long id, @RequestBody RoleEntity role) {
-        RoleEntity updatedRole = roleService.updateRole(id, role);
+    public ResponseEntity<Role> updateRole(@PathVariable Long id, @RequestBody Role role) {
+        Role updatedRole = roleService.updateRole(id, role);
         if (updatedRole != null) {
             return ResponseEntity.ok(updatedRole);
         }

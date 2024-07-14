@@ -1,6 +1,6 @@
 package com.izzy.controllers;
 
-import com.izzy.model.ZoneEntity;
+import com.izzy.model.Zone;
 import com.izzy.service.ZoneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +15,13 @@ public class ZoneController {
     private ZoneService zoneService;
 
     @GetMapping
-    public List<ZoneEntity> getAllZones() {
+    public List<Zone> getAllZones() {
         return zoneService.getAllZones();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ZoneEntity> getZoneById(@PathVariable Long id) {
-        ZoneEntity zone = zoneService.getZoneById(id);
+    public ResponseEntity<Zone> getZoneById(@PathVariable Long id) {
+        Zone zone = zoneService.getZoneById(id);
         if (zone != null) {
             return ResponseEntity.ok(zone);
         }
@@ -29,14 +29,14 @@ public class ZoneController {
     }
 
     @PostMapping
-    public ResponseEntity<ZoneEntity> createZone(@RequestBody ZoneEntity zone) {
-        ZoneEntity createdZone = zoneService.createZone(zone);
+    public ResponseEntity<Zone> createZone(@RequestBody Zone zone) {
+        Zone createdZone = zoneService.createZone(zone);
         return ResponseEntity.ok(createdZone);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ZoneEntity> updateZone(@PathVariable Long id, @RequestBody ZoneEntity zone) {
-        ZoneEntity updatedZone = zoneService.updateZone(id, zone);
+    public ResponseEntity<Zone> updateZone(@PathVariable Long id, @RequestBody Zone zone) {
+        Zone updatedZone = zoneService.updateZone(id, zone);
         if (updatedZone != null) {
             return ResponseEntity.ok(updatedZone);
         }

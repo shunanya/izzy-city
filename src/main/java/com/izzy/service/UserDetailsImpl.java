@@ -1,7 +1,7 @@
 package com.izzy.service;
 
-import com.izzy.model.UserEntity;
-import com.izzy.model.ZoneEntity;
+import com.izzy.model.User;
+import com.izzy.model.Zone;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,17 +24,17 @@ public class UserDetailsImpl implements UserDetails {
     private String phone_number;
     private String gender;
     private LocalDate date_of_birth;
-    private ZoneEntity zone;
+    private Zone zone;
     private String shift;
-    private UserEntity created_by;
+    private User created_by;
     private Timestamp created_at;
-    private UserEntity head_for_user;
+    private User head_for_user;
     private Collection<? extends GrantedAuthority> authorities;
 
     private UserDetailsImpl(Long id, String first_name, String last_name, String password, String phone_number,
-                            String gender, LocalDate date_of_birth, ZoneEntity zone, String shift,
-                            UserEntity created_by, Timestamp created_at,
-                            UserEntity head_for_user, Collection<? extends GrantedAuthority> authorities) {
+                            String gender, LocalDate date_of_birth, Zone zone, String shift,
+                            User created_by, Timestamp created_at,
+                            User head_for_user, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.first_name = first_name;
         this.last_name = last_name;
@@ -50,7 +50,7 @@ public class UserDetailsImpl implements UserDetails {
         this.authorities = authorities;
     }
 
-    public static UserDetailsImpl build(UserEntity user) {
+    public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
@@ -66,6 +66,10 @@ public class UserDetailsImpl implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     @Override

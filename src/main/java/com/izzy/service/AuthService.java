@@ -1,6 +1,6 @@
 package com.izzy.service;
 
-import com.izzy.model.UserEntity;
+import com.izzy.model.User;
 import com.izzy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,14 +14,14 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public UserEntity registerUser(UserEntity user) {
+    public User registerUser(User user) {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
         return userRepository.save(user);
     }
 
-    public UserEntity login(String phoneNumber, String rawPassword) {
-        UserEntity user = userRepository.findByPhoneNumber(phoneNumber);
+    public User login(String phoneNumber, String rawPassword) {
+        User user = userRepository.findByPhoneNumber(phoneNumber);
         if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
             return user;
         }
@@ -29,7 +29,7 @@ public class AuthService {
     }
 
     public Boolean existByUserIdentifier(String phoneNumber){
-        UserEntity user = userRepository.findByPhoneNumber(phoneNumber);
+        User user = userRepository.findByPhoneNumber(phoneNumber);
         return user != null;
     }
 }

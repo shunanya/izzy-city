@@ -2,22 +2,17 @@ package com.izzy.model;
 
 import jakarta.persistence.*;
 
-import java.util.Set;
-
 @Entity
-@Table(name = "roles")
-public class RoleEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Table(name = "zones")
+public class Zone {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
     @Basic
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
-    @ManyToMany(mappedBy = "roles")
-    private Set<UserEntity> users;
 
-    public RoleEntity() {
+    public Zone() {
     }
 
     // getters and setters

@@ -1,7 +1,11 @@
 package com.izzy.payload.request;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginRequest {
+    @NotBlank
     private String phoneNumber;
+    @NotBlank
     private String password;
 
     // getters and setters

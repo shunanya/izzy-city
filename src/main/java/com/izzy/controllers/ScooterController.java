@@ -1,6 +1,6 @@
 package com.izzy.controllers;
 
-import com.izzy.model.ScooterEntity;
+import com.izzy.model.Scooter;
 import com.izzy.service.ScooterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +15,13 @@ public class ScooterController {
     private ScooterService scooterService;
 
     @GetMapping
-    public List<ScooterEntity> getAllScooters() {
+    public List<Scooter> getAllScooters() {
         return scooterService.getAllScooters();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ScooterEntity> getScooterById(@PathVariable Long id) {
-        ScooterEntity scooter = scooterService.getScooterById(id);
+    public ResponseEntity<Scooter> getScooterById(@PathVariable Long id) {
+        Scooter scooter = scooterService.getScooterById(id);
         if (scooter != null) {
             return ResponseEntity.ok(scooter);
         }
@@ -29,14 +29,14 @@ public class ScooterController {
     }
 
     @PostMapping
-    public ResponseEntity<ScooterEntity> createScooter(@RequestBody ScooterEntity scooter) {
-        ScooterEntity createdScooter = scooterService.createScooter(scooter);
+    public ResponseEntity<Scooter> createScooter(@RequestBody Scooter scooter) {
+        Scooter createdScooter = scooterService.createScooter(scooter);
         return ResponseEntity.ok(createdScooter);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ScooterEntity> updateScooter(@PathVariable Long id, @RequestBody ScooterEntity scooter) {
-        ScooterEntity updatedScooter = scooterService.updateScooter(id, scooter);
+    public ResponseEntity<Scooter> updateScooter(@PathVariable Long id, @RequestBody Scooter scooter) {
+        Scooter updatedScooter = scooterService.updateScooter(id, scooter);
         if (updatedScooter != null) {
             return ResponseEntity.ok(updatedScooter);
         }

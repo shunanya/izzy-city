@@ -1,6 +1,6 @@
 package com.izzy.service;
 
-import com.izzy.model.UserEntity;
+import com.izzy.model.User;
 import com.izzy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +16,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userIdentifier) throws UsernameNotFoundException {
-        UserEntity user = userRepository.findByPhoneNumber(userIdentifier);
+        User user = userRepository.findByPhoneNumber(userIdentifier);
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }

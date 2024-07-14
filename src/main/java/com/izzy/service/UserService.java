@@ -1,6 +1,6 @@
 package com.izzy.service;
 
-import com.izzy.model.UserEntity;
+import com.izzy.model.User;
 import com.izzy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +16,7 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public List<UserEntity> getUsers(String firstName, String lastName, String phoneNumber, String gender, String shift) {
+    public List<User> getUsers(String firstName, String lastName, String phoneNumber, String gender, String shift) {
         if (firstName != null || lastName != null || phoneNumber != null || gender != null || shift != null) {
             return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, shift);
         } else {
@@ -24,17 +24,17 @@ public class UserService {
         }
     }
 
-    public UserEntity getUserById(Long id) {
+    public User getUserById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
 
-    public UserEntity createUser(UserEntity user) {
+    public User createUser(User user) {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
         return userRepository.save(user);
     }
 
-    public UserEntity updateUser(Long id, UserEntity user) {
+    public User updateUser(Long id, User user) {
         return userRepository.findById(id).map(existingUser -> {
             existingUser.setFirstName(user.getFirstName());
             existingUser.setLastName(user.getLastName());

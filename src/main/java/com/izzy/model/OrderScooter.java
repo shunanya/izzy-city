@@ -4,22 +4,22 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "order_scooter")
-public class OrderScooterEntity {
+public class OrderScooter {
     @EmbeddedId
     private OrderScooterId id;
     @ManyToOne
     @MapsId("order_id")
     @JoinColumn(name = "order_id")
-    private OrderEntity order;
+    private Order order;
     @ManyToOne
     @MapsId("scooter_id")
     @JoinColumn(name = "scooter_id")
-    private ScooterEntity scooter;
+    private Scooter scooter;
     @Basic
     @Column(name = "priority", nullable = false, columnDefinition = "integer default 1")
     private Integer priority;
 
-    public OrderScooterEntity() {
+    public OrderScooter() {
     }
 
     // getters and setters
@@ -32,19 +32,19 @@ public class OrderScooterEntity {
         this.id = id;
     }
 
-    public OrderEntity getOrder() {
+    public Order getOrder() {
         return order;
     }
 
-    public void setOrder(OrderEntity order) {
+    public void setOrder(Order order) {
         this.order = order;
     }
 
-    public ScooterEntity getScooter() {
+    public Scooter getScooter() {
         return scooter;
     }
 
-    public void setScooter(ScooterEntity scooter) {
+    public void setScooter(Scooter scooter) {
         this.scooter = scooter;
     }
 
