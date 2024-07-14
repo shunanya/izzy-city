@@ -194,9 +194,8 @@ CREATE TABLE public.scooters (
     identifier character varying(255),
     status character varying(255),
     battery_level integer,
-    zone integer,
+    zone bigint,
     speed_limit integer,
-    zone_id bigint,
     CONSTRAINT scooters_status_check CHECK (((status)::text = ANY (ARRAY[('Active'::character varying)::text, ('Inactive'::character varying)::text, ('Blocked'::character varying)::text, ('Unblocked'::character varying)::text, ('Broken'::character varying)::text, ('Rented'::character varying)::text])))
 );
 
@@ -270,12 +269,11 @@ CREATE TABLE public.users (
     phone_number character varying(255) NOT NULL,
     gender character varying(255),
     date_of_birth date,
-    zone integer,
+    zone bigint,
     shift character varying(255),
     created_by bigint,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     head_for_user bigint,
-    zone_id bigint,
     CONSTRAINT users_gender_check CHECK (((gender)::text = ANY (ARRAY[('Male'::character varying)::text, ('Female'::character varying)::text, ('Not specified'::character varying)::text]))),
     CONSTRAINT users_shift_check CHECK (((shift)::text = ANY (ARRAY[('day shift'::character varying)::text, ('night shift'::character varying)::text])))
 );
@@ -483,7 +481,7 @@ COPY public.roles (id, name) FROM stdin;
 -- Data for Name: scooters; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.scooters (id, identifier, status, battery_level, zone, speed_limit, zone_id) FROM stdin;
+COPY public.scooters (id, identifier, status, battery_level, zone, speed_limit) FROM stdin;
 \.
 
 
@@ -499,7 +497,7 @@ COPY public.user_roles (user_id, role_id) FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.users (id, first_name, last_name, password, phone_number, gender, date_of_birth, zone, shift, created_by, created_at, head_for_user, zone_id) FROM stdin;
+COPY public.users (id, first_name, last_name, password, phone_number, gender, date_of_birth, zone, shift, created_by, created_at, head_for_user) FROM stdin;
 \.
 
 
@@ -618,11 +616,19 @@ ALTER TABLE ONLY public.refreshtoken
 
 
 --
--- Name: roles roles_unique; Type: CONSTRAINT; Schema: public; Owner: root
+-- Name: roles roles_name_unique; Type: CONSTRAINT; Schema: public; Owner: root
 --
 
 ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT roles_unique UNIQUE (name);
+    ADD CONSTRAINT roles_name_unique UNIQUE (name);
+
+
+--
+-- Name: scooters scooters_identifier_unique; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.scooters
+    ADD CONSTRAINT scooters_identifier_unique UNIQUE (identifier);
 
 
 --
@@ -631,54 +637,6 @@ ALTER TABLE ONLY public.roles
 
 ALTER TABLE ONLY public.scooters
     ADD CONSTRAINT scooters_pkey PRIMARY KEY (id);
-
-
---
--- Name: scooters scooters_unique; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.scooters
-    ADD CONSTRAINT scooters_unique UNIQUE (identifier);
-
-
---
--- Name: orders uk9jvsx18f8w7fjm9esi95fqosi; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT uk9jvsx18f8w7fjm9esi95fqosi UNIQUE (name);
-
-
---
--- Name: users uk9q63snka3mdh91as4io72espi; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT uk9q63snka3mdh91as4io72espi UNIQUE (phone_number);
-
-
---
--- Name: zones uk9vf2c47kjchldfq92cptovfts; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.zones
-    ADD CONSTRAINT uk9vf2c47kjchldfq92cptovfts UNIQUE (name);
-
-
---
--- Name: roles ukofx66keruapi6vyqpv6f2or37; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT ukofx66keruapi6vyqpv6f2or37 UNIQUE (name);
-
-
---
--- Name: scooters uks74tttjry78yecicp09mpbcnk; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.scooters
-    ADD CONSTRAINT uks74tttjry78yecicp09mpbcnk UNIQUE (identifier);
 
 
 --
@@ -698,19 +656,19 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: zones zones_name unique; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.zones
+    ADD CONSTRAINT "zones_name unique" UNIQUE (name);
+
+
+--
 -- Name: zones zones_pkey; Type: CONSTRAINT; Schema: public; Owner: root
 --
 
 ALTER TABLE ONLY public.zones
     ADD CONSTRAINT zones_pkey PRIMARY KEY (id);
-
-
---
--- Name: zones zones_unique; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.zones
-    ADD CONSTRAINT zones_unique UNIQUE (name);
 
 
 --
@@ -751,22 +709,6 @@ ALTER TABLE ONLY public.user_roles
 
 ALTER TABLE ONLY public.refreshtoken
     ADD CONSTRAINT "FK_refreshtoken_user_id" FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: users fk9ldg6jk1y4l8i5btcl4litk8g; Type: FK CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fk9ldg6jk1y4l8i5btcl4litk8g FOREIGN KEY (zone_id) REFERENCES public.zones(id);
-
-
---
--- Name: scooters fka775m9wsrexvvamc838wfxwys; Type: FK CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.scooters
-    ADD CONSTRAINT fka775m9wsrexvvamc838wfxwys FOREIGN KEY (zone_id) REFERENCES public.zones(id);
 
 
 --

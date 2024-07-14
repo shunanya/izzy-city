@@ -30,7 +30,7 @@ public class UserEntity {
     private String gender;
     private LocalDate date_of_birth;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "zone_id", referencedColumnName = "id")
+    @JoinColumn(name = "zone", referencedColumnName = "id")
     private ZoneEntity zone;
     @Basic
     @Column(name = "shift", nullable = true, length = 100)

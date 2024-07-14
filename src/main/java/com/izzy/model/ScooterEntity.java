@@ -20,7 +20,7 @@ public class ScooterEntity {
     @Column(name = "battery_level", nullable = false)
     private Integer batteryLevel;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "zone_id", referencedColumnName = "id")
+    @JoinColumn(name = "zone", referencedColumnName = "id")
     private ZoneEntity zone;
     @Basic
     @Column(name = "speed_limit", nullable = false)
