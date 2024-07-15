@@ -1,14 +1,16 @@
 package com.izzy.controllers;
 
-import com.izzy.model.User;
+import com.izzy.exception.TokenRefreshException;
 import com.izzy.model.RefreshToken;
+import com.izzy.model.User;
 import com.izzy.payload.request.LoginRequest;
 import com.izzy.payload.response.MessageResponse;
 import com.izzy.payload.response.UserInfoResponse;
-import com.izzy.service.AuthService;
-import com.izzy.service.UserDetailsImpl;
-import com.izzy.service.RefreshTokenService;
 import com.izzy.security.jwt.JwtUtils;
+import com.izzy.service.AuthService;
+import com.izzy.service.RefreshTokenService;
+import com.izzy.service.UserDetailsImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -86,5 +88,46 @@ public class AuthController {
                         userDetails.getPhoneNumber(),
                         roles));
     }
+
+  @PostMapping("/signout")
+  public ResponseEntity<?> logoutUser() {
+    Object principle = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if ( !"anonymousUser".equalsIgnoreCase(principle.toString())) {
+      Long userId = ((UserDetailsImpl) principle).getId();
+      refreshTokenService.deleteByUserId(userId);
+    } else {
+      return ResponseEntity.badRequest().body(new MessageResponse("Error: Already signed-out"));
+    }
+    
+    ResponseCookie jwtCookie = jwtUtils.getCleanJwtCookie();
+    ResponseCookie jwtRefreshCookie = jwtUtils.getCleanJwtRefreshCookie();
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+        .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
+        .body(new MessageResponse("You've been signed out!"));
+  }
+
+  @PostMapping("/refresh")
+  public ResponseEntity<?> refresh(HttpServletRequest request) {
+    String refreshToken = jwtUtils.getJwtRefreshFromCookies(request);
+    
+    if ((refreshToken != null) && (refreshToken.length() > 0)) {
+      return refreshTokenService.findByToken(refreshToken)
+          .map(refreshTokenService::verifyExpiration)
+          .map(RefreshToken::getUser)
+          .map(user -> {
+            ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(user);
+            
+            return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(new MessageResponse("Token is refreshed successfully!"));
+          })
+          .orElseThrow(() -> new TokenRefreshException(refreshToken,
+              "Refresh token is not in database!"));
+    }
+    
+    return ResponseEntity.badRequest().body(new MessageResponse("Refresh Token is empty!"));
+  }
 
 }
