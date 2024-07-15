@@ -1,6 +1,7 @@
 package com.izzy.repository;
 
 import com.izzy.model.User;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE " +
             "(u.phone_number LIKE %:phoneNumber%)")
-    User findByPhoneNumber(String phoneNumber);
+    Optional<User> findByPhoneNumber(@NotBlank String phoneNumber);
 
     @Query("SELECT u FROM User u WHERE " +
             "(:firstName IS NULL OR u.first_name LIKE %:firstName%) AND " +

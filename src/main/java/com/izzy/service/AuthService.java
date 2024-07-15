@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthService {
     @Autowired
@@ -21,15 +23,18 @@ public class AuthService {
     }
 
     public User login(String phoneNumber, String rawPassword) {
-        User user = userRepository.findByPhoneNumber(phoneNumber);
-        if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
-            return user;
+        Optional<User> userOptional = userRepository.findByPhoneNumber(phoneNumber);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (passwordEncoder.matches(rawPassword, user.getPassword())) {
+                return user;
+            }
         }
         return null;
     }
 
     public Boolean existByUserIdentifier(String phoneNumber){
-        User user = userRepository.findByPhoneNumber(phoneNumber);
-        return user != null;
+        Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
+        return user.isPresent();
     }
 }

@@ -1,7 +1,9 @@
 package com.izzy.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,13 +16,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class UserDetailsImpl implements UserDetails {
+public class UserPrincipal implements UserDetails {
     @Serial
     private static final long serialVersionUID = 1L;
 
     private Long id;
     private  String first_name;
     private String last_name;
+    @JsonIgnore
     private String password;
     private String phone_number;
     private String gender;
@@ -32,10 +35,10 @@ public class UserDetailsImpl implements UserDetails {
     private User head_for_user;
     private Collection<? extends GrantedAuthority> authorities;
 
-    private UserDetailsImpl(Long id, String first_name, String last_name, String password, String phone_number,
-                            String gender, LocalDate date_of_birth, Zone zone, String shift,
-                            User created_by, Timestamp created_at,
-                            User head_for_user, Collection<? extends GrantedAuthority> authorities) {
+    private UserPrincipal(Long id, String first_name, String last_name, String password, String phone_number,
+                          String gender, LocalDate date_of_birth, Zone zone, String shift,
+                          User created_by, Timestamp created_at,
+                          User head_for_user, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.first_name = first_name;
         this.last_name = last_name;
@@ -51,12 +54,12 @@ public class UserDetailsImpl implements UserDetails {
         this.authorities = authorities;
     }
 
-    public static UserDetailsImpl build(User user) {
+    public static UserPrincipal build(@NotBlank User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
 
-        return new UserDetailsImpl(
+        return new UserPrincipal(
                 user.getId(),
                 user.getFirstName(), user.getLastName(), user.getPassword(), user.getPhoneNumber(),
                 user.getGender(), user.getDateOfBirth(), user.getZone(), user.getShift(),
@@ -113,7 +116,7 @@ public class UserDetailsImpl implements UserDetails {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        UserDetailsImpl user = (UserDetailsImpl) o;
+        UserPrincipal user = (UserPrincipal) o;
         return Objects.equals(id, user.id);
     }
 }

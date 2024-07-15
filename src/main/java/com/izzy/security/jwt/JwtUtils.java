@@ -1,7 +1,7 @@
 package com.izzy.security.jwt;
 
 import com.izzy.model.User;
-import com.izzy.service.UserDetailsImpl;
+import com.izzy.service.UserPrincipal;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -33,7 +33,7 @@ public class JwtUtils {
   @Value(value = "${izzy.app.jwtRefreshCookieName}")
   private String jwtRefreshCookie;
 
-  public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
+  public ResponseCookie generateJwtCookie(UserPrincipal userPrincipal) {
     String jwt = generateTokenFromUserIdentifier(userPrincipal.getPhoneNumber());
     return generateCookie(jwtCookie, jwt, "/izzy");
   }

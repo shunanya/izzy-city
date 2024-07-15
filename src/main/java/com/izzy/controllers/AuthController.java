@@ -9,7 +9,7 @@ import com.izzy.payload.response.UserInfoResponse;
 import com.izzy.security.jwt.JwtUtils;
 import com.izzy.service.AuthService;
 import com.izzy.service.RefreshTokenService;
-import com.izzy.service.UserDetailsImpl;
+import com.izzy.service.UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +68,7 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
 
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
@@ -93,7 +93,7 @@ public class AuthController {
   public ResponseEntity<?> logoutUser() {
     Object principle = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     if ( !"anonymousUser".equalsIgnoreCase(principle.toString())) {
-      Long userId = ((UserDetailsImpl) principle).getId();
+      Long userId = ((UserPrincipal) principle).getId();
       refreshTokenService.deleteByUserId(userId);
     } else {
       return ResponseEntity.badRequest().body(new MessageResponse("Error: Already signed-out"));
