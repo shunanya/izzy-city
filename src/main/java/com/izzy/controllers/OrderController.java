@@ -5,6 +5,7 @@ import com.izzy.model.OrderScooter;
 import com.izzy.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public List<Order> getOrders(
             @RequestParam(required = false) String action,
             @RequestParam(required = false) String status,
@@ -26,6 +28,7 @@ public class OrderController {
 
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
         Order order = orderService.getOrderById(id);
         if (order != null) {
@@ -35,12 +38,14 @@ public class OrderController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
         Order createdOrder = orderService.createOrder(order);
         return ResponseEntity.ok(createdOrder);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
         Order updatedOrder = orderService.updateOrder(id, order);
         if (updatedOrder != null) {
@@ -50,6 +55,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         if (orderService.deleteOrder(id)) {
             return ResponseEntity.noContent().build();
@@ -58,11 +64,13 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/scooters")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public List<OrderScooter> getOrderScootersByOrderId(@PathVariable Long orderId) {
         return orderService.getOrderScootersByOrderId(orderId);
     }
 
     @PutMapping("/{orderId}/scooters/{scooterId}/priority")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public OrderScooter updatePriority(
             @PathVariable Long orderId,
             @PathVariable Long scooterId,
@@ -71,6 +79,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/scooters/{scooterId}/priority")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public Integer getPriority(
             @PathVariable Long orderId,
             @PathVariable Long scooterId) {
