@@ -127,7 +127,7 @@ public class AuthController {
               "Refresh token is not in database!"));
     }
     
-    return ResponseEntity.badRequest().body(new MessageResponse("Refresh Token is empty!"));
+    return ResponseEntity.badRequest().body(new MessageResponse("Error: Refresh Token is empty!"));
   }
 
 }
