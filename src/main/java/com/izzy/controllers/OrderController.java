@@ -3,7 +3,6 @@ package com.izzy.controllers;
 import com.izzy.model.Order;
 import com.izzy.model.OrderScooter;
 import com.izzy.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -13,8 +12,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")

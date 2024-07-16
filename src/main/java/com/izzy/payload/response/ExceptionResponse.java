@@ -6,16 +6,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class ExceptionResponse {
-    private String error;
-    private Integer status;
     private List<String> messages;
-    private Instant timestamp;
 
     public ExceptionResponse(List<String> messages, String error, Integer status) {
         setMessages(messages);
-        this.error = error;
-        this.status = status;
-        this.timestamp = Instant.now();
+        Instant timestamp = Instant.now();
     }
 
     public List<String> getMessages() {

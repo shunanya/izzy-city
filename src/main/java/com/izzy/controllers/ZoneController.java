@@ -2,7 +2,6 @@ package com.izzy.controllers;
 
 import com.izzy.model.Zone;
 import com.izzy.service.ZoneService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/zones")
 public class ZoneController {
-    @Autowired
-    private ZoneService zoneService;
+    private final ZoneService zoneService;
+
+    public ZoneController(ZoneService zoneService) {
+        this.zoneService = zoneService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")

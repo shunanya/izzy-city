@@ -2,17 +2,19 @@ package com.izzy.controllers;
 
 import com.izzy.exception.TokenRefreshException;
 import com.izzy.model.RefreshToken;
+import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.payload.request.LoginRequest;
+import com.izzy.payload.request.SignupRequest;
 import com.izzy.payload.response.MessageResponse;
 import com.izzy.payload.response.UserInfoResponse;
+import com.izzy.repository.RoleRepository;
 import com.izzy.security.jwt.JwtUtils;
 import com.izzy.service.AuthService;
 import com.izzy.service.RefreshTokenService;
 import com.izzy.service.UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -26,28 +28,55 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/izzy/auth")
 public class AuthController {
-    @Autowired
+    final
     AuthenticationManager authenticationManager;
 
-    @Autowired
+    final
     JwtUtils jwtUtils;
-
-    @Autowired
+    final
     RefreshTokenService refreshTokenService;
+    private final AuthService authService;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private AuthService authService;
+    public AuthController(AuthenticationManager authenticationManager, JwtUtils jwtUtils, RefreshTokenService refreshTokenService, AuthService authService, RoleRepository roleRepository) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
+        this.refreshTokenService = refreshTokenService;
+        this.authService = authService;
+        this.roleRepository = roleRepository;
+    }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        if (authService.existByUserIdentifier(user.getPhoneNumber())) {
+    public ResponseEntity<?> registerUser(@RequestBody SignupRequest userRequest) {
+        if (authService.existByUserIdentifier(userRequest.getPhonenumber())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+        }
+        if (authService.existByUserIdentifier(userRequest.getPhonenumber())){
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: phone number is already in use!"));
+        }
+        User user = new User();
+        user.setPhoneNumber(userRequest.getPhonenumber());
+        user.setPassword(userRequest.getPassword());
+        Set<String> strRoles = userRequest.getRole();
+        Set<Role> roles = new HashSet<>();
+        if (strRoles != null && !strRoles.isEmpty()) {
+            strRoles.forEach(role -> {
+                Optional<Role> existingRole = roleRepository.findByName(role);
+                existingRole.ifPresent(roles::add);
+            });
+            user.setRoles(roles);
+        }
+        if (roles.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse(("Error: user role is not defined correctly.")));
         }
         User savedUser = authService.registerUser(user);
         return ResponseEntity.ok(savedUser);

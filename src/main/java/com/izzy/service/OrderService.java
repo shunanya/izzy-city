@@ -1,12 +1,12 @@
 package com.izzy.service;
 
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.Order;
 import com.izzy.model.OrderScooter;
 import com.izzy.model.OrderScooterId;
 import com.izzy.model.Scooter;
 import com.izzy.repository.OrderRepository;
 import com.izzy.repository.OrderScooterRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +15,14 @@ import java.util.Set;
 @Service
 public class OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
-    @Autowired
-    private OrderScooterRepository orderScooterRepository;
+    private final OrderScooterRepository orderScooterRepository;
+
+    public OrderService(OrderRepository orderRepository, OrderScooterRepository orderScooterRepository) {
+        this.orderRepository = orderRepository;
+        this.orderScooterRepository = orderScooterRepository;
+    }
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -67,7 +70,7 @@ public class OrderService {
     }
 
     public Set<Scooter> getScootersByOrderId(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "Scooter",  ""));
         return order.getScooters();
     }
 
@@ -78,7 +81,7 @@ public class OrderService {
     public OrderScooter updatePriority(Long orderId, Long scooterId, Integer priority) {
         OrderScooterId id = new OrderScooterId(orderId, scooterId);
         OrderScooter orderScooter = orderScooterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("OrderScooter not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("OrderScooter", "Priority", ""));
         orderScooter.setPriority(priority);
         return orderScooterRepository.save(orderScooter);
     }

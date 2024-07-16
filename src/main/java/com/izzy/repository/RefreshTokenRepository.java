@@ -17,7 +17,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     Optional<RefreshToken> findByUserId(Long id);
 
     @Query("SELECT x FROM RefreshToken x WHERE " +
-            "(x.current_token = %:token%)")
+            "(x.current_token = :token)")
     Optional<RefreshToken> findByToken(String token);
 
     @Modifying

@@ -1,11 +1,10 @@
 package com.izzy.service;
 
+import com.izzy.exception.TokenRefreshException;
 import com.izzy.model.RefreshToken;
 import com.izzy.model.User;
 import com.izzy.repository.RefreshTokenRepository;
 import com.izzy.repository.UserRepository;
-import com.izzy.exception.TokenRefreshException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +18,14 @@ public class RefreshTokenService {
     @Value("${izzy.app.jwtRefreshExpirationMs}")
     private Long refreshTokenDurationMs;
 
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.userRepository = userRepository;
+    }
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
@@ -41,7 +43,7 @@ public class RefreshTokenService {
             if (refreshTokenOptional.isPresent()) {
                 refreshToken = refreshTokenOptional.get();
             } else {
-                refreshToken.setUser(userRepository.findById(userId).get());
+                refreshToken.setUser(user);
             }
             refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
             refreshToken.setCurrentToken(UUID.randomUUID().toString());

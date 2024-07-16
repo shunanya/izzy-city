@@ -8,17 +8,16 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class RestControllerExceptionHandler {
 
     public ResponseEntity<ApiResponse> resolveException(CustomException exception) {
@@ -34,7 +33,6 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    @ResponseBody
     @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
     public ResponseEntity<ApiResponse> resolveException(UnauthorizedException exception) {
 
@@ -44,7 +42,6 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler(BadRequestException.class)
-    @ResponseBody
     public ResponseEntity<ApiResponse> resolveException(BadRequestException exception) {
         ApiResponse apiResponse = exception.getApiResponse();
 
@@ -52,7 +49,6 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseBody
     public ResponseEntity<ApiResponse> resolveException(ResourceNotFoundException exception) {
         ApiResponse apiResponse = exception.getApiResponse();
 
@@ -60,7 +56,6 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    @ResponseBody
     public ResponseEntity<ApiResponse> resolveException(AccessDeniedException exception) {
         ApiResponse apiResponse = exception.getApiResponse();
 
@@ -68,7 +63,6 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler({ MethodArgumentNotValidException.class })
-    @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ExceptionResponse> resolveException(MethodArgumentNotValidException ex) {
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
@@ -81,7 +75,6 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler({ MethodArgumentTypeMismatchException.class })
-    @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ExceptionResponse> resolveException(MethodArgumentTypeMismatchException ex) {
         String message = "Parameter '" + ex.getParameter().getParameterName() + "' must be '"
@@ -94,7 +87,6 @@ public class RestControllerExceptionHandler {
 
     @ExceptionHandler({ HttpRequestMethodNotSupportedException.class })
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    @ResponseBody
     public ResponseEntity<ExceptionResponse> resolveException(HttpRequestMethodNotSupportedException ex) {
         String message = "Request method '" + ex.getMethod() + "' not supported. List of all supported methods - "
                 + ex.getSupportedHttpMethods();
@@ -106,7 +98,6 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler({ HttpMessageNotReadableException.class })
-    @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ExceptionResponse> resolveException(HttpMessageNotReadableException ex) {
         String message = "Please provide Request Body in valid JSON format";

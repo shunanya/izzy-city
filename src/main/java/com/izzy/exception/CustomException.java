@@ -2,8 +2,11 @@ package com.izzy.exception;
 
 import org.springframework.http.HttpStatus;
 
+import java.io.Serial;
+
 public class CustomException extends RuntimeException {
 
+    @Serial
     private static final long serialVersionUID = -6593330219878485669L;
 
     private final HttpStatus status;

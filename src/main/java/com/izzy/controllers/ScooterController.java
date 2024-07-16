@@ -2,7 +2,6 @@ package com.izzy.controllers;
 
 import com.izzy.model.Scooter;
 import com.izzy.service.ScooterService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/scooters")
 public class ScooterController {
-    @Autowired
-    private ScooterService scooterService;
+    private final ScooterService scooterService;
+
+    public ScooterController(ScooterService scooterService) {
+        this.scooterService = scooterService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor') or hasRole('Charger') or hasRole('Scout')")

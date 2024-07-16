@@ -2,15 +2,17 @@ package com.izzy.service;
 
 import com.izzy.model.Scooter;
 import com.izzy.repository.ScooterRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class ScooterService {
-    @Autowired
-    private ScooterRepository scooterRepository;
+    private final ScooterRepository scooterRepository;
+
+    public ScooterService(ScooterRepository scooterRepository) {
+        this.scooterRepository = scooterRepository;
+    }
 
     public List<Scooter> getAllScooters() {
         return scooterRepository.findAll();

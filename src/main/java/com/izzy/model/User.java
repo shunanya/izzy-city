@@ -33,7 +33,7 @@ public class User {
     @JoinColumn(name = "zone", referencedColumnName = "id")
     private Zone zone;
     @Basic
-    @Column(name = "shift", nullable = true, length = 100)
+    @Column(name = "shift", length = 100)
     private String shift;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
@@ -58,6 +58,10 @@ public class User {
 
     public  Set<Role> getRoles(){
         return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     public Long getId() {

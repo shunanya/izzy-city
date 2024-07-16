@@ -21,18 +21,9 @@ public class UserPrincipal implements UserDetails {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private  String first_name;
-    private String last_name;
     @JsonIgnore
     private String password;
     private String phone_number;
-    private String gender;
-    private LocalDate date_of_birth;
-    private Zone zone;
-    private String shift;
-    private User created_by;
-    private Timestamp created_at;
-    private User head_for_user;
     private Collection<? extends GrantedAuthority> authorities;
 
     private UserPrincipal(Long id, String first_name, String last_name, String password, String phone_number,
@@ -40,17 +31,8 @@ public class UserPrincipal implements UserDetails {
                           User created_by, Timestamp created_at,
                           User head_for_user, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
-        this.first_name = first_name;
-        this.last_name = last_name;
         this.password = password;
         this.phone_number  = phone_number;
-        this.gender = gender;
-        this.date_of_birth = date_of_birth;
-        this.zone = zone;
-        this.shift = shift;
-        this.created_by = created_by;
-        this.created_at = created_at;
-        this.head_for_user = head_for_user;
         this.authorities = authorities;
     }
 

@@ -2,15 +2,17 @@ package com.izzy.service;
 
 import com.izzy.model.Zone;
 import com.izzy.repository.ZoneRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class ZoneService {
-    @Autowired
-    private ZoneRepository zoneRepository;
+    private final ZoneRepository zoneRepository;
+
+    public ZoneService(ZoneRepository zoneRepository) {
+        this.zoneRepository = zoneRepository;
+    }
 
     public List<Zone> getAllZones() {
         return zoneRepository.findAll();
