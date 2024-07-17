@@ -2,6 +2,7 @@ package com.izzy.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
@@ -10,6 +11,21 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
+@JsonPropertyOrder({
+        "id",
+        "firstName",
+        "lastName",
+        "password",
+        "phoneNumber",
+        "gender",
+        "dateOfBirth",
+        "zone",
+        "shift",
+        "createdBy",
+        "createdAt",
+        "headForUser",
+        "roles"
+})
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

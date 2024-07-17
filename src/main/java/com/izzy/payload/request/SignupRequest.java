@@ -8,29 +8,29 @@ import java.util.Set;
 public class SignupRequest {
     @NotBlank
     @Size(min = 3, max = 20)
-    private String firstname;
+    private String firstName;
     @NotBlank
     @Size(max = 50)
-    private String phonenumber;
+    private String phoneNumber;
     private Set<String> role;
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;
 
     public String getFirstname() {
-        return firstname;
+        return firstName;
     }
 
     public void setFirstname(String firstname) {
-        this.firstname = firstname;
+        this.firstName = firstname;
     }
 
     public String getPhonenumber() {
-        return phonenumber;
+        return phoneNumber;
     }
 
     public void setPhonenumber(String phonenumber) {
-        this.phonenumber = phonenumber;
+        this.phoneNumber = phonenumber;
     }
 
     public Set<String> getRole() {

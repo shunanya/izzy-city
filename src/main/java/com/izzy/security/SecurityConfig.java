@@ -33,21 +33,6 @@ public class SecurityConfig {
         return new AuthTokenFilter();
     }
 
-//    @Bean
-//    public DaoAuthenticationProvider authenticationProvider() {
-//        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-//
-//        authProvider.setUserDetailsService(userDetailsService);
-//        authProvider.setPasswordEncoder(passwordEncoder());
-//
-//        return authProvider;
-//    }
-
-//    @Bean
-//    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-//        return authConfig.getAuthenticationManager();
-//    }
-
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authManagerBuilder =
@@ -56,12 +41,6 @@ public class SecurityConfig {
         return authManagerBuilder.build();
     }
 
-
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return new UserDetailsServiceImpl();
-//    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -69,25 +48,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http.csrf(csrf -> csrf.disable()
-//            .authorizeHttpRequests(authorizeRequests ->
-//                    authorizeRequests
-//                            .antMatchers("/izzy/users/**").authenticated()
-//                            .antMatchers("/izzy/orders/**").authenticated()
-//                            .anyRequest().permitAll()
-//            )
-//            .formLogin(withDefaults());
-//        return http.build();
         http.csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/izzy/auth/**").permitAll()
-                                .requestMatchers("/izzy/test/**").permitAll()
-                                .anyRequest().authenticated()
+                        auth.requestMatchers("/izzy/*.html").permitAll()
+                            .requestMatchers("/izzy/auth/**").permitAll()
+                            .requestMatchers("/izzy/test/**").permitAll()
+                            .anyRequest().authenticated()
                 );
-
-//        http.authenticationProvider(authenticationProvider());
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 

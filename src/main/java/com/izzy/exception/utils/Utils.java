@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class Utils {
     private static final String patternStr = "ERROR.*(?=\\n)";
-    public static String substringFromException(Exception e){
+    public static String substringErrorFromException(Exception e){
         Pattern pattern = Pattern.compile(patternStr);
         String message = e.getMessage();
         Matcher matcher = pattern.matcher(message);
