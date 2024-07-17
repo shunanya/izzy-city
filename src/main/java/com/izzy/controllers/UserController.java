@@ -1,6 +1,8 @@
 package com.izzy.controllers;
 
+import com.izzy.exception.utils.Utils;
 import com.izzy.model.User;
+import com.izzy.payload.response.MessageResponse;
 import com.izzy.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/izzy/users")
 public class UserController {
     private final UserService userService;
 
@@ -18,7 +20,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')") //?????????????????
     public List<User> getUsers(
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String lastName,
@@ -30,7 +32,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         if (user != null) {
@@ -47,13 +49,17 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        User updatedUser = userService.updateUser(id, user);
-        if (updatedUser != null) {
-            return ResponseEntity.ok(updatedUser);
+//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user) {
+        try {
+            User updatedUser = userService.updateUser(id, user);
+            if (updatedUser != null) {
+                return ResponseEntity.ok(updatedUser);
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(new MessageResponse(400, Utils.substringFromException(e)));
         }
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

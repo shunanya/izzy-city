@@ -14,32 +14,23 @@ import com.izzy.service.AuthService;
 import com.izzy.service.RefreshTokenService;
 import com.izzy.service.UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @RestController
 @RequestMapping("/izzy/auth")
 public class AuthController {
     final
     AuthenticationManager authenticationManager;
-
     final
     JwtUtils jwtUtils;
     final
@@ -64,6 +55,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: phone number is already in use!"));
         }
         User user = new User();
+        user.setFirstName("Dummy");
         user.setPhoneNumber(userRequest.getPhonenumber());
         user.setPassword(userRequest.getPassword());
         Set<String> strRoles = userRequest.getRole();
@@ -83,39 +75,24 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-//    public ResponseEntity<UserEntity> loginUser(@RequestBody LoginRequest loginRequest) {
-//        UserEntity user = authService.login(loginRequest.getPhoneNumber(), loginRequest.getPassword());
-//        if (user != null) {
-//            return ResponseEntity.ok(user);
-//        }
-//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-//    }
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getPhoneNumber(), loginRequest.getPassword()));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
-
-        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-
-        ResponseCookie jwtRefreshCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getCurrentToken());
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
-                .body(new UserInfoResponse(userDetails.getId(),
-                        userDetails.getUsername(),
-                        userDetails.getPhoneNumber(),
-                        roles));
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
+        User user = authService.login(loginRequest.getPhoneNumber(), loginRequest.getPassword());
+        if (user != null) {
+            ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(user);
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+            ResponseCookie jwtRefreshCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getCurrentToken());
+            Set<Role> set = user.getRoles();
+            List<String> roles = new ArrayList<>(1);
+            set.forEach(role -> roles.add(role.getName()));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
+                    .body(new UserInfoResponse(user.getId(),
+                            user.getFirstName(),
+                            user.getPhoneNumber(),
+                            roles));
+        }
+        return ResponseEntity.badRequest().body(new MessageResponse("Error: Provided credentials are wrong."));
     }
 
   @PostMapping("/signout")

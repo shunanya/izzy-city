@@ -1,10 +1,12 @@
 package com.izzy.service;
 
 import com.izzy.model.User;
+import com.izzy.model.Zone;
 import com.izzy.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -38,15 +40,23 @@ public class UserService {
 
     public User updateUser(Long id, User user) {
         return userRepository.findById(id).map(existingUser -> {
-            existingUser.setFirstName(user.getFirstName());
-            existingUser.setLastName(user.getLastName());
-            existingUser.setPhoneNumber(user.getPhoneNumber());
-            existingUser.setGender(user.getGender());
-            existingUser.setDateOfBirth(user.getDateOfBirth());
-            existingUser.setZone(user.getZone());
-            existingUser.setShift(user.getShift());
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+            String tmp = user.getFirstName();
+            if (tmp != null) existingUser.setFirstName(tmp);
+            tmp = user.getLastName();
+            if (tmp != null) existingUser.setLastName(tmp);
+            tmp = user.getPhoneNumber();
+            if (tmp != null) existingUser.setPhoneNumber(tmp);
+            tmp = user.getGender();
+            if (tmp != null) existingUser.setGender(tmp);
+            tmp = user.getShift();
+            if (tmp != null) existingUser.setShift(tmp);
+            LocalDate ld = user.getDateOfBirth();
+            if (ld != null) existingUser.setDateOfBirth(ld);
+            Zone zn = user.getZone();
+            if (zn != null) existingUser.setZone(zn);
+            tmp = user.getPassword();
+            if (tmp != null && !tmp.isEmpty()) {
+                existingUser.setPassword(passwordEncoder.encode(tmp));
             }
             return userRepository.save(existingUser);
         }).orElse(null);

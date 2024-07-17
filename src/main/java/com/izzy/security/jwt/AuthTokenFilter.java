@@ -31,23 +31,25 @@ public class AuthTokenFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     try {
-      String jwt = parseJwtFromCookie(request);
-      if (StringUtils.hasText(jwt) && jwtUtils.validateJwtToken(jwt)) {
-        String userIdentifier = jwtUtils.getUserIdentifierFromJwtToken(jwt);
+      if (!request.getRequestURI().startsWith("/izzy/auth")) {
+        String jwt = parseJwtFromCookie(request);
+        if (StringUtils.hasText(jwt) && jwtUtils.validateJwtToken(jwt)) {
+          String userIdentifier = jwtUtils.getUserIdentifierFromJwtToken(jwt);
 
-        UserDetails userDetails = userDetailsService.loadUserByUserIdentifier(userIdentifier);
-        
-        UsernamePasswordAuthenticationToken authentication = 
-            new UsernamePasswordAuthenticationToken(userDetails,
-                                                    null,
-                                                    userDetails.getAuthorities());
-        
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+          UserDetails userDetails = userDetailsService.loadUserByUserIdentifier(userIdentifier);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-      } else {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or missing JWT");
-        return;
+          UsernamePasswordAuthenticationToken authentication =
+                  new UsernamePasswordAuthenticationToken(userDetails,
+                          null,
+                          userDetails.getAuthorities());
+
+          authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+          SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or missing JWT");
+          return;
+        }
       }
     } catch (Exception e) {
       logger.error("Cannot set user authentication: {}", e);

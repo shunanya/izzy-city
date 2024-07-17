@@ -13,6 +13,6 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findById(Long id);
 
     @Query ("SELECT r FROM Role r WHERE" +
-            "(:name IS NULL OR r.name LIKE %:name%)")
+            "(:name IS NULL OR r.name ILIKE %:name%)")
     Optional<Role> findByName(String name);
 }

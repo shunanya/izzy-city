@@ -1,6 +1,7 @@
 package com.izzy.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
@@ -21,6 +22,7 @@ public class User {
     private String last_name;
     @Basic
     @Column(name = "password", length = 100)
+    @JsonIgnore
     private String password;
     @Basic
     @Column(name = "phone_number", nullable = false, length = 100, unique = true)
@@ -29,7 +31,7 @@ public class User {
     @Column(name = "gender", length = 100)
     private String gender;
     private LocalDate date_of_birth;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "zone", referencedColumnName = "id")
     private Zone zone;
     @Basic
