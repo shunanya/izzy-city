@@ -4,17 +4,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
-    private static final String patternStr = "ERROR.*(?=\\n)";
-    public static String substringErrorFromException(Exception e){
-        Pattern pattern = Pattern.compile(patternStr);
-        String message = e.getMessage();
-        Matcher matcher = pattern.matcher(message);
+     private static final Pattern[] pattern = {Pattern.compile("ERROR.*(?=\\n)"), Pattern.compile("^.*(?=\\()")};
 
-        // Check if there is a match
-        if (matcher.find()) {
-            return matcher.group();
+    public static String substringErrorFromException(Exception e) {
+        String message = e.getMessage();
+        for (Pattern p : pattern) {
+            Matcher m = p.matcher(message);
+            if (m.find()) {
+                message = m.group();
+                break;
+            }
         }
-        // No matching substring found
         return message;
     }
 }

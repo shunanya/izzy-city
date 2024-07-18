@@ -20,6 +20,8 @@ import java.util.Objects;
 @RestControllerAdvice
 public class RestControllerExceptionHandler {
 
+    @ExceptionHandler(CustomException.class)
+    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ApiResponse> resolveException(CustomException exception) {
         String message = exception.getMessage();
         HttpStatus status = exception.getStatus();
@@ -42,6 +44,7 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(code=HttpStatus.BAD_REQUEST)
     public ResponseEntity<ApiResponse> resolveException(BadRequestException exception) {
         ApiResponse apiResponse = exception.getApiResponse();
 
@@ -49,6 +52,7 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(code = HttpStatus.NOT_FOUND)
     public ResponseEntity<ApiResponse> resolveException(ResourceNotFoundException exception) {
         ApiResponse apiResponse = exception.getApiResponse();
 
@@ -56,6 +60,7 @@ public class RestControllerExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(code = HttpStatus.FORBIDDEN)
     public ResponseEntity<ApiResponse> resolveException(AccessDeniedException exception) {
         ApiResponse apiResponse = exception.getApiResponse();
 

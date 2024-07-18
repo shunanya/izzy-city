@@ -1,5 +1,6 @@
 package com.izzy.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.utils.Utils;
 import com.izzy.model.User;
 import com.izzy.payload.request.UserRequest;
@@ -7,8 +8,6 @@ import com.izzy.payload.response.MessageResponse;
 import com.izzy.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,32 +45,33 @@ public class UserController {
 
     @PostMapping
 //    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserRequest userRequest, BindingResult bindingResult) {
-        List<FieldError> errors = bindingResult.getFieldErrors();
-        if (!errors.isEmpty()) {
-            // Handle validation errors
-            return ResponseEntity.badRequest().body(errors);
-        }
+    public ResponseEntity<?> createUser(@Valid @RequestBody String userRequestString) {
         try {
+            // Validate request body
+            UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
+            // processing
             User user = userService.getUserFromUserRequest(userRequest, true);
             User createdUser = userService.createUser(user);
             return ResponseEntity.ok(createdUser);
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponse(400, Utils.substringErrorFromException(e)));
         }
     }
 
     @PutMapping("/{id}")
 //    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserRequest userRequest) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody String userRequestString) {
         try {
+            // Validate request body
+            UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
+            // processing
             User rawUser = userService.getUserFromUserRequest(userRequest, false);
             User updatedUser = userService.updateUser(id, rawUser);
             if (updatedUser != null) {
                 return ResponseEntity.ok(updatedUser);
             }
             return ResponseEntity.notFound().build();
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponse(400, Utils.substringErrorFromException(e)));
         }
     }
@@ -84,7 +84,7 @@ public class UserController {
                 return ResponseEntity.ok(new MessageResponse("User deleted"));
             }
             return ResponseEntity.notFound().build();
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponse(400, Utils.substringErrorFromException(e)));
         }
     }

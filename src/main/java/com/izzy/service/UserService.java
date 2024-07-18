@@ -34,6 +34,12 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Converts UserRequest class to User entity
+     * @param userRequest class that has to be converted
+     * @param createUser When TRUE (i.e., called from createUser), the current date is inserted into the created_at field.
+     * @return User class on success
+     */
     public User getUserFromUserRequest (@NonNull UserRequest userRequest, Boolean createUser){
         User user = new User();
         String tmp = userRequest.getFirstName();
@@ -86,6 +92,15 @@ public class UserService {
         return user;
     }
 
+    /**
+     * Returns filtered or all users list
+     * @param firstName filtering parameter
+     * @param lastName filtering parameter
+     * @param phoneNumber filtering parameter
+     * @param gender filtering parameter
+     * @param shift filtering parameter
+     * @return list of users
+     */
     public List<User> getUsers(String firstName, String lastName, String phoneNumber, String gender, String shift) {
         if (firstName != null || lastName != null || phoneNumber != null || gender != null || shift != null) {
             return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, shift);
