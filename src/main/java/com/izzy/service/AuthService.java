@@ -39,4 +39,8 @@ public class AuthService {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.isPresent();
     }
+
+    public UserPrincipal getUserByUserIdentifier(String phoneNumber){
+        return UserPrincipal.build(userRepository.findByPhoneNumber(phoneNumber).get());
+    }
 }

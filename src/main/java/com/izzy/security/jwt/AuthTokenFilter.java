@@ -19,46 +19,45 @@ import java.io.IOException;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
 
-  @Autowired
-  private JwtUtils jwtUtils;
+    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
-  @Autowired
-  private UserDetailsServiceImpl userDetailsService;
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        try {
+            String uri = request.getRequestURI();
+            if (!uri.startsWith("/izzy/auth") || uri.startsWith("/izzy/auth/signout")) {
+                String jwt = parseJwtFromCookie(request);
+                if (StringUtils.hasText(jwt) && jwtUtils.validateJwtToken(jwt)) {
+                    String userIdentifier = jwtUtils.getUserIdentifierFromJwtToken(jwt);
 
-  private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+                    UserDetails userDetails = userDetailsService.loadUserByUserIdentifier(userIdentifier);
 
-  @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
-    try {
-      if (!request.getRequestURI().startsWith("/izzy/auth")) {
-        String jwt = parseJwtFromCookie(request);
-        if (StringUtils.hasText(jwt) && jwtUtils.validateJwtToken(jwt)) {
-          String userIdentifier = jwtUtils.getUserIdentifierFromJwtToken(jwt);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails,
+                                    null,
+                                    userDetails.getAuthorities());
 
-          UserDetails userDetails = userDetailsService.loadUserByUserIdentifier(userIdentifier);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-          UsernamePasswordAuthenticationToken authentication =
-                  new UsernamePasswordAuthenticationToken(userDetails,
-                          null,
-                          userDetails.getAuthorities());
-
-          authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-          SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or missing JWT");
-          return;
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or missing token");
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication: {}", e);
         }
-      }
-    } catch (Exception e) {
-      logger.error("Cannot set user authentication: {}", e);
+
+        filterChain.doFilter(request, response);
     }
 
-    filterChain.doFilter(request, response);
-  }
-
-  private String parseJwtFromCookie(HttpServletRequest request) {
-    return jwtUtils.getJwtFromCookies(request);
-  }
+    private String parseJwtFromCookie(HttpServletRequest request) {
+        return jwtUtils.getJwtFromCookies(request);
+    }
 }

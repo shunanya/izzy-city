@@ -7,8 +7,10 @@ import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.MessageResponse;
 import com.izzy.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -53,8 +55,8 @@ public class UserController {
             User user = userService.getUserFromUserRequest(userRequest, true);
             User createdUser = userService.createUser(user);
             return ResponseEntity.ok(createdUser);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(400, Utils.substringErrorFromException(e)));
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
 
@@ -71,8 +73,8 @@ public class UserController {
                 return ResponseEntity.ok(updatedUser);
             }
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(400, Utils.substringErrorFromException(e)));
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
 
@@ -84,8 +86,8 @@ public class UserController {
                 return ResponseEntity.ok(new MessageResponse("User deleted"));
             }
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(400, Utils.substringErrorFromException(e)));
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
 }
