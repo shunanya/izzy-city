@@ -137,7 +137,7 @@ public class AuthController {
   }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest request) {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
         try {
             String refreshToken = jwtUtils.getJwtRefreshFromCookies(request);
 
