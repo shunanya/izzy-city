@@ -12,6 +12,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Override
+    List<User> findAll();
+
     @Override
     Optional<User> findById(Long id);
 
@@ -24,12 +28,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "(:lastName IS NULL OR u.last_name LIKE %:lastName%) AND " +
             "(:phoneNumber IS NULL OR u.phone_number LIKE %:phoneNumber%) AND " +
             "(:gender IS NULL OR u.gender = :gender) AND " +
-//            "(:zoneId IS NULL OR u.zone.id = :zoneId) AND " +
+            "(:zone IS NULL OR u.zone.name = :zone) AND " +
             "(:shift IS NULL OR u.shift = :shift)")
     List<User> findUsersByFilters(@Param("firstName") String firstName,
                                   @Param("lastName") String lastName,
                                   @Param("phoneNumber") String phoneNumber,
                                   @Param("gender") String gender,
-//                                  @Param("zoneId") Long zoneId,
+                                  @Param("zone") String zone,
                                   @Param("shift") String shift);
 }

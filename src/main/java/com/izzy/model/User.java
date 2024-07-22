@@ -53,7 +53,7 @@ public class User {
     @Basic
     @Column(name = "shift", length = 100)
     private String shift;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private User created_by;
     @Basic

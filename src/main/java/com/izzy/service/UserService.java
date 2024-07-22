@@ -35,12 +35,13 @@ public class UserService {
     }
 
     /**
-     * Converts UserRequest class to User entity
+     * Converts UserRequest class data into User entity data
+     *
      * @param userRequest class that has to be converted
-     * @param createUser When TRUE (i.e., called from createUser), the current date is inserted into the created_at field.
+     * @param createUser  When TRUE (i.e., called from createUser), the current date is inserted into the created_at field.
      * @return User class on success
      */
-    public User getUserFromUserRequest (@NonNull UserRequest userRequest, Boolean createUser){
+    public User getUserFromUserRequest(@NonNull UserRequest userRequest, Boolean createUser) {
         User user = new User();
         String tmp = userRequest.getFirstName();
         if (tmp != null && !tmp.isBlank()) user.setFirstName(tmp);
@@ -49,7 +50,7 @@ public class UserService {
         tmp = userRequest.getPhoneNumber();
         if (tmp != null && !tmp.isBlank()) user.setPhoneNumber(tmp);
         tmp = userRequest.getPassword();
-        if (tmp!= null && !tmp.isBlank()) user.setPassword(tmp);
+        if (tmp != null && !tmp.isBlank()) user.setPassword(tmp);
         tmp = userRequest.getGender();
         if (tmp != null && !tmp.isBlank()) user.setGender(tmp);
         LocalDate ld = userRequest.getDate_of_birth();
@@ -57,7 +58,8 @@ public class UserService {
         tmp = userRequest.getZone();
         if (tmp != null && !tmp.isBlank()) {
             Optional<Zone> existingZone = zoneRepository.findByName(tmp);
-            existingZone.ifPresent(user::setZone);
+            if (existingZone.isPresent()) user.setZone(existingZone.get());
+            else throw new IllegalArgumentException(String.format("Error: Provided zone named '%s' not found", tmp));
         }
         tmp = userRequest.getShift();
         if (tmp != null && !tmp.isEmpty()) user.setShift(tmp);
@@ -94,26 +96,40 @@ public class UserService {
 
     /**
      * Returns filtered or all users list
-     * @param firstName filtering parameter
-     * @param lastName filtering parameter
+     *
+     * @param firstName   filtering parameter
+     * @param lastName    filtering parameter
      * @param phoneNumber filtering parameter
-     * @param gender filtering parameter
-     * @param shift filtering parameter
+     * @param gender      filtering parameter
+     * @param zone        filtering parameter
+     * @param shift       filtering parameter
      * @return list of users
      */
-    public List<User> getUsers(String firstName, String lastName, String phoneNumber, String gender, String shift) {
-        if (firstName != null || lastName != null || phoneNumber != null || gender != null || shift != null) {
-            return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, shift);
+    public List<User> getUsers(String firstName, String lastName, String phoneNumber, String gender, String zone, String shift) {
+        if (firstName != null || lastName != null || phoneNumber != null || gender != null || zone != null || shift != null) {
+            return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift);
         } else {
             return userRepository.findAll();
         }
     }
 
+    /**
+     * Returns user data by user id
+     *
+     * @param id user id
+     * @return user {@link User} on success
+     */
     public User getUserById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
 
-    public User createUser(User user) {
+    /**
+     * Saves user data into storage
+     *
+     * @param user given user data
+     * @return saved user data on success
+     */
+    public User saveUser(User user) {
         String password = user.getPassword();
         if (password != null && !password.isBlank()) {
             String encodedPassword = passwordEncoder.encode(password);
@@ -122,6 +138,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Updates existing user data
+     *
+     * @param id   user id
+     * @param user user data
+     * @return saved user data on success
+     */
     public User updateUser(Long id, User user) {
         return userRepository.findById(id).map(existingUser -> {
             String tmp = user.getFirstName();
@@ -142,10 +165,19 @@ public class UserService {
             if (tmp != null && !tmp.isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(tmp));
             }
+            User rawUser = user.getCreatedBy();
+            if (rawUser != null) existingUser.setCreatedBy(rawUser);
+
             return userRepository.save(existingUser);
         }).orElse(null);
     }
 
+    /**
+     * Removes user data from storage
+     *
+     * @param id user id
+     * @return True on success
+     */
     public boolean deleteUser(Long id) {
         return userRepository.findById(id).map(user -> {
             userRepository.delete(user);

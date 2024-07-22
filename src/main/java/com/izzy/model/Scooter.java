@@ -1,5 +1,6 @@
 package com.izzy.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Set;
@@ -19,14 +20,16 @@ public class Scooter {
     @Basic
     @Column(name = "battery_level", nullable = false)
     private Integer batteryLevel;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "zone", referencedColumnName = "id")
     private Zone zone;
     @Basic
     @Column(name = "speed_limit", nullable = false)
     private Integer speedLimit;
+    @JsonIgnore
     @ManyToMany(mappedBy = "scooters")
     private Set<Order> orders;
+    @JsonIgnore
     @OneToMany(mappedBy = "scooter", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderScooter> orderScooters;
 

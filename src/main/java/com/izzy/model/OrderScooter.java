@@ -22,6 +22,16 @@ public class OrderScooter {
     public OrderScooter() {
     }
 
+    public OrderScooter(Order order, Scooter scooter) {
+        this(order, scooter, 0);
+    }
+
+    public OrderScooter(Order order, Scooter scooter, Integer priority) {
+        this.order = order;
+        this.scooter = scooter;
+        this.priority = priority;
+    }
+
     // getters and setters
 
     public OrderScooterId getId() {

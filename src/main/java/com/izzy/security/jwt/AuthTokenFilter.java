@@ -30,34 +30,35 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String uri = request.getRequestURI();
-            if (!uri.startsWith("/izzy/auth") || uri.startsWith("/izzy/auth/signout")) {
-                String jwt = parseJwtFromCookie(request);
-                if (StringUtils.hasText(jwt) && jwtUtils.validateJwtToken(jwt)) {
-                    String userIdentifier = jwtUtils.getUserIdentifierFromJwtToken(jwt);
+            if ((uri.startsWith("/izzy/auth") && !uri.startsWith("/izzy/auth/signout"))
+                    || uri.startsWith("/izzy/test")
+                    || uri.matches(	"/izzy/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)")) { // "/izzy/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)\\?\\.*"
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-                    UserDetails userDetails = userDetailsService.loadUserByUserIdentifier(userIdentifier);
+            String jwt = jwtUtils.getJwtFromCookies(request);
+            if (StringUtils.hasText(jwt) && jwtUtils.validateJwtToken(jwt)) {
+                String userIdentifier = jwtUtils.getUserIdentifierFromJwtToken(jwt);
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails,
-                                    null,
-                                    userDetails.getAuthorities());
+                UserDetails userDetails = userDetailsService.loadUserByUserIdentifier(userIdentifier);
 
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails,
+                                null,
+                                userDetails.getAuthorities());
 
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                } else {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or missing token");
-                    return;
-                }
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or missing token");
+                return;
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e);
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private String parseJwtFromCookie(HttpServletRequest request) {
-        return jwtUtils.getJwtFromCookies(request);
     }
 }

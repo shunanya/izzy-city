@@ -22,7 +22,7 @@ public class RestControllerExceptionHandler extends ResponseEntityExceptionHandl
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(code = HttpStatus.FORBIDDEN)
     public ResponseEntity<Object> resolveException(AccessDeniedException ex) {
-        return new ResponseEntity<Object>(
+        return new ResponseEntity<>(
                 "Access denied message here", new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 

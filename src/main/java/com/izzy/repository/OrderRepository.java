@@ -13,19 +13,19 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Override
-    Optional<Order> findById(Long aLong);
+    Optional<Order> findById(Long id);
 
     @Override
-    boolean existsById(Long aLong);
+    boolean existsById(Long id);
 
     @Override
-    void deleteById(Long aLong);
+    void deleteById(Long id);
 
     @Override
     void delete(Order entity);
 
     @Query("SELECT o FROM Order o WHERE " +
-            "(:action IS NULL OR o.action LIKE %:action%) AND " +
+            "(:action IS NULL OR o.action ILIKE %:action%) AND " +
             "(:status IS NULL OR o.status = :status) AND " +
             "(:createdBy IS NULL OR o.created_by.id = :createdBy) AND " +
             "(:assignedTo IS NULL OR o.assigned_to.id = :assignedTo)")

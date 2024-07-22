@@ -30,9 +30,9 @@ public class UserController {
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) String gender,
-//            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) String zone,
             @RequestParam(required = false) String shift) {
-        return userService.getUsers(firstName, lastName, phoneNumber, gender, shift);
+        return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift);
     }
 
     @GetMapping("/{id}")
@@ -47,13 +47,13 @@ public class UserController {
 
     @PostMapping
 //    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<?> createUser(@Valid @RequestBody String userRequestString) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody String userRequestString) {
         try {
             // Validate request body
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // processing
             User user = userService.getUserFromUserRequest(userRequest, true);
-            User createdUser = userService.createUser(user);
+            User createdUser = userService.saveUser(user);
             return ResponseEntity.ok(createdUser);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
@@ -62,7 +62,7 @@ public class UserController {
 
     @PutMapping("/{id}")
 //    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody String userRequestString) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody String userRequestString) {
         try {
             // Validate request body
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);

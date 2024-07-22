@@ -46,13 +46,13 @@ public class Order {
     @Basic
     @Column(name = "done_at")
     private Timestamp done_at;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "order_scooter",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "scooter_id"))
     private Set<Scooter> scooters;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<OrderScooter> orderScooters;
 
     // getters and setters
