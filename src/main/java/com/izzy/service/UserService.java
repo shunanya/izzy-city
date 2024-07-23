@@ -5,6 +5,7 @@ import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
 import com.izzy.payload.request.UserRequest;
+import com.izzy.payload.response.UserShortInfo;
 import com.izzy.repository.RoleRepository;
 import com.izzy.repository.UserRepository;
 import com.izzy.repository.ZoneRepository;
@@ -58,16 +59,17 @@ public class UserService {
         tmp = userRequest.getZone();
         if (tmp != null && !tmp.isBlank()) {
             Optional<Zone> existingZone = zoneRepository.findByName(tmp);
-            if (existingZone.isPresent()) user.setZone(existingZone.get());
+            if (existingZone.isPresent()) user.setZone(existingZone.get().getId());
             else throw new IllegalArgumentException(String.format("Error: Provided zone named '%s' not found", tmp));
         }
         tmp = userRequest.getShift();
         if (tmp != null && !tmp.isEmpty()) user.setShift(tmp);
         Long id = userRequest.getCreated_by();
-        if (id != null) {
-            Optional<User> existingUser = userRepository.findById(id);
-            existingUser.ifPresent(user::setCreatedBy);
-        }
+        user.setCreatedBy((id != null && userRepository.findById(id).isPresent()) ? id : null);
+//        if (id != null) {
+//            Optional<User> existingUser = userRepository.findById(id);
+//            existingUser.ifPresent(user -> user.setCreatedBy(id));
+//        }
         Timestamp ts = userRequest.getCreated_at();
         if (createUser) {
             user.setCreatedAt(Timestamp.from(Instant.now()));
@@ -94,6 +96,16 @@ public class UserService {
         return user;
     }
 
+    public UserShortInfo convertUserToShort(User user) {
+        String zoneName = null;
+        Long ld = user.getZone();
+        if (ld != null) {
+            Optional<Zone> optZone = zoneRepository.findById(ld);
+            if (optZone.isPresent()) zoneName = optZone.get().getName();
+        }
+        return new UserShortInfo(user.getId(), user.getFirstName(), user.getPhoneNumber(), user.getRoles(), zoneName);
+    }
+
     /**
      * Returns filtered or all users list
      *
@@ -101,13 +113,20 @@ public class UserService {
      * @param lastName    filtering parameter
      * @param phoneNumber filtering parameter
      * @param gender      filtering parameter
-     * @param zone        filtering parameter
+     * @param zoneName        filtering parameter
      * @param shift       filtering parameter
      * @return list of users
      */
-    public List<User> getUsers(String firstName, String lastName, String phoneNumber, String gender, String zone, String shift) {
-        if (firstName != null || lastName != null || phoneNumber != null || gender != null || zone != null || shift != null) {
-            return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift);
+    public List<User> getUsers(String firstName, String lastName, String phoneNumber, String gender, String zoneName, String shift) {
+        if (firstName != null || lastName != null || phoneNumber != null || gender != null || zoneName != null || shift != null) {
+            Long zoneId = null;
+            if (zoneName != null) {
+                Optional<Zone> optZone = zoneRepository.findByName(zoneName);
+                 if (optZone.isPresent()) zoneId = optZone.get().getId();
+                else
+                    throw new IllegalArgumentException(String.format("Error: provided zone '%s' isn't found in storage.", zoneName));
+            }
+            return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zoneId, shift);
         } else {
             return userRepository.findAll();
         }
@@ -159,14 +178,14 @@ public class UserService {
             if (tmp != null) existingUser.setShift(tmp);
             LocalDate ld = user.getDateOfBirth();
             if (ld != null) existingUser.setDateOfBirth(ld);
-            Zone zn = user.getZone();
-            if (zn != null) existingUser.setZone(zn);
+            Long ln = user.getZone();
+            if (ln != null) existingUser.setZone(ln);
             tmp = user.getPassword();
             if (tmp != null && !tmp.isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(tmp));
             }
-            User rawUser = user.getCreatedBy();
-            if (rawUser != null) existingUser.setCreatedBy(rawUser);
+            Long rawUserId = user.getCreatedBy();
+            userRepository.findById(rawUserId).ifPresent(u -> existingUser.setCreatedBy(rawUserId));
 
             return userRepository.save(existingUser);
         }).orElse(null);
@@ -184,4 +203,5 @@ public class UserService {
             return true;
         }).orElse(false);
     }
+
 }

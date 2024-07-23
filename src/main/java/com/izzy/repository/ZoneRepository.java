@@ -12,7 +12,6 @@ public interface ZoneRepository extends JpaRepository<Zone, Long> {
     @Override
     Optional<Zone> findById(Long id);
 
-    @Query("SELECT z FROM Zone z WHERE" +
-            "(:name IS NULL OR z.name ILIKE %:name%)")
+    @Query("SELECT z FROM Zone z WHERE z.name = :name")
     Optional<Zone> findByName(String name);
 }

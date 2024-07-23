@@ -24,16 +24,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByPhoneNumber(@NotBlank String phoneNumber);
 
     @Query("SELECT u FROM User u WHERE " +
-            "(:firstName IS NULL OR u.first_name LIKE %:firstName%) AND " +
-            "(:lastName IS NULL OR u.last_name LIKE %:lastName%) AND " +
-            "(:phoneNumber IS NULL OR u.phone_number LIKE %:phoneNumber%) AND " +
+            "(:firstName IS NULL OR u.first_name ILIKE %:firstName%) AND " +
+            "(:lastName IS NULL OR u.last_name ILIKE %:lastName%) AND " +
+            "(:phoneNumber IS NULL OR u.phone_number ILIKE %:phoneNumber%) AND " +
             "(:gender IS NULL OR u.gender = :gender) AND " +
-            "(:zone IS NULL OR u.zone.name = :zone) AND " +
-            "(:shift IS NULL OR u.shift = :shift)")
+            "(:shift IS NULL OR u.shift = :shift) AND " +
+            "(:zone IS NULL OR u.zone = :zone)")
     List<User> findUsersByFilters(@Param("firstName") String firstName,
                                   @Param("lastName") String lastName,
                                   @Param("phoneNumber") String phoneNumber,
                                   @Param("gender") String gender,
-                                  @Param("zone") String zone,
+                                  @Param("zone") Long zone,
                                   @Param("shift") String shift);
 }

@@ -24,7 +24,6 @@ public class ApiResponse implements Serializable {
     @JsonProperty("message")
     private String message;
 
-
     public ApiResponse(int statusCode, String message) {
         this.status = statusCode;
         this.message = message;

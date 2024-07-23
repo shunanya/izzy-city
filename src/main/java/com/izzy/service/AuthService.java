@@ -26,11 +26,11 @@ public class AuthService {
     }
 
     /**
-     * Registeres a new user
+     * Registers a new user
      *
      * @param signupRequest provided data {@link SignupRequest}
      * @return saved user data {@link User}
-     * @throws BadRequestException
+     * @throws BadRequestException throws when some incorrectness in request
      */
     public User registerUser(SignupRequest signupRequest) throws BadRequestException {
         User user = new User();
@@ -61,7 +61,7 @@ public class AuthService {
      *
      * @param phoneNumber provided unique user identifier (phone number)
      * @param rawPassword provided password
-     * @return
+     * @return existing user or null otherwise
      */
     public User login(String phoneNumber, String rawPassword) {
         Optional<User> userOptional = userRepository.findByPhoneNumber(phoneNumber);

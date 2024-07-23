@@ -2,7 +2,6 @@ package com.izzy.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.izzy.model.User;
-import com.izzy.model.Zone;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,8 +26,8 @@ public class UserPrincipal implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
 
     private UserPrincipal(Long id, String first_name, String last_name, String password, String phone_number,
-                          String gender, LocalDate date_of_birth, Zone zone, String shift,
-                          User created_by, Timestamp created_at,
+                          String gender, LocalDate date_of_birth, Long zone, String shift,
+                          Long created_by, Timestamp created_at,
                           User head_for_user, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.password = password;

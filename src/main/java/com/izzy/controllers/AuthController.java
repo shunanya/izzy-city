@@ -4,12 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.TokenRefreshException;
 import com.izzy.exception.utils.Utils;
 import com.izzy.model.RefreshToken;
-import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.payload.request.LoginRequest;
 import com.izzy.payload.request.SignupRequest;
 import com.izzy.payload.response.MessageResponse;
-import com.izzy.payload.response.UserInfoResponse;
+import com.izzy.payload.response.UserShortInfo;
 import com.izzy.security.jwt.JwtUtils;
 import com.izzy.service.AuthService;
 import com.izzy.service.RefreshTokenService;
@@ -27,9 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.security.auth.login.CredentialNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/izzy/auth")
@@ -74,16 +70,10 @@ public class AuthController {
                 ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(user);
                 RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
                 ResponseCookie jwtRefreshCookie = jwtUtils.generateRefreshJwtCookie(refreshToken.getCurrentToken());
-                Set<Role> set = user.getRoles();
-                List<String> roles = new ArrayList<>(1);
-                set.forEach(role -> roles.add(role.getName()));
                 return ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                         .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
-                        .body(new UserInfoResponse(user.getId(),
-                                user.getFirstName(),
-                                user.getPhoneNumber(),
-                                roles));
+                        .body(new UserShortInfo(user));
             }
             throw new CredentialNotFoundException("Error: Provided credentials are wrong.");
         } catch (Exception ex) {

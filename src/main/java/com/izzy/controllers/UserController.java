@@ -32,15 +32,20 @@ public class UserController {
             @RequestParam(required = false) String gender,
             @RequestParam(required = false) String zone,
             @RequestParam(required = false) String shift) {
-        return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift);
+        try {
+            return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
     }
 
     @GetMapping("/{id}")
 //    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getUserById(@PathVariable Long id,
+                                         @RequestParam(value = "short", required = false, defaultValue = "false") boolean shortView) {
         User user = userService.getUserById(id);
         if (user != null) {
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(shortView ? userService.convertUserToShort(user) : user);
         }
         return ResponseEntity.notFound().build();
     }

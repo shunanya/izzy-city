@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Set;
@@ -26,8 +27,9 @@ import java.util.Set;
         "headForUser",
         "roles"
 })
-public class User {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class User implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
     @Basic
@@ -47,19 +49,25 @@ public class User {
     @Column(name = "gender", length = 100)
     private String gender;
     private LocalDate date_of_birth;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "zone", referencedColumnName = "id")
-    private Zone zone;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "zone", referencedColumnName = "id")
+//    private Zone zone;
+    @Basic
+    @Column(name = "zone")
+    private Long zone;
     @Basic
     @Column(name = "shift", length = 100)
     private String shift;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private User created_by;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "created_by", referencedColumnName = "id")
+//    private User created_by;
+    @Basic
+    @Column(name = "created_by")
+    private Long created_by;
     @Basic
     @Column(name = "created_at", nullable = false)
     private Timestamp created_at;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "head_for_user", referencedColumnName = "id")
     private User head_for_user;
     @ManyToMany(fetch = FetchType.EAGER)
@@ -74,7 +82,7 @@ public class User {
 
     // getters and setters
 
-    public  Set<Role> getRoles(){
+    public Set<Role> getRoles() {
         return roles;
     }
 
@@ -138,11 +146,11 @@ public class User {
         this.date_of_birth = dateOfBirth;
     }
 
-    public Zone getZone() {
+    public Long getZone() {
         return zone;
     }
 
-    public void setZone(Zone zone) {
+    public void setZone(Long zone) {
         this.zone = zone;
     }
 
@@ -154,11 +162,11 @@ public class User {
         this.shift = shift;
     }
 
-    public User getCreatedBy() {
+    public Long getCreatedBy() {
         return created_by;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(Long createdBy) {
         this.created_by = createdBy;
     }
 
