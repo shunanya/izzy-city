@@ -26,9 +26,9 @@ public class UserPrincipal implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
 
     private UserPrincipal(Long id, String first_name, String last_name, String password, String phone_number,
-                          String gender, LocalDate date_of_birth, Long zone, String shift,
+                          String gender, LocalDate date_of_birth, String zone, String shift,
                           Long created_by, Timestamp created_at,
-                          User head_for_user, Collection<? extends GrantedAuthority> authorities) {
+                          Long head_for_user, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.password = password;
         this.phone_number  = phone_number;

@@ -49,27 +49,21 @@ public class User implements Serializable {
     @Column(name = "gender", length = 100)
     private String gender;
     private LocalDate date_of_birth;
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "zone", referencedColumnName = "id")
-//    private Zone zone;
     @Basic
     @Column(name = "zone")
-    private Long zone;
+    private String zone;
     @Basic
     @Column(name = "shift", length = 100)
     private String shift;
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "created_by", referencedColumnName = "id")
-//    private User created_by;
     @Basic
     @Column(name = "created_by")
     private Long created_by;
     @Basic
     @Column(name = "created_at", nullable = false)
     private Timestamp created_at;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "head_for_user", referencedColumnName = "id")
-    private User head_for_user;
+    @Basic
+    @Column(name = "head_for_user")
+    private Long head_for_user;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -146,13 +140,9 @@ public class User implements Serializable {
         this.date_of_birth = dateOfBirth;
     }
 
-    public Long getZone() {
-        return zone;
-    }
+    public String getZone() {return zone;}
 
-    public void setZone(Long zone) {
-        this.zone = zone;
-    }
+    public void setZone(String zone) {this.zone = zone;}
 
     public String getShift() {
         return shift;
@@ -178,11 +168,7 @@ public class User implements Serializable {
         this.created_at = createdAt;
     }
 
-    public User getHeadForUser() {
-        return head_for_user;
-    }
+    public Long getHeadForUser() {return head_for_user;}
 
-    public void setHeadForUser(User headForUser) {
-        this.head_for_user = headForUser;
-    }
+    public void setHeadForUser(Long headForUser) {this.head_for_user = headForUser;}
 }

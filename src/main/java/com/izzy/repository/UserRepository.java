@@ -34,6 +34,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                   @Param("lastName") String lastName,
                                   @Param("phoneNumber") String phoneNumber,
                                   @Param("gender") String gender,
-                                  @Param("zone") Long zone,
+                                  @Param("zone") String zone,
                                   @Param("shift") String shift);
 }

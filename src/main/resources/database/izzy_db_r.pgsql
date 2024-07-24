@@ -27,7 +27,7 @@ SET default_table_access_method = heap;
 CREATE TABLE public.order_scooter (
     "order_Id" bigint NOT NULL,
     "scooter_Id" bigint NOT NULL,
-    "Priority" integer
+    priority integer
 );
 
 
@@ -121,7 +121,7 @@ ALTER TABLE public.refreshtoken_id_seq OWNER TO root;
 
 CREATE TABLE public.refreshtoken (
     id bigint DEFAULT nextval('public.refreshtoken_id_seq'::regclass) NOT NULL,
-    expiry_date timestamp without time zone,
+    expiry_date timestamp with time zone,
     current_token character varying(255),
     user_id bigint NOT NULL
 );
@@ -263,14 +263,14 @@ COMMENT ON TABLE public.user_roles IS 'Intermediate table holding records linkin
 
 CREATE TABLE public.users (
     id bigint NOT NULL,
-    first_name character varying(255) NOT NULL,
-    last_name character varying(255),
+    first_name character varying(60) NOT NULL,
+    last_name character varying(60),
     password character varying(60),
-    phone_number character varying(255) NOT NULL,
-    gender character varying(255),
+    phone_number character varying(50) NOT NULL,
+    gender character varying(20),
     date_of_birth date,
-    zone bigint,
-    shift character varying(255),
+    zone character varying(50),
+    shift character varying(50),
     created_by bigint,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     head_for_user bigint,
@@ -309,7 +309,7 @@ Not specified';
 -- Name: COLUMN users.zone; Type: COMMENT; Schema: public; Owner: root
 --
 
-COMMENT ON COLUMN public.users.zone IS 'id to predefined available zones';
+COMMENT ON COLUMN public.users.zone IS 'predefined available zone';
 
 
 --
@@ -444,83 +444,78 @@ ALTER TABLE ONLY public.zones ALTER COLUMN id SET DEFAULT nextval('public.zones_
 -- Data for Name: order_scooter; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.order_scooter ("order_Id", "scooter_Id", "Priority") FROM stdin;
-\.
 
 
 --
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.orders (id, action, name, description, created_by, created_at, updated_by, updated_at, assigned_to, status, taken_by, taken_at, done_at) FROM stdin;
-\.
+INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:38:03.509133', NULL, NULL, NULL, 'Created', NULL, NULL, NULL);
 
 
 --
 -- Data for Name: refreshtoken; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.refreshtoken (id, expiry_date, current_token, user_id) FROM stdin;
-\.
+INSERT INTO public.refreshtoken VALUES (8, '2024-07-24 17:28:54.10773+04', 'db2c4f34-fdcc-44f9-9f28-7143427e1d8b', 3);
 
 
 --
 -- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.roles (id, name) FROM stdin;
-1	Admin
-2	Manager
-3	Supervisor
-4	Charger
-5	Scout
-\.
+INSERT INTO public.roles VALUES (1, 'Admin');
+INSERT INTO public.roles VALUES (2, 'Manager');
+INSERT INTO public.roles VALUES (3, 'Supervisor');
+INSERT INTO public.roles VALUES (4, 'Charger');
+INSERT INTO public.roles VALUES (5, 'Scout');
 
 
 --
 -- Data for Name: scooters; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.scooters (id, identifier, status, battery_level, zone, speed_limit) FROM stdin;
-\.
+INSERT INTO public.scooters VALUES (1, '3366', 'Active', 40, NULL, 50);
 
 
 --
 -- Data for Name: user_roles; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.user_roles (user_id, role_id) FROM stdin;
-\.
+INSERT INTO public.user_roles VALUES (3, 1);
+INSERT INTO public.user_roles VALUES (6, 5);
+INSERT INTO public.user_roles VALUES (6, 4);
 
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.users (id, first_name, last_name, password, phone_number, gender, date_of_birth, zone, shift, created_by, created_at, head_for_user) FROM stdin;
-\.
+INSERT INTO public.users VALUES (6, 'user_scout', NULL, NULL, '71001122', 'Male', NULL, NULL, NULL, NULL, '2024-07-17 20:51:43.468797', NULL);
+INSERT INTO public.users VALUES (3, 'duty_admin', NULL, '$2a$10$KDr0088bx1wGYDXuRT.YL.5Xz5spiagqCiuFPiE.o0TZst7b3nudK', '55001122', 'Female', '2024-07-16', 'z01', 'day shift', 6, '2024-07-16 21:49:22.325', NULL);
 
 
 --
 -- Data for Name: zones; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.zones (id, name) FROM stdin;
-\.
+INSERT INTO public.zones VALUES (1, 'z01');
+INSERT INTO public.zones VALUES (2, 'z02');
+INSERT INTO public.zones VALUES (3, 'z03');
 
 
 --
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 1, false);
+SELECT pg_catalog.setval('public.orders_id_seq', 15, true);
 
 
 --
 -- Name: refreshtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.refreshtoken_id_seq', 1, false);
+SELECT pg_catalog.setval('public.refreshtoken_id_seq', 8, true);
 
 
 --
@@ -534,14 +529,14 @@ SELECT pg_catalog.setval('public.roles_id_seq', 5, true);
 -- Name: scooters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.scooters_id_seq', 1, false);
+SELECT pg_catalog.setval('public.scooters_id_seq', 1, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 1, false);
+SELECT pg_catalog.setval('public.users_id_seq', 8, true);
 
 
 --
@@ -765,14 +760,6 @@ ALTER TABLE ONLY public.scooters
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
-
-
---
--- Name: users zone_fk; Type: FK CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT zone_fk FOREIGN KEY (zone) REFERENCES public.zones(id) ON DELETE CASCADE;
 
 
 --
