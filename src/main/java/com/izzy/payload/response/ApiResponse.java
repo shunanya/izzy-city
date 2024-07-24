@@ -3,14 +3,15 @@ package com.izzy.payload.response;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.springframework.http.HttpStatus;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 
 @JsonPropertyOrder({
-        "status",
-        "message"
+    "status",
+    "message"
 })
 public class ApiResponse implements Serializable {
 
@@ -31,6 +32,11 @@ public class ApiResponse implements Serializable {
 
     public int getStatus() {
         return status;
+    }
+
+    public HttpStatus getHttpStatus() {
+        HttpStatus httpStatus = HttpStatus.resolve(status);
+        return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     public String getMessage() {

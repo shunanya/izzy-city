@@ -45,7 +45,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
+            http.getSharedObject(AuthenticationManagerBuilder.class);
         authManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
         return authManagerBuilder.build();
     }
@@ -53,14 +53,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers(RegexRequestMatcher.regexMatcher("/izzy/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)")).permitAll()
-                                .requestMatchers("/izzy/auth/**").permitAll()
-                                .requestMatchers("/izzy/test/**").permitAll()
-                                .anyRequest().authenticated()
-                );
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth ->
+                auth.requestMatchers(RegexRequestMatcher.regexMatcher("/izzy/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)")).permitAll()
+                    .requestMatchers("/izzy/auth/**").permitAll()
+                    .requestMatchers("/izzy/test/**").permitAll()
+                    .anyRequest().authenticated()
+            );
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 

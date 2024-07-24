@@ -9,6 +9,7 @@ import com.izzy.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,14 +25,14 @@ public class UserController {
     }
 
     @GetMapping
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')") //?????????????????
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public List<User> getUsers(
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String lastName,
-            @RequestParam(required = false) String phoneNumber,
-            @RequestParam(required = false) String gender,
-            @RequestParam(required = false) String zone,
-            @RequestParam(required = false) String shift) {
+        @RequestParam(required = false) String firstName,
+        @RequestParam(required = false) String lastName,
+        @RequestParam(required = false) String phoneNumber,
+        @RequestParam(required = false) String gender,
+        @RequestParam(required = false) String zone,
+        @RequestParam(required = false) String shift) {
         try {
             return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift);
         } catch (Exception ex) {
@@ -40,7 +41,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<?> getUserById(@PathVariable Long id,
                                          @RequestParam(value = "short", required = false, defaultValue = "false") boolean shortView) {
         User user = userService.getUserById(id);
@@ -51,7 +52,7 @@ public class UserController {
     }
 
     @PostMapping
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<User> createUser(@Valid @RequestBody String userRequestString) {
         try {
             // Validate request body
@@ -66,7 +67,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody String userRequestString) {
         try {
             // Validate request body
@@ -84,7 +85,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
             if (userService.deleteUser(id)) {

@@ -7,7 +7,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serial;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Collection;
@@ -16,14 +15,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class UserPrincipal implements UserDetails {
-    @Serial
-    private static final long serialVersionUID = 1L;
 
-    private Long id;
+    private final Long id;
     @JsonIgnore
-    private String password;
-    private String phone_number;
-    private Collection<? extends GrantedAuthority> authorities;
+    private final String password;
+    private final String phone_number;
+    private final Collection<? extends GrantedAuthority> authorities;
+
 
     private UserPrincipal(Long id, String first_name, String last_name, String password, String phone_number,
                           String gender, LocalDate date_of_birth, String zone, String shift,
@@ -31,21 +29,21 @@ public class UserPrincipal implements UserDetails {
                           Long head_for_user, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.password = password;
-        this.phone_number  = phone_number;
+        this.phone_number = phone_number;
         this.authorities = authorities;
     }
 
     public static UserPrincipal build(@NotBlank User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+            .collect(Collectors.toList());
 
         return new UserPrincipal(
-                user.getId(),
-                user.getFirstName(), user.getLastName(), user.getPassword(), user.getPhoneNumber(),
-                user.getGender(), user.getDateOfBirth(), user.getZone(), user.getShift(),
-                user.getCreatedBy(), user.getCreatedAt(),
-                user.getHeadForUser(), authorities);
+            user.getId(),
+            user.getFirstName(), user.getLastName(), user.getPassword(), user.getPhoneNumber(),
+            user.getGender(), user.getDateOfBirth(), user.getZone(), user.getShift(),
+            user.getCreatedBy(), user.getCreatedAt(),
+            user.getHeadForUser(), authorities);
     }
 
     @Override
@@ -67,7 +65,7 @@ public class UserPrincipal implements UserDetails {
         return null;
     }
 
-    public String getPhoneNumber(){
+    public String getPhoneNumber() {
         return phone_number;
     }
 

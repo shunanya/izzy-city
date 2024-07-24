@@ -21,8 +21,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(@NotBlank String username) throws UsernameNotFoundException {
-        return null;
+    public UserDetails loadUserByUsername(@NotBlank String phoneNumber) throws UsernameNotFoundException {
+        return loadUserByUserIdentifier(phoneNumber);
     }
 
     @Transactional
