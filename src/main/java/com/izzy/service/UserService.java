@@ -177,6 +177,10 @@ public class UserService {
         }).orElse(null);
     }
 
+    public boolean existsUser(Long id) {
+        return userRepository.existsById(id);
+    }
+
     /**
      * Removes user data from storage
      *

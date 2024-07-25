@@ -19,6 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Override
     Optional<User> findById(Long id);
 
+    @Override
+    boolean existsById(Long id);
+
     @Query("SELECT u FROM User u WHERE " +
             "(u.phone_number LIKE %:phoneNumber%)")
     Optional<User> findByPhoneNumber(@NotBlank String phoneNumber);

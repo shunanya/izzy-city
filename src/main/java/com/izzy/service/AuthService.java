@@ -40,7 +40,7 @@ public class AuthService {
         if (password != null && !password.isBlank()) {
             user.setPassword(passwordEncoder.encode(password));
         }
-        user.setPassword(signupRequest.getPassword());
+//        user.setPassword(signupRequest.getPassword());
         Set<String> strRoles = signupRequest.getRole();
         Set<Role> roles = new HashSet<>();
         if (strRoles != null && !strRoles.isEmpty()) {
