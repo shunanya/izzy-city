@@ -17,7 +17,7 @@ public class CustomService {
     private static final Map<String, Integer> roles = new HashMap<>();
 
     static {
-        // Default Roles
+        // Initializing Default Roles
         roles.put("ROLE_Admin", 5);
         roles.put("ROLE_Manager", 4);
         roles.put("ROLE_Supervisor", 3);
