@@ -39,11 +39,12 @@ public class UserService {
      * Converts UserRequest class data into User entity data
      *
      * @param userRequest class that has to be converted
-     * @param createUser  When TRUE (i.e., called from createUser), the current date is inserted into the created_at field.
+     * @param id          nullable value means Create User (the current date is inserted into the created_at field).
      * @return User class on success
      */
-    public User getUserFromUserRequest(@NonNull UserRequest userRequest, Boolean createUser) {
-        User user = new User();
+    public User getUserFromUserRequest(Long id, @NonNull UserRequest userRequest) {
+        boolean createUser = (id == null);
+        User user = (id == null) ? new User() : userRepository.findById(id).get();
         String tmp = userRequest.getFirstName();
         if (tmp != null && !tmp.isBlank()) user.setFirstName(tmp);
         tmp = userRequest.getLastName();
@@ -64,10 +65,11 @@ public class UserService {
         }
         tmp = userRequest.getShift();
         if (tmp != null && !tmp.isEmpty()) user.setShift(tmp);
-        Long id = userRequest.getCreated_by();
-        if (id != null) {
-            if (userRepository.findById(id).isPresent()) user.setCreatedBy(id);
-            else throw new IllegalArgumentException(String.format("Error: Creator-user with ID '%s' not found.", id));
+        Long aLong = userRequest.getCreated_by();
+        if (aLong != null) {
+            if (userRepository.findById(aLong).isPresent()) user.setCreatedBy(aLong);
+            else
+                throw new IllegalArgumentException(String.format("Error: Creator-user with ID '%s' not found.", aLong));
         }
         Timestamp ts = userRequest.getCreated_at();
         if (createUser) {
@@ -75,10 +77,10 @@ public class UserService {
         } else if (ts != null) {
             user.setCreatedAt(ts);
         }
-        id = userRequest.getHead_for_user();
-        if (id != null) {
-            if (userRepository.findById(id).isPresent()) user.setHeadForUser(id);
-            else throw new IllegalArgumentException(String.format("Error: Head-user with ID '%s' not found.", id));
+        aLong = userRequest.getHead_for_user();
+        if (aLong != null) {
+            if (userRepository.findById(aLong).isPresent()) user.setHeadForUser(aLong);
+            else throw new IllegalArgumentException(String.format("Error: Head-user with ID '%s' not found.", aLong));
         }
         Set<String> rawRole = userRequest.getRole();
         if (rawRole != null && !rawRole.isEmpty()) {
@@ -95,6 +97,12 @@ public class UserService {
         return user;
     }
 
+    /**
+     * Converts User structure to shortInfo
+     *
+     * @param user whole user entity
+     * @return UserShortInfo data
+     */
     public UserShortInfo convertUserToShort(User user) {
         return new UserShortInfo(user);
     }
@@ -150,31 +158,11 @@ public class UserService {
      * @param user user data
      * @return saved user data on success
      */
-    public User updateUser(Long id, User user) {
-        return userRepository.findById(id).map(existingUser -> {
-            String tmp = user.getFirstName();
-            if (tmp != null) existingUser.setFirstName(tmp);
-            tmp = user.getLastName();
-            if (tmp != null) existingUser.setLastName(tmp);
-            tmp = user.getPhoneNumber();
-            if (tmp != null) existingUser.setPhoneNumber(tmp);
-            tmp = user.getGender();
-            if (tmp != null) existingUser.setGender(tmp);
-            tmp = user.getShift();
-            if (tmp != null) existingUser.setShift(tmp);
-            LocalDate ld = user.getDateOfBirth();
-            if (ld != null) existingUser.setDateOfBirth(ld);
-            tmp = user.getZone();
-            if (tmp != null) existingUser.setZone(tmp);
-            tmp = user.getPassword();
-            if (tmp != null && !tmp.isEmpty()) {
-                existingUser.setPassword(passwordEncoder.encode(tmp));
-            }
-            Long rawUserId = user.getCreatedBy();
-            userRepository.findById(rawUserId).ifPresent(u -> existingUser.setCreatedBy(rawUserId));
-
-            return userRepository.save(existingUser);
-        }).orElse(null);
+    public User updateUser(@NonNull Long id, @NonNull User user) {
+        if (!user.getId().equals(id)) {
+            throw new IllegalArgumentException("The parameters for the updateUser method are incorrect.");
+        }
+        return userRepository.save(user);
     }
 
     public boolean existsUser(Long id) {
