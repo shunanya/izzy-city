@@ -55,7 +55,7 @@ public class UserService {
         if (tmp != null && !tmp.isBlank()) user.setPassword(tmp);
         tmp = userRequest.getGender();
         if (tmp != null && !tmp.isBlank()) user.setGender(tmp);
-        LocalDate ld = userRequest.getDate_of_birth();
+        LocalDate ld = userRequest.getDateOfBirth();
         if (ld != null && !ld.toString().isBlank()) user.setDateOfBirth(ld);
         tmp = userRequest.getZone();
         if (tmp != null && !tmp.isBlank()) {
@@ -65,19 +65,19 @@ public class UserService {
         }
         tmp = userRequest.getShift();
         if (tmp != null && !tmp.isEmpty()) user.setShift(tmp);
-        Long aLong = userRequest.getCreated_by();
+        Long aLong = userRequest.getCreatedBy();
         if (aLong != null) {
             if (userRepository.findById(aLong).isPresent()) user.setCreatedBy(aLong);
             else
                 throw new IllegalArgumentException(String.format("Error: Creator-user with ID '%s' not found.", aLong));
         }
-        Timestamp ts = userRequest.getCreated_at();
+        Timestamp ts = userRequest.getCreatedAt();
         if (createUser) {
             user.setCreatedAt(Timestamp.from(Instant.now()));
         } else if (ts != null) {
             user.setCreatedAt(ts);
         }
-        aLong = userRequest.getHead_for_user();
+        aLong = userRequest.getHeadForUser();
         if (aLong != null) {
             if (userRepository.findById(aLong).isPresent()) user.setHeadForUser(aLong);
             else throw new IllegalArgumentException(String.format("Error: Head-user with ID '%s' not found.", aLong));

@@ -15,12 +15,12 @@ public class UserRequest {
     @Size(min = 6, max = 40)
     private String password;
     private String gender;
-    private LocalDate date_of_birth;
+    private LocalDate dateOfBirth;
     private String zone;
     private String shift;
-    private Long created_by;
-    private Timestamp created_at;
-    private Long head_for_user;
+    private Long createdBy;
+    private Timestamp createdAt;
+    private Long headForUser;
     private Set<String> role;
 
     public String getFirstName() {
@@ -63,12 +63,12 @@ public class UserRequest {
         this.gender = gender;
     }
 
-    public LocalDate getDate_of_birth() {
-        return date_of_birth;
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
     }
 
-    public void setDate_of_birth(LocalDate date_of_birth) {
-        this.date_of_birth = date_of_birth;
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     public String getZone() {
@@ -87,28 +87,28 @@ public class UserRequest {
         this.shift = shift;
     }
 
-    public Long getCreated_by() {
-        return created_by;
+    public Long getCreatedBy() {
+        return createdBy;
     }
 
-    public void setCreated_by(Long created_by) {
-        this.created_by = created_by;
+    public void setCreated_by(Long createdBy) {
+        this.createdBy = createdBy;
     }
 
-    public Timestamp getCreated_at() {
-        return created_at;
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(Timestamp created_at) {
-        this.created_at = created_at;
+    public void setCreated_at(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public Long getHead_for_user() {
-        return head_for_user;
+    public Long getHeadForUser() {
+        return headForUser;
     }
 
-    public void setHead_for_user(Long head_for_user) {
-        this.head_for_user = head_for_user;
+    public void setHead_for_user(Long headForUser) {
+        this.headForUser = headForUser;
     }
 
     public Set<String> getRole() {

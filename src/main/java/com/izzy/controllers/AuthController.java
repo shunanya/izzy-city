@@ -46,10 +46,10 @@ public class AuthController {
             // Validate request body (in correspondence to SignupRequest class)
             SignupRequest signupRequest = (new ObjectMapper()).readValue(signupRequestString, SignupRequest.class);
             // Processing
-            if (authService.existByUserIdentifier(signupRequest.getPhonenumber())) {
+            if (authService.existByUserIdentifier(signupRequest.getPhoneNumber())) {
                 throw new BadCredentialsException("Error: Username is already taken!");
             }
-            if (authService.existByUserIdentifier(signupRequest.getPhonenumber())) {
+            if (authService.existByUserIdentifier(signupRequest.getPhoneNumber())) {
                 throw new BadCredentialsException("Error: phone number is already in use!");
             }
             User savedUser = authService.registerUser(signupRequest);

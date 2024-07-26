@@ -34,8 +34,8 @@ public class AuthService {
      */
     public User registerUser(SignupRequest signupRequest) throws BadRequestException {
         User user = new User();
-        user.setFirstName(signupRequest.getFirstname());
-        user.setPhoneNumber(signupRequest.getPhonenumber());
+        user.setFirstName(signupRequest.getFirstName());
+        user.setPhoneNumber(signupRequest.getPhoneNumber());
         String password = signupRequest.getPassword();
         if (password != null && !password.isBlank()) {
             user.setPassword(passwordEncoder.encode(password));
