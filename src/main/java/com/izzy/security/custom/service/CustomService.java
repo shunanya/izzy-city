@@ -54,4 +54,14 @@ public class CustomService {
         return currentRole >= requestingRole;
     }
 
+    public Long currentUserId() {
+        Long id = null;
+        Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (currenUserAuth != null && currenUserAuth.isAuthenticated()) {
+            // Get the UserDetails object
+            UserPrincipal currentUserDetails = (UserPrincipal) currenUserAuth.getPrincipal();
+            id = currentUserDetails.getId();
+        }
+        return id;
+    }
 }

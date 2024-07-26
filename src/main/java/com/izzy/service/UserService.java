@@ -9,6 +9,7 @@ import com.izzy.payload.response.UserShortInfo;
 import com.izzy.repository.RoleRepository;
 import com.izzy.repository.UserRepository;
 import com.izzy.repository.ZoneRepository;
+import com.izzy.security.custom.service.CustomService;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,12 +28,18 @@ public class UserService {
     private final ZoneRepository zoneRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CustomService customService;
 
-    public UserService(UserRepository userRepository, ZoneRepository zoneRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       ZoneRepository zoneRepository,
+                       RoleRepository roleRepository,
+                       PasswordEncoder passwordEncoder,
+                       CustomService customService) {
         this.userRepository = userRepository;
         this.zoneRepository = zoneRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.customService = customService;
     }
 
     /**
@@ -66,7 +73,9 @@ public class UserService {
         tmp = userRequest.getShift();
         if (tmp != null && !tmp.isEmpty()) user.setShift(tmp);
         Long aLong = userRequest.getCreatedBy();
-        if (aLong != null) {
+        if (createUser) {
+            user.setCreatedBy(customService.currentUserId());
+        } else if (aLong != null) {
             if (userRepository.findById(aLong).isPresent()) user.setCreatedBy(aLong);
             else
                 throw new IllegalArgumentException(String.format("Error: Creator-user with ID '%s' not found.", aLong));

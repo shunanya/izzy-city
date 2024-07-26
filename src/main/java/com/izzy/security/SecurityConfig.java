@@ -5,6 +5,8 @@ import com.izzy.security.jwt.AuthTokenFilter;
 import com.izzy.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -33,6 +35,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("ROLE_Admin > ROLE_Manager > ROLE_Supervisor > ROLE_Charger > ROLE_Scout");
+    }
+
+    @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
     }
@@ -45,7 +52,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authManagerBuilder =
-            http.getSharedObject(AuthenticationManagerBuilder.class);
+                http.getSharedObject(AuthenticationManagerBuilder.class);
         authManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
         return authManagerBuilder.build();
     }
@@ -53,14 +60,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth ->
-                auth.requestMatchers(RegexRequestMatcher.regexMatcher("/izzy/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)")).permitAll()
-                    .requestMatchers("/izzy/auth/**").permitAll()
-                    .requestMatchers("/izzy/test/**").permitAll()
-                    .anyRequest().authenticated()
-            );
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth ->
+                        auth.requestMatchers(RegexRequestMatcher.regexMatcher("/izzy/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)")).permitAll()
+//                                .requestMatchers("/izzy/auth/signup").hasRole("ADMIN")
+                                .requestMatchers("/izzy/auth/**").permitAll()
+                                .requestMatchers("/izzy/test/**").permitAll()
+                                .anyRequest().authenticated()
+                );
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
