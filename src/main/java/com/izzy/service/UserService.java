@@ -59,7 +59,7 @@ public class UserService {
         tmp = userRequest.getPhoneNumber();
         if (tmp != null && !tmp.isBlank()) user.setPhoneNumber(tmp);
         tmp = userRequest.getPassword();
-        if (tmp != null && !tmp.isBlank()) user.setPassword(tmp);
+        if (tmp != null && !tmp.isBlank()) user.setPassword(passwordEncoder.encode(tmp));
         tmp = userRequest.getGender();
         if (tmp != null && !tmp.isBlank()) user.setGender(tmp);
         LocalDate ld = userRequest.getDateOfBirth();
@@ -152,12 +152,7 @@ public class UserService {
      * @return saved user data on success
      */
     public User saveUser(User user) {
-        String password = user.getPassword();
-        if (password != null && !password.isBlank()) {
-            String encodedPassword = passwordEncoder.encode(password);
-            user.setPassword(encodedPassword);
-        }
-        return userRepository.save(user);
+         return userRepository.save(user);
     }
 
     /**

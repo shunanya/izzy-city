@@ -1,5 +1,6 @@
 package com.izzy.payload.request;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.sql.Timestamp;
@@ -7,9 +8,11 @@ import java.time.LocalDate;
 import java.util.Set;
 
 public class UserRequest {
+    @NotBlank
     @Size(min = 3, max = 20)
     private String firstName;
     private String lastName;
+    @NotBlank
     @Size(max = 50)
     private String phoneNumber;
     @Size(min = 6, max = 40)

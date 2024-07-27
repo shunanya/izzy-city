@@ -6,7 +6,6 @@ import com.izzy.exception.utils.Utils;
 import com.izzy.model.RefreshToken;
 import com.izzy.model.User;
 import com.izzy.payload.request.LoginRequest;
-import com.izzy.payload.request.SignupRequest;
 import com.izzy.payload.response.MessageResponse;
 import com.izzy.payload.response.UserShortInfo;
 import com.izzy.security.jwt.JwtUtils;
@@ -18,7 +17,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,25 +36,6 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
         this.refreshTokenService = refreshTokenService;
         this.authService = authService;
-    }
-
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody String signupRequestString) {
-        try {
-            // Validate request body (in correspondence to SignupRequest class)
-            SignupRequest signupRequest = (new ObjectMapper()).readValue(signupRequestString, SignupRequest.class);
-            // Processing
-            if (authService.existByUserIdentifier(signupRequest.getPhoneNumber())) {
-                throw new BadCredentialsException("Error: Username is already taken!");
-            }
-            if (authService.existByUserIdentifier(signupRequest.getPhoneNumber())) {
-                throw new BadCredentialsException("Error: phone number is already in use!");
-            }
-            User savedUser = authService.registerUser(signupRequest);
-            return ResponseEntity.ok(savedUser);
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
-        }
     }
 
     @PostMapping("/signin")
