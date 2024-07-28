@@ -48,7 +48,7 @@ public class UserController {
             User user = userService.getUserById(id);
             if (user != null) {
                 if (customService.checkAllowability(user))
-                    return ResponseEntity.ok(shortView ? userService.convertUserToShort(user) : user);
+                    return ResponseEntity.ok(shortView ? userService.convertUserToShort(user) : userService.connvertUserToUserInfo(user));
                 else
                     throw new AccessDeniedException("not allowed to request user with above your role");
             }

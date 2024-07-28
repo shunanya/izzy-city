@@ -5,6 +5,7 @@ import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
 import com.izzy.payload.request.UserRequest;
+import com.izzy.payload.response.UserInfo;
 import com.izzy.payload.response.UserShortInfo;
 import com.izzy.repository.RoleRepository;
 import com.izzy.repository.UserRepository;
@@ -116,6 +117,10 @@ public class UserService {
         return new UserShortInfo(user);
     }
 
+    public UserInfo connvertUserToUserInfo(User user) {
+        return new UserInfo(user);
+    }
+
     /**
      * Returns filtered or all users list
      *
@@ -152,7 +157,7 @@ public class UserService {
      * @return saved user data on success
      */
     public User saveUser(User user) {
-         return userRepository.save(user);
+        return userRepository.save(user);
     }
 
     /**

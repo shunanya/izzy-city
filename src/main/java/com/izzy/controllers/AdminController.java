@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.utils.Utils;
 import com.izzy.model.User;
 import com.izzy.payload.request.UserRequest;
+import com.izzy.payload.response.UserInfo;
 import com.izzy.service.AdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class AdminController {
                 throw new BadCredentialsException("Error: phone number is already in use!");
             }
             User savedUser = adminService.registerUser(userRequest);
-            return ResponseEntity.ok(savedUser);
+            return ResponseEntity.ok(new UserInfo(savedUser));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
