@@ -3,7 +3,7 @@ package com.izzy.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.utils.Utils;
 import com.izzy.model.User;
-import com.izzy.payload.request.SignupRequest;
+import com.izzy.payload.request.UserRequest;
 import com.izzy.service.AdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,15 +27,15 @@ public class AdminController {
 
     @PostMapping("/signup")
     @PreAuthorize("hasRole('Admin')")
-    public ResponseEntity<?> registerUser(@RequestBody String signupRequestString) {
+    public ResponseEntity<?> registerUser(@RequestBody String userRequestString) {
         try {
-            // Validate request body (in correspondence to SignupRequest class)
-            SignupRequest signupRequest = (new ObjectMapper()).readValue(signupRequestString, SignupRequest.class);
+            // Validate request body (in correspondence to UserRequest class)
+            UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // Processing
-             if (adminService.existByUserIdentifier(signupRequest.getPhoneNumber())) {
+             if (adminService.existByUserIdentifier(userRequest.getPhoneNumber())) {
                 throw new BadCredentialsException("Error: phone number is already in use!");
             }
-            User savedUser = adminService.registerUser(signupRequest);
+            User savedUser = adminService.registerUser(userRequest);
             return ResponseEntity.ok(savedUser);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));

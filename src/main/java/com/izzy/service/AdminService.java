@@ -3,7 +3,7 @@ package com.izzy.service;
 import com.izzy.exception.BadRequestException;
 import com.izzy.model.Role;
 import com.izzy.model.User;
-import com.izzy.payload.request.SignupRequest;
+import com.izzy.payload.request.UserRequest;
 import com.izzy.repository.RoleRepository;
 import com.izzy.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,22 +29,22 @@ public class AdminService {
     /**
      * Registers a new user
      *
-     * @param signupRequest provided data {@link SignupRequest}
+     * @param UserRequest provided data {@link UserRequest}
      * @return saved user data {@link User}
      * @throws BadRequestException throws when some incorrectness in request
      */
-    public User registerUser(SignupRequest signupRequest) throws BadRequestException {
+    public User registerUser(UserRequest UserRequest) throws BadRequestException {
         User user = new User();
-        user.setFirstName(signupRequest.getFirstName());
-        String phoneNumber = signupRequest.getPhoneNumber();
+        user.setFirstName(UserRequest.getFirstName());
+        String phoneNumber = UserRequest.getPhoneNumber();
         user.setPhoneNumber(phoneNumber);
-        String tmp = signupRequest.getPassword();
+        String tmp = UserRequest.getPassword();
         if (tmp != null && !tmp.isBlank()) {
             user.setPassword(passwordEncoder.encode(tmp));
         } else { // set temporary password = 6 last digits of phone number
             user.setPassword(passwordEncoder.encode(phoneNumber.substring(phoneNumber.length()-6)));
         }
-        Set<String> strRoles = signupRequest.getRole();
+        Set<String> strRoles = UserRequest.getRole();
         Set<Role> roles = new HashSet<>();
         if (strRoles != null && !strRoles.isEmpty()) {
             strRoles.forEach(role -> {
