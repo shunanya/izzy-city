@@ -33,7 +33,12 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public List<User> getUsers(@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName, @RequestParam(required = false) String phoneNumber, @RequestParam(required = false) String gender, @RequestParam(required = false) String zone, @RequestParam(required = false) String shift) {
+    public List<User> getUsers(@RequestParam(required = false) String firstName,
+                               @RequestParam(required = false) String lastName,
+                               @RequestParam(required = false) String phoneNumber,
+                               @RequestParam(required = false) String gender,
+                               @RequestParam(required = false) String zone,
+                               @RequestParam(required = false) String shift) {
         try {
             return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift);
         } catch (Exception ex) {
@@ -43,7 +48,8 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<?> getUserById(@P("id") @PathVariable Long id, @RequestParam(value = "short", required = false, defaultValue = "false") boolean shortView) {
+    public ResponseEntity<?> getUserById(@P("id") @PathVariable Long id,
+                                         @RequestParam(value = "short", required = false, defaultValue = "false") boolean shortView) {
         try {
             User user = userService.getUserById(id);
             if (user != null) {
