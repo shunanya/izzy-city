@@ -18,13 +18,13 @@ public class RoleController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasAnyRole('Admin', 'Manager', 'Supervisor')")
     public List<Role> getAllRoles() {
         return roleService.getAllRoles();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasAnyRole('Admin', 'Manager', 'Supervisor')")
     public ResponseEntity<Role> getRoleById(@PathVariable Long id) {
         Role role = roleService.getRoleById(id);
         if (role != null) {
