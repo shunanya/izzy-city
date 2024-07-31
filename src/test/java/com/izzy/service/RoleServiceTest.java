@@ -142,8 +142,7 @@ class RoleServiceTest {
             add("Scout");
         }};
 
-        List<String> original = new ArrayList<>();
-        original.addAll(requiredList);
+        List<String> original = new ArrayList<>(requiredList);
         List<String> resultList = roleService.combineRoles(requiredList, currentList);
         assert resultList != null && !resultList.isEmpty() : "Error: result List is empty";
         assert resultList.size() == 3 : "Error: result list size should be 3";
@@ -166,8 +165,7 @@ class RoleServiceTest {
             add("Scout");
         }};
 
-        List<String> original = new ArrayList<>();
-        original.addAll(requiredList);
+        List<String> original = new ArrayList<>(requiredList);
         List<String> resultList = roleService.combineRoles(requiredList, currentList);
         assert resultList != null && !resultList.isEmpty() : "Error: result List is empty";
         assert resultList.size() == 3 : "Error: result list size should be 3";
