@@ -7,7 +7,6 @@ import com.izzy.model.Zone;
 import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.UserInfo;
 import com.izzy.payload.response.UserShortInfo;
-import com.izzy.repository.RoleRepository;
 import com.izzy.repository.UserRepository;
 import com.izzy.repository.ZoneRepository;
 import com.izzy.security.custom.service.CustomService;
@@ -27,19 +26,19 @@ import java.util.Set;
 public class UserService {
     private final UserRepository userRepository;
     private final ZoneRepository zoneRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleService roleService;
     private final CustomService customService;
 
     public UserService(UserRepository userRepository,
                        ZoneRepository zoneRepository,
-                       RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder,
+                       RoleService roleService,
                        CustomService customService) {
         this.userRepository = userRepository;
         this.zoneRepository = zoneRepository;
-        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
         this.customService = customService;
     }
 
@@ -61,6 +60,10 @@ public class UserService {
         if (tmp != null && !tmp.isBlank()) user.setPhoneNumber(tmp);
         tmp = userRequest.getPassword();
         if (tmp != null && !tmp.isBlank()) user.setPassword(passwordEncoder.encode(tmp));
+        else {// Create temporary password (last 5 digits of phone number)
+            tmp = user.getPhoneNumber();
+            user.setPassword(passwordEncoder.encode(tmp.substring(tmp.length()-6)));
+        }
         tmp = userRequest.getGender();
         if (tmp != null && !tmp.isBlank()) user.setGender(tmp);
         LocalDate ld = userRequest.getDateOfBirth();
@@ -96,8 +99,8 @@ public class UserService {
         if (rawRole != null && !rawRole.isEmpty()) {
             Set<Role> roles = new HashSet<>();
             rawRole.forEach(r -> {
-                Optional<Role> existingRole = roleRepository.findByName(r);
-                existingRole.ifPresent(roles::add);
+                Role existingRole = roleService.getRoleByName(r);
+                if (existingRole != null) roles.add(existingRole);
             });
             user.setRoles(roles);
             if (roles.isEmpty()) {
@@ -130,13 +133,26 @@ public class UserService {
      * @param gender      filtering parameter
      * @param zone        filtering parameter
      * @param shift       filtering parameter
+     * @param roles       filtering parameter (for detail see {@link  RoleService#getRolesFromParam getRolesFromParam} method definitions
      * @return list of users
      */
-    public List<User> getUsers(String firstName, String lastName, String phoneNumber, String gender, String zone, String shift) {
-        if (firstName != null || lastName != null || phoneNumber != null || gender != null || zone != null || shift != null) {
-            return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift);
-        } else {
+    public List<User> getUsers(String firstName,
+                               String lastName,
+                               String phoneNumber,
+                               String gender,
+                               String zone,
+                               String shift,
+                               String roles) {
+        if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
             return userRepository.findAll();
+        } else {
+            // Detect current user available roles
+            List<String> availableRoles = customService.getCurrenUserAvailableRoles();
+            // Combine the specified role filters with the current user's available roles.
+            if (roles != null && !roles.isBlank()){
+                availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), availableRoles);
+            }
+            return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
         }
     }
 

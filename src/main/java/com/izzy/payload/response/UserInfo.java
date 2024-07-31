@@ -1,15 +1,12 @@
 package com.izzy.payload.response;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.izzy.model.Role;
 import com.izzy.model.User;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @JsonPropertyOrder({
         "id",
@@ -51,10 +48,10 @@ public class UserInfo implements Serializable {
         this.createdBy = user.getCreatedBy();
         this.createdAt = user.getCreatedAt();
         this.headForUser = user.getHeadForUser();
-        Set<Role> role = user.getRoles();
-        List<String> roles = new ArrayList<>(role.size());
-        role.forEach(r -> roles.add(r.getName()));
-        this.roles = roles;
+//        Set<Role> role = user.getRoles();
+        this.roles = user.getRolesName();
+//        role.forEach(r -> roles.add(r.getName()));
+//        this.roles = roles;
     }
 
     public Long getId() {

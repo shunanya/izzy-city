@@ -38,9 +38,10 @@ public class UserController {
                                @RequestParam(required = false) String phoneNumber,
                                @RequestParam(required = false) String gender,
                                @RequestParam(required = false) String zone,
-                               @RequestParam(required = false) String shift) {
+                               @RequestParam(required = false) String shift,
+                               @RequestParam(required = false) String roles) {
         try {
-            return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift);
+            return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift, roles);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

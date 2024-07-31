@@ -74,6 +74,14 @@ public class RoleService {
         return roleRef;
     }
 
+    public Set<Role> convertToRoles(@NonNull List<String> roles) {
+        Set<Role> roleSet = new HashSet<>();
+        roles.forEach(r -> roleRepository.findByName(r).ifPresent(role -> {
+            if (!role.getUsers().isEmpty()) roleSet.add(role);
+        }));
+        return roleSet;
+    }
+
     /**
      * Validates and Composes a list of roles according to the specified role parameter.
      *
@@ -140,5 +148,10 @@ public class RoleService {
             }
         }
         return Arrays.stream(sp).toList();
+    }
+
+    List<String> combineRoles(@NonNull List<String> requiredList, @NonNull List<String> currentList) {
+        requiredList.retainAll(currentList);
+        return requiredList;
     }
 }

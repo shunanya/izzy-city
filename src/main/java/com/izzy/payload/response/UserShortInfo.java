@@ -29,10 +29,11 @@ public class UserShortInfo implements Serializable {
         this.id = user.getId();
         this.userName = user.getFirstName();
         this.phoneNumber = user.getPhoneNumber();
-        Set<Role> role = user.getRoles();
-        List<String> roles = new ArrayList<>(role.size());
-        role.forEach(r -> roles.add(r.getName()));
-        this.roles = roles;
+        this.roles = user.getRolesName();
+//        Set<Role> role = user.getRoles();
+//        List<String> roles = new ArrayList<>(role.size());
+//        role.forEach(r -> roles.add(r.getName()));
+//        this.roles = roles;
         this.zone = user.getZone();
     }
 

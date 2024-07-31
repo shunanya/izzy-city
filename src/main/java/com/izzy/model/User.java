@@ -8,7 +8,9 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -25,7 +27,7 @@ import java.util.Set;
         "createdBy",
         "createdAt",
         "headForUser",
-        "roles"
+        "rolesName"
 })
 public class User implements Serializable {
     @Id
@@ -69,7 +71,17 @@ public class User implements Serializable {
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JsonIgnore
     private Set<Role> roles;
+    @Transient
+    private List<String> rolesName;
+
+    @PostLoad
+    @PostPersist
+    @PostUpdate
+    private void loadRoleNames() {
+        rolesName = roles.stream().map(Role::getName).collect(Collectors.toList());
+    }
 
     public User() {
     }
@@ -82,6 +94,14 @@ public class User implements Serializable {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public List<String> getRolesName() {
+        return rolesName;
+    }
+
+    public void setRolesName(List<String> rolesName) {
+        this.rolesName = rolesName;
     }
 
     public Long getId() {

@@ -14,8 +14,12 @@ public class Role {
     @Basic
     @Column(name = "name", nullable = false)
     private String name;
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.EAGER)
-    private Set<User> users;
+//    @ManyToMany(mappedBy = "roles", fetch = FetchType.EAGER)
+//    private Set<Long> users;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "role_id"))
+    @Column(name = "user_id")
+    private Set<Long> userIds;
 
     public Role() {
     }
@@ -36,5 +40,9 @@ public class Role {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Set<Long> getUsers() {
+        return userIds;
     }
 }
