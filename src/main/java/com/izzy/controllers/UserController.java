@@ -33,7 +33,9 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public List<User> getUsers(@RequestParam(required = false) String firstName,
+    public List<?> getUsers(
+            @RequestParam(name = "short", required = false, defaultValue = "false") boolean shortView,
+            @RequestParam(required = false) String firstName,
                                @RequestParam(required = false) String lastName,
                                @RequestParam(required = false) String phoneNumber,
                                @RequestParam(required = false) String gender,
@@ -41,7 +43,7 @@ public class UserController {
                                @RequestParam(required = false) String shift,
                                @RequestParam(required = false) String roles) {
         try {
-            return userService.getUsers(firstName, lastName, phoneNumber, gender, zone, shift, roles);
+            return userService.getUsers(shortView, firstName, lastName, phoneNumber, gender, zone, shift, roles);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -50,12 +52,12 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<?> getUserById(@P("id") @PathVariable Long id,
-                                         @RequestParam(value = "short", required = false, defaultValue = "false") boolean shortView) {
+                                         @RequestParam(name = "short", required = false, defaultValue = "false") boolean shortView) {
         try {
             User user = userService.getUserById(id);
             if (user != null) {
                 if (customService.checkAllowability(user))
-                    return ResponseEntity.ok(shortView ? userService.convertUserToShort(user) : userService.connvertUserToUserInfo(user));
+                    return ResponseEntity.ok(shortView ? userService.convertUserToShort(user) : user);
                 else
                     throw new AccessDeniedException("not allowed to request user with above your role");
             }

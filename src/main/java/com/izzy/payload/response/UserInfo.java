@@ -48,10 +48,7 @@ public class UserInfo implements Serializable {
         this.createdBy = user.getCreatedBy();
         this.createdAt = user.getCreatedAt();
         this.headForUser = user.getHeadForUser();
-//        Set<Role> role = user.getRoles();
         this.roles = user.getRolesName();
-//        role.forEach(r -> roles.add(r.getName()));
-//        this.roles = roles;
     }
 
     public Long getId() {

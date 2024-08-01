@@ -11,16 +11,15 @@ import com.izzy.repository.UserRepository;
 import com.izzy.repository.ZoneRepository;
 import com.izzy.security.custom.service.CustomService;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -49,7 +48,7 @@ public class UserService {
      * @param id          nullable value means Create User (the current date is inserted into the created_at field).
      * @return User class on success
      */
-    public User getUserFromUserRequest(Long id, @NonNull UserRequest userRequest) {
+    public User getUserFromUserRequest(@Nullable Long id, @NonNull UserRequest userRequest) {
         boolean createUser = (id == null);
         User user = (id == null) ? new User() : userRepository.findById(id).get();
         String tmp = userRequest.getFirstName();
@@ -136,24 +135,29 @@ public class UserService {
      * @param roles       filtering parameter (for detail see {@link  RoleService#getRolesFromParam getRolesFromParam} method definitions
      * @return list of users
      */
-    public List<User> getUsers(String firstName,
+    public List<?> getUsers(
+            boolean shortView,
+            String firstName,
                                String lastName,
                                String phoneNumber,
                                String gender,
                                String zone,
                                String shift,
                                String roles) {
+        List<User> users = new ArrayList<>();
+        List<String> availableRoles = customService.getCurrenUserAvailableRoles();
         if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
-            return userRepository.findAll();
+            users = userRepository.findUsersByFilters(null, null, null, null, null, null, availableRoles);
+//            return userRepository.findAll();
         } else {
             // Detect current user available roles
-            List<String> availableRoles = customService.getCurrenUserAvailableRoles();
             // Combine the specified role filters with the current user's available roles.
             if (roles != null && !roles.isBlank()){
                 availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), availableRoles);
             }
-            return userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
+            users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
         }
+        return shortView ? users.stream().map(this::convertUserToShort).collect(Collectors.toList()) : users;
     }
 
     /**

@@ -60,7 +60,7 @@ public class CustomService {
             }
         }
         // check allowability
-        return currentRole >= requestingRole;
+        return currentRole == roles.size() || currentRole > requestingRole;
     }
 
     public Set<Role> getCurrenUserRoles() {
@@ -105,7 +105,7 @@ public class CustomService {
     public List<String> getCurrenUserAvailableRoles() {
         // Detect current user available roles
         Role currentUserMaxRole = getCurrenUserMaxRoles();
-        return roleService.getRolesFromParam("<=" + currentUserMaxRole.getName());
+        return roleService.getRolesFromParam("<" + currentUserMaxRole.getName());
     }
 
     public Long currentUserId() {

@@ -1,5 +1,6 @@
 package com.izzy.service;
 
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.User;
 import com.izzy.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,16 +27,14 @@ public class AuthService {
      */
     public User login(String phoneNumber, String rawPassword) {
         Optional<User> userOptional = userRepository.findByPhoneNumber(phoneNumber);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (passwordEncoder.matches(rawPassword, user.getPassword())) {
-                return user;
-            }
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User", "phoneNumber", phoneNumber);
         }
-        return null;
+        User user = userOptional.get();
+        return passwordEncoder.matches(rawPassword, user.getPassword()) ? user : null;
     }
 
-     /**
+    /**
      * Returns User details by user unique identifier (phone number)
      *
      * @param phoneNumber user identifier
