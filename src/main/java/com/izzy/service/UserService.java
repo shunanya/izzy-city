@@ -144,7 +144,7 @@ public class UserService {
                                String zone,
                                String shift,
                                String roles) {
-        List<User> users = new ArrayList<>();
+        List<User> users;
         List<String> availableRoles = customService.getCurrenUserAvailableRoles();
         if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
             users = userRepository.findUsersByFilters(null, null, null, null, null, null, availableRoles);
