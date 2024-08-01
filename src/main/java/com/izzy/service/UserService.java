@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,7 +64,7 @@ public class UserService {
         if (tmp != null && !tmp.isBlank()) user.setPassword(passwordEncoder.encode(tmp));
         else {// Create temporary password (last 5 digits of phone number)
             tmp = user.getPhoneNumber();
-            user.setPassword(passwordEncoder.encode(tmp.substring(tmp.length()-6)));
+            user.setPassword(passwordEncoder.encode(tmp.substring(tmp.length() - 6)));
         }
         tmp = userRequest.getGender();
         if (tmp != null && !tmp.isBlank()) user.setGender(tmp);
@@ -138,12 +141,12 @@ public class UserService {
     public List<?> getUsers(
             boolean shortView,
             String firstName,
-                               String lastName,
-                               String phoneNumber,
-                               String gender,
-                               String zone,
-                               String shift,
-                               String roles) {
+            String lastName,
+            String phoneNumber,
+            String gender,
+            String zone,
+            String shift,
+            String roles) {
         List<User> users;
         List<String> availableRoles = customService.getCurrenUserAvailableRoles();
         if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
@@ -152,7 +155,7 @@ public class UserService {
         } else {
             // Detect current user available roles
             // Combine the specified role filters with the current user's available roles.
-            if (roles != null && !roles.isBlank()){
+            if (roles != null && !roles.isBlank()) {
                 availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), availableRoles);
             }
             users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);

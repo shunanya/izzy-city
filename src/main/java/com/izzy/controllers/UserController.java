@@ -36,12 +36,12 @@ public class UserController {
     public List<?> getUsers(
             @RequestParam(name = "short", required = false, defaultValue = "false") boolean shortView,
             @RequestParam(required = false) String firstName,
-                               @RequestParam(required = false) String lastName,
-                               @RequestParam(required = false) String phoneNumber,
-                               @RequestParam(required = false) String gender,
-                               @RequestParam(required = false) String zone,
-                               @RequestParam(required = false) String shift,
-                               @RequestParam(required = false) String roles) {
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) String zone,
+            @RequestParam(required = false) String shift,
+            @RequestParam(required = false) String roles) {
         try {
             return userService.getUsers(shortView, firstName, lastName, phoneNumber, gender, zone, shift, roles);
         } catch (Exception ex) {
