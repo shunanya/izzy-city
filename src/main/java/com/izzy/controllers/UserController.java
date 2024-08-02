@@ -92,7 +92,7 @@ public class UserController {
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // processing
             User user = userService.getUserFromUserRequest(id, userRequest);
-            if (customService.checkAllowability(user)) user = userService.updateUser(id, user);
+            if (customService.checkAllowability(user, true)) user = userService.updateUser(id, user);
             else throw new AccessDeniedException("not allowed to update user with above your role");
             if (user != null) {
                 return ResponseEntity.ok(user);

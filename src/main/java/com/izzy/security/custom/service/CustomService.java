@@ -35,8 +35,13 @@ public class CustomService {
     }
 
     public boolean checkAllowability(@NonNull User requestedUser) {
+        return checkAllowability(requestedUser, false);
+    }
+
+    public boolean checkAllowability(@NonNull User requestedUser, boolean canActOnHimself) {
         // Detects requesting role
         UserPrincipal requestingUserDetails = UserPrincipal.build(requestedUser);
+        Long requestedUserId = requestingUserDetails.getId();
         List<String> auths = requestingUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         int requestingRole = 1;
         for (String auth : auths) {
@@ -47,9 +52,11 @@ public class CustomService {
         }
         // Detects current user role
         Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
+        Long currentUserId = 0L;
         if (currenUserAuth != null && currenUserAuth.isAuthenticated()) {
             // Get the UserDetails object
             UserPrincipal currentUserDetails = (UserPrincipal) currenUserAuth.getPrincipal();
+            currentUserId = currentUserDetails.getId();
             auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         }
         int currentRole = 1;
@@ -60,7 +67,9 @@ public class CustomService {
             }
         }
         // check allowability
-        return currentRole == roles.size() || currentRole > requestingRole;
+        return currentRole == roles.size() // role with max permissions - Admin
+                || (canActOnHimself && requestedUserId.equals(currentUserId)) // current user does some action on themselves
+                || currentRole > requestingRole; // current user role higher than requesting user
     }
 
     public Set<Role> getCurrenUserRoles() {
