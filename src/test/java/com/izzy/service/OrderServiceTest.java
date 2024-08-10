@@ -40,7 +40,7 @@ public class OrderServiceTest {
     @Test
     public void append_valid_task_to_existing_order() throws JsonProcessingException {
         Long orderId = 19L;
-        Task task = new Task(2L, 3);
+        Task task = new Task(2L, 30);
 
         String taskJson = objectMapper.writeValueAsString(task);
         System.out.printf("New task: %s%n", taskJson);
@@ -71,7 +71,7 @@ public class OrderServiceTest {
     void remove_task_from_existing_order() {
         Long orderId = 19L;
         List<OrderScooter> orderScooters = orderScooterRepository.findByOrderId(orderId); // get all records for order
-        Task task = new Task(2L,3);
+        Task task = new Task(2L,30);
         orderService.appendTask(orderId, task); // adding test record
         List<OrderScooter> orderScootersAfterAppending = orderScooterRepository.findByOrderId(orderId); // get all records for order
         assertTrue(orderScooters.size() <= orderScootersAfterAppending.size());

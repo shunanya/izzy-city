@@ -358,6 +358,7 @@ public class OrderService {
                         } else {
                             os.setPriority(newOrderScooter.getPriority());
                             newOrderScooter = null;
+                            break;
                         }
                     }
                 }
@@ -383,6 +384,7 @@ public class OrderService {
         return convertOrderScooterToTasks(rearrangeOrderScooterPriorities(orderScooterRepository.findByOrderId(orderId)));
     }
 
+    @Transactional
     public List<Task> removeTask(@NonNull Long orderId, @NonNull Task task) {
         return removeTask(orderId, task.getScooterId());
     }
@@ -415,6 +417,7 @@ public class OrderService {
         return orderScooterRepository.findByOrderId(orderId);
     }
 
+    @Transactional
     public OrderScooter updatePriority(Long orderId, Long scooterId, Integer priority) {
         OrderScooter orderScooter = orderScooterRepository.findByOrderAndScooterIds(orderId, scooterId)
                 .orElseThrow(() -> new ResourceNotFoundException("OrderScooter", "Priority", priority));
