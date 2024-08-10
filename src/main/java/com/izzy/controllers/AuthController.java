@@ -2,7 +2,7 @@ package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.TokenRefreshException;
-import com.izzy.exception.utils.Utils;
+import com.izzy.security.utils.Utils;
 import com.izzy.model.RefreshToken;
 import com.izzy.model.User;
 import com.izzy.payload.request.LoginRequest;
@@ -11,7 +11,7 @@ import com.izzy.payload.response.UserShortInfo;
 import com.izzy.security.jwt.JwtUtils;
 import com.izzy.service.AuthService;
 import com.izzy.service.RefreshTokenService;
-import com.izzy.service.UserPrincipal;
+import com.izzy.service.user_details.UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

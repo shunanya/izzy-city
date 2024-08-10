@@ -1,79 +1,50 @@
 package com.izzy.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
 import java.sql.Timestamp;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "orders",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "name")})
+@Table(name = "orders")
 public class Order {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-    @Basic
     @Column(name = "action", nullable = false, length = 50)
     private String action;
-    @Basic
     @Column(name = "name", nullable = false, length = 50, unique = true)
     private String name;
-    @Basic
     @Column(name = "description", length = -1)
     private String description;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private User created_by;
-    private Timestamp created_at;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by", referencedColumnName = "id")
-    private User updated_by;
-    @Basic
-    @Column(name = "updated_at")
-    private Timestamp updated_at;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_to", referencedColumnName = "id")
-    private User assigned_to;
-    @Basic
+    @Column(name = "created_by")
+    private Long createdBy = 0L; // default value = 0
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Timestamp createdAt;
+    @Column(name = "updated_by")
+    private Long updatedBy = 0L; // default value = 0
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Timestamp updatedAt;
+    @Column(name = "assigned_to")
+    private Long assignedTo = 0L; // default value = 0
     @Column(name = "status", nullable = false, length = 50)
     private String status;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "taken_by", referencedColumnName = "id")
-    private User taken_by;
-    @Basic
-    @Column(name = "taken_at")
-    private Timestamp taken_at;
-    @Basic
-    @Column(name = "done_at")
-    private Timestamp done_at;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "order_scooter",
-            joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "scooter_id"))
-    private Set<Scooter> scooters;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<OrderScooter> orderScooters;
+    @Column(name = "taken_by")
+    private Long takenBy = 0L; // default value = 0
+    @Column(name = "taken_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Timestamp takenAt;
+    @Column(name = "done_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Timestamp doneAt;
+    @JsonIgnore
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<OrderScooter> orderScooters = new ArrayList<>();
 
-    // getters and setters
+    // Constructors, getters, and setters
 
     public Order() {
-    }
-
-    public Set<OrderScooter> getOrderScooters() {
-        return orderScooters;
-    }
-
-    public void setOrderScooters(Set<OrderScooter> orderScooters) {
-        this.orderScooters = orderScooters;
-    }
-
-    public  Set<Scooter> getScooters(){
-        return scooters;
-    }
-
-    public void setScooters(Set<Scooter> scooters) {
-        this.scooters = scooters;
     }
 
     public Long getId() {
@@ -108,44 +79,44 @@ public class Order {
         this.description = description;
     }
 
-    public User getCreatedBy() {
-        return created_by;
+    public Long getCreatedBy() {
+        return createdBy;
     }
 
-    public void setCreatedBy(User created_by) {
-        this.created_by = created_by;
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
     }
 
     public Timestamp getCreatedAt() {
-        return created_at;
+        return createdAt;
     }
 
-    public void setCreatedAt(Timestamp created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public User getUpdatedBy() {
-        return updated_by;
+    public Long getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setUpdatedBy(User updated_by) {
-        this.updated_by = updated_by;
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
     }
 
     public Timestamp getUpdatedAt() {
-        return updated_at;
+        return updatedAt;
     }
 
-    public void setUpdatedAt(Timestamp updated_at) {
-        this.updated_at = updated_at;
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
-    public User getAssignedTo() {
-        return assigned_to;
+    public Long getAssignedTo() {
+        return assignedTo;
     }
 
-    public void setAssignedTo(User assigned_to) {
-        this.assigned_to = assigned_to;
+    public void setAssignedTo(Long assignedTo) {
+        this.assignedTo = assignedTo;
     }
 
     public String getStatus() {
@@ -156,27 +127,35 @@ public class Order {
         this.status = status;
     }
 
-    public User getTakenBy() {
-        return taken_by;
+    public Long getTakenBy() {
+        return takenBy;
     }
 
-    public void setTakenBy(User taken_by) {
-        this.taken_by = taken_by;
+    public void setTakenBy(Long takenBy) {
+        this.takenBy = takenBy;
     }
 
     public Timestamp getTakenAt() {
-        return taken_at;
+        return takenAt;
     }
 
-    public void setTakenAt(Timestamp taken_at) {
-        this.taken_at = taken_at;
+    public void setTakenAt(Timestamp takenAt) {
+        this.takenAt = takenAt;
     }
 
     public Timestamp getDoneAt() {
-        return done_at;
+        return doneAt;
     }
 
-    public void setDoneAt(Timestamp done_at) {
-        this.done_at = done_at;
+    public void setDoneAt(Timestamp doneAt) {
+        this.doneAt = doneAt;
+    }
+
+    public List<OrderScooter> getOrderScooters() {
+        return orderScooters;
+    }
+
+    public void setOrderScooters(List<OrderScooter> orderScooters) {
+        this.orderScooters = orderScooters;
     }
 }

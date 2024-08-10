@@ -1,7 +1,7 @@
 package com.izzy.security.jwt;
 
 import com.izzy.model.User;
-import com.izzy.service.UserPrincipal;
+import com.izzy.service.user_details.UserPrincipal;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

@@ -1,5 +1,6 @@
 package com.izzy.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.io.Serializable;
@@ -7,32 +8,36 @@ import java.util.Objects;
 
 @Embeddable
 public class OrderScooterId implements Serializable {
-    private Long order_id;
-    private Long scooter_id;
+    @Column(name = "order_id")
+    private Long orderId;
 
-    public OrderScooterId() {}
+    @Column(name = "scooter_id")
+    private Long scooterId;
 
-    public OrderScooterId(Long order_id, Long scooter_id) {
-        this.order_id = order_id;
-        this.scooter_id = scooter_id;
+    // Constructors, getters, and setters, equals and hashCode
+
+    public OrderScooterId() {
     }
 
-    // getters and setters, equals, and hashCode
+    public OrderScooterId(Long orderId, Long scooterId) {
+        this.orderId = orderId;
+        this.scooterId = scooterId;
+    }
 
     public Long getOrderId() {
-        return order_id;
+        return orderId;
     }
 
     public void setOrderId(Long orderId) {
-        this.order_id = orderId;
+        this.orderId = orderId;
     }
 
     public Long getScooterId() {
-        return scooter_id;
+        return scooterId;
     }
 
     public void setScooterId(Long scooterId) {
-        this.scooter_id = scooterId;
+        this.scooterId = scooterId;
     }
 
     @Override
@@ -40,12 +45,11 @@ public class OrderScooterId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         OrderScooterId that = (OrderScooterId) o;
-        return Objects.equals(order_id, that.order_id) &&
-                Objects.equals(scooter_id, that.scooter_id);
+        return Objects.equals(getOrderId(), that.getOrderId()) && Objects.equals(getScooterId(), that.getScooterId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(order_id, scooter_id);
+        return Objects.hash(getOrderId(), getScooterId());
     }
 }

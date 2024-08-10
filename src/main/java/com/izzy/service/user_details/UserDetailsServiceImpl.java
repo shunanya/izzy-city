@@ -1,4 +1,4 @@
-package com.izzy.service;
+package com.izzy.service.user_details;
 
 import com.izzy.model.User;
 import com.izzy.repository.UserRepository;

@@ -3,7 +3,7 @@ package com.izzy.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "scooters")
@@ -11,46 +11,30 @@ public class Scooter {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-    @Basic
     @Column(name = "identifier", nullable = false)
     private String identifier;
-    @Basic
     @Column(name = "status", nullable = false)
     private String status;
-    @Basic
     @Column(name = "battery_level", nullable = false)
     private Integer batteryLevel;
     @ManyToOne
     @JoinColumn(name = "zone", referencedColumnName = "id")
     private Zone zone;
-    @Basic
     @Column(name = "speed_limit", nullable = false)
     private Integer speedLimit;
     @JsonIgnore
-    @ManyToMany(mappedBy = "scooters")
-    private Set<Order> orders;
-    @JsonIgnore
     @OneToMany(mappedBy = "scooter", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<OrderScooter> orderScooters;
+    private List<OrderScooter> orderScooters;
 
     public Scooter() {
     }
 
     // getters and setters
-
-    public Set<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(Set<Order> orders) {
-        this.orders = orders;
-    }
-
-    public Set<OrderScooter> getOrderScooters() {
+    public List<OrderScooter> getOrderScooters() {
         return orderScooters;
     }
 
-    public void setOrderScooters(Set<OrderScooter> orderScooters) {
+    public void setOrderScooters(List<OrderScooter> orderScooters) {
         this.orderScooters = orderScooters;
     }
 

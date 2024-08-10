@@ -3,7 +3,7 @@ package com.izzy.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.ResourceNotFoundException;
-import com.izzy.exception.utils.Utils;
+import com.izzy.security.utils.Utils;
 import com.izzy.model.User;
 import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.MessageResponse;

@@ -27,8 +27,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE " +
             "(:action IS NULL OR o.action ILIKE %:action%) AND " +
             "(:status IS NULL OR o.status = :status) AND " +
-            "(:createdBy IS NULL OR o.created_by.id = :createdBy) AND " +
-            "(:assignedTo IS NULL OR o.assigned_to.id = :assignedTo)")
+            "(:createdBy IS NULL OR o.createdBy = :createdBy) AND " +
+            "(:assignedTo IS NULL OR o.assignedTo = :assignedTo)")
     List<Order> findOrdersByFilters(@Param("action") String action,
                                     @Param("status") String status,
                                     @Param("createdBy") Long createdBy,

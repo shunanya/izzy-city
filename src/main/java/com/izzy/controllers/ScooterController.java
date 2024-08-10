@@ -2,7 +2,7 @@ package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.BadRequestException;
-import com.izzy.exception.utils.Utils;
+import com.izzy.security.utils.Utils;
 import com.izzy.model.Scooter;
 import com.izzy.payload.request.ScooterRequest;
 import com.izzy.service.ScooterService;

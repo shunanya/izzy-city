@@ -1,4 +1,4 @@
-package com.izzy.service;
+package com.izzy.service.user_details;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.izzy.model.User;

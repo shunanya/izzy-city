@@ -1,13 +1,14 @@
 package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.izzy.exception.utils.Utils;
-import com.izzy.model.Order;
-import com.izzy.model.OrderScooter;
+import com.izzy.payload.misk.Task;
 import com.izzy.payload.request.OrderRequest;
+import com.izzy.payload.response.OrderInfo;
+import com.izzy.security.utils.Utils;
 import com.izzy.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,8 +24,8 @@ public class OrderController {
     }
 
     @GetMapping
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public List<Order> getOrders(
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public List<OrderInfo> getOrders(
             @RequestParam(required = false) String action,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long createdBy,
@@ -34,42 +35,44 @@ public class OrderController {
 
 
     @GetMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        Order order = orderService.getOrderById(id);
-        if (order != null) {
-            return ResponseEntity.ok(order);
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public ResponseEntity<OrderInfo> getOrderById(@PathVariable Long id) {
+        try {
+            OrderInfo orderInfo = orderService.getOrderInfoByOrderId(id);
+            if (orderInfo != null) {
+                return ResponseEntity.ok(orderInfo);
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
-        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<Order> createOrder(@RequestBody String orderRequestString) {
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public ResponseEntity<OrderInfo> createOrder(@RequestBody String orderRequestString) {
         try {
             // Validate request body
             OrderRequest orderRequest = (new ObjectMapper()).readValue(orderRequestString, OrderRequest.class);
             // processing
-            Order order = orderService.getOrderFromOrderRequest(orderRequest, null);
-            Order createdOrder = orderService.saveOrder(order);
-//            orderService.updateOrder(createdOrder.getId(), order);
-            return ResponseEntity.ok(createdOrder);
+            OrderInfo orderInfo = orderService.getOrderInfoFromOrderRequest(orderRequest, null);
+            OrderInfo createdOrderInfo = orderService.saveOrderInfo(orderInfo);
+            return ResponseEntity.ok(createdOrderInfo);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody String orderRequestString) {
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public ResponseEntity<OrderInfo> updateOrder(@PathVariable Long id, @RequestBody String orderRequestString) {
         try {
             // Validate request body
             OrderRequest orderRequest = (new ObjectMapper()).readValue(orderRequestString, OrderRequest.class);
             // processing
-            Order order = orderService.getOrderFromOrderRequest(orderRequest, id);
-            Order updatedOrder = orderService.updateOrder(id, order);
-            if (updatedOrder != null) {
-                return ResponseEntity.ok(updatedOrder);
+            OrderInfo orderInfo = orderService.getOrderInfoFromOrderRequest(orderRequest, id);
+            if (id.equals(orderService.updateOrderInfo(id, orderInfo))) {
+                return ResponseEntity.ok(orderService.getOrderInfoByOrderId(id));
             }
             return ResponseEntity.notFound().build();
         } catch (Exception ex) {
@@ -78,51 +81,34 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public ResponseEntity<Void> deleteOrderById(@PathVariable Long id) {
         try {
-            if (orderService.deleteOrder(id)) {
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.notFound().build();
+            orderService.deleteOrder(id);
+            return ResponseEntity.noContent().build();
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
 
-    @GetMapping("/{orderId}/scooters")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public List<OrderScooter> getOrderScootersByOrderId(@PathVariable Long orderId) {
+    @GetMapping("/{id}/tasks")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public List<Task> getTasksByOrderId(@PathVariable Long id) {
         try {
-            return orderService.getOrderScootersByOrderId(orderId);
+            return orderService.getOrderInfoByOrderId(id).getTasks();
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
 
-    @PutMapping("/{orderId}/scooters/{scooterId}/priority")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public OrderScooter updatePriority(
-            @PathVariable Long orderId,
-            @PathVariable Long scooterId,
-            @RequestParam Integer priority) {
+    @DeleteMapping("/{orderId}/tasks/{scooterId}")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public ResponseEntity<Void> deleteOrderTask(@PathVariable Long orderId, @PathVariable Long scooterId) {
         try {
-            return orderService.updatePriority(orderId, scooterId, priority);
+            orderService.removeTask(orderId, scooterId);
+            return ResponseEntity.noContent().build();
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
-
-    @GetMapping("/{orderId}/scooters/{scooterId}/priority")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
-    public Integer getPriority(
-            @PathVariable Long orderId,
-            @PathVariable Long scooterId) {
-        try {
-            return orderService.getPriority(orderId, scooterId);
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
-        }
-    }
-
 }

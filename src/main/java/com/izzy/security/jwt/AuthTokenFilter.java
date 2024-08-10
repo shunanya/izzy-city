@@ -1,6 +1,6 @@
 package com.izzy.security.jwt;
 
-import com.izzy.service.UserDetailsServiceImpl;
+import com.izzy.service.user_details.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

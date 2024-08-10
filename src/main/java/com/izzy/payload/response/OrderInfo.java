@@ -1,29 +1,70 @@
-package com.izzy.payload.request;
+package com.izzy.payload.response;
 
+import com.izzy.model.Order;
+import com.izzy.model.OrderScooter;
 import com.izzy.payload.misk.Task;
-import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class OrderRequest {
-    @Size(min = 1, max = 20)
+public class OrderInfo implements Serializable {
+    private Long id;
+    private String action;
     private String name;
     private String description;
-    @Size(min = 3, max = 50)
-    private String action;
     private Long createdBy;
     private Timestamp createdAt;
     private Long updatedBy;
     private Timestamp updatedAt;
     private Long assignedTo;
-    @Size(min = 3, max = 50)
     private String status;
     private Long takenBy;
     private Timestamp takenAt;
     private Timestamp doneAt;
     private List<Task> tasks;
+
+    public OrderInfo() {
+    }
+
+    public OrderInfo(Order order) {
+        this.id = order.getId();
+        this.action = order.getAction();
+        this.name = order.getName();
+        this.description = order.getDescription();
+        this.createdBy = order.getCreatedBy();
+        this.createdAt = order.getCreatedAt();
+        this.updatedBy = order.getUpdatedBy();
+        this.updatedAt = order.getUpdatedAt();
+        this.assignedTo = order.getAssignedTo();
+        this.status = order.getStatus();
+        this.takenBy = order.getTakenBy();
+        this.takenAt = order.getTakenAt();
+        this.doneAt = order.getDoneAt();
+        List<OrderScooter> orderScooter = order.getOrderScooters();
+        if (orderScooter != null && !orderScooter.isEmpty()) {
+            this.tasks = orderScooter.stream().map(os -> new Task(os.getScooter().getId(), os.getPriority())).collect(Collectors.toList());
+        }
+    }
+// Getters and setters
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
 
     public String getName() {
         return name;
@@ -39,14 +80,6 @@ public class OrderRequest {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
     }
 
     public Long getCreatedBy() {
@@ -127,39 +160,5 @@ public class OrderRequest {
 
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
-    }
-
-    public enum Action {
-        MOVE("Move"), CHARGE("Charge");
-        private final String value;
-
-        Action(String value) {
-            this.value = value;
-        }
-
-        public static Boolean checkByValue(String value) {
-            return Arrays.stream(values()).filter(month -> month.getValue().equals(value)).findFirst().map(v -> !v.toString().isBlank()).orElse(Boolean.FALSE);
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
-
-    public enum Status {
-        CREATED("Created"), ASSIGNED("Assigned"), IN_PROGRESS("In_Progress"), FULFILLED("Fulfilled"), CANCELED("Canceled");
-        private final String value;
-
-        Status(String value) {
-            this.value = value;
-        }
-
-        public static Boolean checkByValue(String value) {
-            return Arrays.stream(values()).filter(month -> month.getValue().equals(value)).findFirst().map(v -> !v.toString().isBlank()).orElse(Boolean.FALSE);
-        }
-
-        public String getValue() {
-            return value;
-        }
     }
 }

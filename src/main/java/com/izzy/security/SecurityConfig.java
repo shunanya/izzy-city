@@ -2,7 +2,7 @@ package com.izzy.security;
 
 import com.izzy.security.jwt.AuthEntryPointJwt;
 import com.izzy.security.jwt.AuthTokenFilter;
-import com.izzy.service.UserDetailsServiceImpl;
+import com.izzy.service.user_details.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;

@@ -4,7 +4,7 @@ import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.repository.RoleRepository;
 import com.izzy.service.RoleService;
-import com.izzy.service.UserPrincipal;
+import com.izzy.service.user_details.UserPrincipal;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

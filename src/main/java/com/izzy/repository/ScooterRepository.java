@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface ScooterRepository extends JpaRepository<Scooter, Long> {
     @Override
     Optional<Scooter> findById(Long aLong);
+
+    @Override
+    boolean existsById(Long aLong);
 }

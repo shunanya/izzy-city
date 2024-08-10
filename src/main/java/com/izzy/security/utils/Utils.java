@@ -1,4 +1,4 @@
-package com.izzy.exception.utils;
+package com.izzy.security.utils;
 
 import java.sql.Timestamp;
 import java.time.*;

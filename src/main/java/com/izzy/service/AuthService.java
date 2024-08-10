@@ -3,6 +3,7 @@ package com.izzy.service;
 import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.User;
 import com.izzy.repository.UserRepository;
+import com.izzy.service.user_details.UserPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

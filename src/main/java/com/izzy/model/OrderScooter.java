@@ -2,22 +2,26 @@ package com.izzy.model;
 
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "order_scooter")
 public class OrderScooter {
     @EmbeddedId
     private OrderScooterId id;
     @ManyToOne
-    @MapsId("order_id")
+    @MapsId("orderId")
     @JoinColumn(name = "order_id")
     private Order order;
+
     @ManyToOne
-    @MapsId("scooter_id")
+    @MapsId("scooterId")
     @JoinColumn(name = "scooter_id")
     private Scooter scooter;
-    @Basic
     @Column(name = "priority", nullable = false, columnDefinition = "integer default 1")
     private Integer priority;
+
+    // Constructors, getters, and setters
 
     public OrderScooter() {
     }
@@ -31,8 +35,6 @@ public class OrderScooter {
         this.scooter = scooter;
         this.priority = priority;
     }
-
-    // getters and setters
 
     public OrderScooterId getId() {
         return id;
@@ -64,6 +66,19 @@ public class OrderScooter {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OrderScooter that = (OrderScooter) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }
 
