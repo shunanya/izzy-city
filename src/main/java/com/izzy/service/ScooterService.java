@@ -5,7 +5,10 @@ import com.izzy.model.Zone;
 import com.izzy.payload.request.ScooterRequest;
 import com.izzy.repository.ScooterRepository;
 import com.izzy.repository.ZoneRepository;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,15 +31,17 @@ public class ScooterService {
         return scooterRepository.findById(id).orElse(null);
     }
 
-    public Scooter getScooterFromScooterRequest(ScooterRequest scooterRequest, Boolean createScooter) {
-        Scooter scooter = new Scooter();
+    public Scooter getScooterFromScooterRequest(@NonNull ScooterRequest scooterRequest, @Nullable Long scooterId) {
+        boolean creation =(scooterId == null);
 
+        Scooter scooter = new Scooter();
+        if (!creation) scooter.setId(scooterId);
         String tmp = scooterRequest.getIdentifier();
         if (tmp != null && !tmp.isBlank()) scooter.setIdentifier(tmp);
         tmp = scooterRequest.getStatus();
         if (tmp != null && !tmp.isBlank()) {
             if (ScooterRequest.Status.checkByValue(tmp)) scooter.setStatus(tmp);
-            else throw new IllegalArgumentException(String.format("Error: status field contains illegal value '%s'", tmp));
+            else throw new IllegalArgumentException(String.format("status field contains illegal value '%s'", tmp));
         }
         Integer i = scooterRequest.getBatteryLevel();
         if (i != null) scooter.setBatteryLevel(i);
@@ -51,11 +56,13 @@ public class ScooterService {
         return scooter;
     }
 
+    @Transactional
     public Scooter createScooter(Scooter scooter) {
         return scooterRepository.save(scooter);
     }
 
-    public Scooter updateScooter(Long id, Scooter scooter) {
+    @Transactional
+    public Scooter updateScooter(@NonNull Long id, @NonNull Scooter scooter) {
         return scooterRepository.findById(id).map(existingScooter -> {
             String tmp = scooter.getIdentifier();
             if (tmp != null && !tmp.isBlank()) existingScooter.setIdentifier(tmp);
@@ -71,6 +78,7 @@ public class ScooterService {
         }).orElse(null);
     }
 
+    @Transactional
     public boolean deleteScooter(Long id) {
         return scooterRepository.findById(id).map(scooter -> {
             scooterRepository.delete(scooter);

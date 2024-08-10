@@ -5,6 +5,7 @@ import com.izzy.model.Role;
 import com.izzy.repository.RoleRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -40,10 +41,12 @@ public class RoleService {
         return roleRepository.findByName(roleName).orElse(null);
     }
 
+    @Transactional
     public Role createRole(Role role) {
         return roleRepository.save(role);
     }
 
+    @Transactional
     public Role updateRole(Long id, Role role) {
         return roleRepository.findById(id).map(existingRole -> {
             existingRole.setName(role.getName());
@@ -51,6 +54,7 @@ public class RoleService {
         }).orElse(null);
     }
 
+    @Transactional
     public boolean deleteRole(Long id) {
         return roleRepository.findById(id).map(role -> {
             roleRepository.delete(role);
@@ -97,18 +101,18 @@ public class RoleService {
      * @return the final roles list
      * @throws UnrecognizedPropertyException if roleParam or some its components are invalid
      *
-     * <p>Example usage:</p>
-     * <pre>{@code
-     * List<String> roles = getRolesFromParam("<= Manager");
-     * }</pre>
-     * <p> returned list contains ["Manager", "Supervisor", "Charger", "Scout"] </p>
-     * <pre>{@code
-     *  List<String> roles = getRolesFromParam("Admin, Scout, Creator");
-     * }</pre>
-     * <p>returned list contains ["Admin", "scout"] <br>
-     * 'Creator' role excluded due to not recognized</p>
+     *                                       <p>Example usage:</p>
+     *                                       <pre>{@code
+     *                                       List<String> roles = getRolesFromParam("<= Manager");
+     *                                       }</pre>
+     *                                       <p> returned list contains ["Manager", "Supervisor", "Charger", "Scout"] </p>
+     *                                       <pre>{@code
+     *                                        List<String> roles = getRolesFromParam("Admin, Scout, Creator");
+     *                                       }</pre>
+     *                                       <p>returned list contains ["Admin", "scout"] <br>
+     *                                       'Creator' role excluded due to not recognized</p>
      */
-    public List<String> getRolesFromParam(@NonNull String roleParam){
+    public List<String> getRolesFromParam(@NonNull String roleParam) {
         String tmp = roleParam.replaceAll("\\s", "");
         String[] sp = tmp.split("(<=|>=|<|>)");
         if (sp.length > 1) {
@@ -135,13 +139,14 @@ public class RoleService {
                             roles.forEach((r, i) -> {
                                 if (i <= lim) role.add(r);
                             });
-                    default -> throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", tmp));
+                    default ->
+                            throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", tmp));
                 }
                 return role;
             }
         } else {
             sp = tmp.split(",");
-            for (String role: sp) {
+            for (String role : sp) {
                 if (!roles.containsKey(role)) {
                     throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", role));
                 }

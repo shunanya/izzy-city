@@ -18,13 +18,13 @@ public class ZoneController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<Zone> getAllZones() {
         return zoneService.getAllZones();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<Zone> getZoneById(@PathVariable Long id) {
         Zone zone = zoneService.getZoneById(id);
         if (zone != null) {

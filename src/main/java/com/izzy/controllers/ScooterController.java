@@ -8,6 +8,7 @@ import com.izzy.payload.request.ScooterRequest;
 import com.izzy.service.ScooterService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,13 +24,13 @@ public class ScooterController {
     }
 
     @GetMapping
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor') or hasRole('Charger') or hasRole('Scout')")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<Scooter> getAllScooters() {
         return scooterService.getAllScooters();
     }
 
     @GetMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin') or hasRole('Manager') or hasRole('Supervisor')")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<Scooter> getScooterById(@PathVariable Long id) {
         Scooter scooter = scooterService.getScooterById(id);
         if (scooter != null) {
@@ -39,13 +40,13 @@ public class ScooterController {
     }
 
     @PostMapping
-//    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Scooter> createScooter(@RequestBody String scooterRequestString) {
         try {
             // Validate request body
             ScooterRequest scooterRequest = (new ObjectMapper()).readValue(scooterRequestString, ScooterRequest.class);
             // processing
-            Scooter scooter = scooterService.getScooterFromScooterRequest(scooterRequest, true);
+            Scooter scooter = scooterService.getScooterFromScooterRequest(scooterRequest, null);
             Scooter createdScooter = scooterService.createScooter(scooter);
             return ResponseEntity.ok(createdScooter);
         } catch (Exception ex) {
@@ -54,13 +55,13 @@ public class ScooterController {
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Scooter> updateScooter(@PathVariable Long id, @RequestBody String scooterRequestString) {
         try {
             // Validate request body
             ScooterRequest scooterRequest = (new ObjectMapper()).readValue(scooterRequestString, ScooterRequest.class);
             // processing
-            Scooter scooter = scooterService.getScooterFromScooterRequest(scooterRequest, false);
+            Scooter scooter = scooterService.getScooterFromScooterRequest(scooterRequest, id);
             Scooter updatedScooter = scooterService.updateScooter(id, scooter);
             if (updatedScooter != null) {
                 return ResponseEntity.ok(updatedScooter);
@@ -72,7 +73,7 @@ public class ScooterController {
     }
 
     @DeleteMapping("/{id}")
-//    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Void> deleteScooter(@PathVariable Long id) {
         if (scooterService.deleteScooter(id)) {
             return ResponseEntity.noContent().build();

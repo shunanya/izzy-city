@@ -3,6 +3,7 @@ package com.izzy.service;
 import com.izzy.model.Zone;
 import com.izzy.repository.ZoneRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,10 +23,12 @@ public class ZoneService {
         return zoneRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public Zone createZone(Zone zone) {
         return zoneRepository.save(zone);
     }
 
+    @Transactional
     public Zone updateZone(Long id, Zone zone) {
         return zoneRepository.findById(id).map(existingZone -> {
             existingZone.setName(zone.getName());
@@ -33,6 +36,7 @@ public class ZoneService {
         }).orElse(null);
     }
 
+    @Transactional
     public boolean deleteZone(Long id) {
         return zoneRepository.findById(id).map(zone -> {
             zoneRepository.delete(zone);

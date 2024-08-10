@@ -91,11 +91,23 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/{id}/tasks")
+    @GetMapping("/{orderId}/tasks")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public List<Task> getTasksByOrderId(@PathVariable Long id) {
+    public List<Task> getTasksByOrderId(@PathVariable Long orderId) {
         try {
-            return orderService.getOrderInfoByOrderId(id).getTasks();
+            return orderService.getTasksByOrderId(orderId);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
+    }
+
+    @PutMapping("/{orderId}/tasks")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public List<Task> appendTask(@PathVariable Long orderId, @RequestBody String taskRequestString) {
+        try {
+            // Validate request body
+            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
+            return orderService.appendTask(orderId, task);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -103,7 +115,7 @@ public class OrderController {
 
     @DeleteMapping("/{orderId}/tasks/{scooterId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<Void> deleteOrderTask(@PathVariable Long orderId, @PathVariable Long scooterId) {
+    public ResponseEntity<Void> deleteTaskByOrderScooterIds(@PathVariable Long orderId, @PathVariable Long scooterId) {
         try {
             orderService.removeTask(orderId, scooterId);
             return ResponseEntity.noContent().build();

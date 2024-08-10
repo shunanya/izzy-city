@@ -335,6 +335,13 @@ public class OrderService {
         orderRepository.deleteById(orderId);
     }
 
+    public List<Task> getTasksByOrderId(@NonNull Long orderId) {
+        if (!checkAllowability(orderId))
+            throw new AccessDeniedException("not allowed to get tasks from order created with user above your role");
+        return convertOrderScooterToTasks(getOrderScootersByOrderId(orderId));
+//      return getOrderInfoByOrderId(orderId).getTasks();
+    }
+
     /**
      * Appending a new task to the existing tasks
      *

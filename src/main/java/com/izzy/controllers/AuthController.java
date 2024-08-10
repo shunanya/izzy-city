@@ -17,13 +17,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
-import javax.security.auth.login.CredentialNotFoundException;
 
 @RestController
 @RequestMapping("/izzy/auth")
@@ -54,7 +53,7 @@ public class AuthController {
                         .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
                         .body(new UserShortInfo(user));
             }
-            throw new CredentialNotFoundException("Error: Provided credentials are wrong.");
+            throw new CredentialsExpiredException("Error: Provided credentials are wrong.");
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
