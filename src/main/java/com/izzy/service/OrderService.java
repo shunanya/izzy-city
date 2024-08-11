@@ -132,13 +132,13 @@ public class OrderService {
         return orderInfo;
     }
 
-    private boolean checkAllowability(@NonNull Long orderId) {
+    public boolean checkAllowability(@NonNull Long orderId) {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) throw new ResourceNotFoundException("Order", "id", orderId);
         return checkAllowability(orderOptional.get());
     }
 
-    private boolean checkAllowability(@NonNull Order order) {
+    public boolean checkAllowability(@NonNull Order order) {
         Long createdUserId = order.getCreatedBy();
         Optional<User> user = userRepository.findById(createdUserId);
         if (createdUserId == null || user.isEmpty())

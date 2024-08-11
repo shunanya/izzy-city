@@ -7,22 +7,26 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Role;
+import com.izzy.repository.RoleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class RoleServiceTest {
 
     private final Map<String, Integer> roles = new HashMap<>();
-    @Autowired
+
     private RoleService roleService;
+    private RoleRepository roleRepository;
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -39,6 +43,8 @@ class RoleServiceTest {
         objectMapper.registerModule(new ParameterNamesModule())
                 .registerModule(new Jdk8Module())
                 .registerModule(new JavaTimeModule());
+        roleRepository = mock(RoleRepository.class);
+        roleService = new RoleService(roleRepository);
     }
 
     @Test
@@ -81,8 +87,11 @@ class RoleServiceTest {
             add("Admin");
             add("Scout");
         }};
+        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role(1L, "Admin")));
+        when(roleRepository.findByName("Scout")).thenReturn(Optional.of(new Role(2L, "Scout")));
 
         List<Long> roleRefs = roleService.convertToRef(roleNames);
+
         if (roleRefs.isEmpty()) throw new AssertionError();
         assert roleRefs.size() == roleNames.size();
 
@@ -94,6 +103,7 @@ class RoleServiceTest {
         List<String> roleNames = new ArrayList<>() {{
             add("Creator");
         }};
+        when(roleRepository.findByName("Creator")).thenReturn(Optional.empty());
 
         List<Long> roleRefs = roleService.convertToRef(roleNames);
         assert roleRefs.isEmpty() : "Not Empty list is received";
@@ -107,6 +117,8 @@ class RoleServiceTest {
             add("Admin");
             add("Creator");
         }};
+        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role(1L, "Admin")));
+        when(roleRepository.findByName("Creator")).thenReturn(Optional.empty());
 
         List<Long> roleRefs = roleService.convertToRef(roleNames);
         assert !roleRefs.isEmpty() : "Empty list is received";
@@ -121,6 +133,9 @@ class RoleServiceTest {
 
         List<String> roles = roleService.getRolesFromParam(param);
         assert !roles.isEmpty() : "Error: result list is empty";
+
+        Role role = new Role(1L, "", new ArrayList<Long>(Arrays.asList(1L, 2L)));
+        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(role));
 
         Set<Role> roleSet = roleService.convertToRoles(roles);
         assert !roleSet.isEmpty() : "Error: result Set is empty";
@@ -176,12 +191,14 @@ class RoleServiceTest {
     @Test
     void convertToRoles_WithPartlyUserAttached() throws JsonProcessingException {
         List<String> list = new ArrayList<>(){{add("Admin"); add("Manager"); add("Supervisor");}};
+
+        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(new Role(1L, "", new ArrayList<Long>(Arrays.asList(1L, 2L)))));
+
         Set<Role> roles = roleService.convertToRoles(list);
 
         assert roles.size() > 0 : "Error: blank set is received";
 
         String rolesStringify = objectMapper.writeValueAsString(roles);
-
         System.out.printf("%s => %s", list, rolesStringify);
     }
 }

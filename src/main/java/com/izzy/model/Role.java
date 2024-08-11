@@ -2,7 +2,7 @@ package com.izzy.model;
 
 import jakarta.persistence.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "roles")
@@ -14,14 +14,23 @@ public class Role {
     @Basic
     @Column(name = "name", nullable = false)
     private String name;
-//    @ManyToMany(mappedBy = "roles", fetch = FetchType.EAGER)
-//    private Set<Long> users;
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "role_id"))
     @Column(name = "user_id")
-    private Set<Long> userIds;
+    private List<Long> userIds;
 
     public Role() {
+    }
+
+    public Role(Long id, String name){
+        this.id = id;
+        this.name = name;
+    }
+
+    public Role(Long id, String name, List<Long> userIds){
+        this.id = id;
+        this.name = name;
+        this.userIds = userIds;
     }
 
     // getters and setters
@@ -42,7 +51,7 @@ public class Role {
         this.name = name;
     }
 
-    public Set<Long> getUsers() {
+    public List<Long> getUsers() {
         return userIds;
     }
 }

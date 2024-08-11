@@ -9,7 +9,6 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
@@ -58,7 +57,7 @@ public class User implements Serializable {
     @Column(name = "shift", length = 100)
     private String shift;
     @Basic
-    @Column(name = "created_by")
+    @Column(name = "created_by", nullable = false)
     private Long created_by;
     @Basic
     @Column(name = "created_at", nullable = false)
@@ -72,7 +71,7 @@ public class User implements Serializable {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonIgnore
-    private Set<Role> roles;
+    private List<Role> roles;
     @Transient
     private List<String> rolesName;
 
@@ -88,11 +87,11 @@ public class User implements Serializable {
 
     // getters and setters
 
-    public Set<Role> getRoles() {
+    public List<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
+    public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
 

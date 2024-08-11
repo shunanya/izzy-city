@@ -15,9 +15,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class AdminService {
@@ -49,31 +47,6 @@ public class AdminService {
      */
     public User registerUser(UserRequest userRequest) throws BadRequestException {
         User user = new User();
-/*
-        user.setFirstName(UserRequest.getFirstName());
-        String phoneNumber = UserRequest.getPhoneNumber();
-        user.setPhoneNumber(phoneNumber);
-        String tmp = UserRequest.getPassword();
-        if (tmp != null && !tmp.isBlank()) {
-            user.setPassword(passwordEncoder.encode(tmp));
-        } else { // set temporary password = 6 last digits of phone number
-            user.setPassword(passwordEncoder.encode(phoneNumber.substring(phoneNumber.length()-6)));
-        }
-        Set<String> strRoles = UserRequest.getRole();
-        Set<Role> roles = new HashSet<>();
-        if (strRoles != null && !strRoles.isEmpty()) {
-            strRoles.forEach(role -> {
-                Optional<Role> existingRole = roleRepository.findByName(role);
-                existingRole.ifPresent(roles::add);
-            });
-        }
-        if (roles.isEmpty()) {
-            throw new BadRequestException("Error: user role is not defined correctly.");
-        }
-        user.setRoles(roles);
-*/
-
-
         String tmp = userRequest.getFirstName();
         if (tmp != null && !tmp.isBlank()) user.setFirstName(tmp);
         tmp = userRequest.getLastName();
@@ -103,7 +76,7 @@ public class AdminService {
         }
         Set<String> rawRole = userRequest.getRole();
         if (rawRole != null && !rawRole.isEmpty()) {
-            Set<Role> roles = new HashSet<>();
+            List<Role> roles = new ArrayList<>();
             rawRole.forEach(r -> {
                 Optional<Role> existingRole = roleRepository.findByName(r);
                 existingRole.ifPresent(roles::add);
