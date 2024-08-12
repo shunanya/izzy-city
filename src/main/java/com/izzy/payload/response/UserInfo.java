@@ -43,7 +43,7 @@ public class UserInfo implements Serializable {
         this.phoneNumber = user.getPhoneNumber();
         this.gender = user.getGender();
         this.dateOfBirth = user.getDateOfBirth();
-        this.zone = user.getZone();
+        this.zone = user.getZone().getName();
         this.shift = user.getShift();
         this.createdBy = user.getCreatedBy();
         this.createdAt = user.getCreatedAt();

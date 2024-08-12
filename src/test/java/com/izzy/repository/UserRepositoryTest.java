@@ -38,7 +38,7 @@ class UserRepositoryTest {
 
     @Test
     public void testFindUsersByFiltersWithZone() throws JsonProcessingException {
-        List<User> users = userRepository.findUsersByFilters(null, null, null, null, "z01", "day shift", null);
+        List<User> users = userRepository.findUsersByFilters(null, null, null, null, "z02", "day shift", null);
         assertNotNull(users);
         assertFalse(users.isEmpty());
 

@@ -62,7 +62,7 @@ public class AdminService {
         tmp = userRequest.getZone();
         if (tmp != null && !tmp.isBlank()) {
             Optional<Zone> existingZone = zoneRepository.findByName(tmp);
-            if (existingZone.isPresent()) user.setZone(tmp);
+            if (existingZone.isPresent()) user.setZone(existingZone.get());
             else throw new IllegalArgumentException(String.format("Error: Provided zone named '%s' not found", tmp));
         }
         tmp = userRequest.getShift();

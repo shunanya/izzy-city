@@ -34,7 +34,7 @@ public class UserShortInfo implements Serializable {
 //        List<String> roles = new ArrayList<>(role.size());
 //        role.forEach(r -> roles.add(r.getName()));
 //        this.roles = roles;
-        this.zone = user.getZone();
+        this.zone = user.getZone().getName();
     }
 
         public UserShortInfo(@NonNull Long id, @NonNull String username, @NonNull String phoneNumber, @NonNull List<String> roles, String zone) {

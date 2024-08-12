@@ -50,9 +50,9 @@ public class User implements Serializable {
     @Column(name = "gender", length = 100)
     private String gender;
     private LocalDate date_of_birth;
-    @Basic
-    @Column(name = "zone")
-    private String zone;
+    @ManyToOne
+    @JoinColumn(name = "zone", referencedColumnName = "id")
+    private Zone zone;
     @Basic
     @Column(name = "shift", length = 100)
     private String shift;
@@ -159,9 +159,9 @@ public class User implements Serializable {
         this.date_of_birth = dateOfBirth;
     }
 
-    public String getZone() {return zone;}
+    public Zone getZone() {return zone;}
 
-    public void setZone(String zone) {this.zone = zone;}
+    public void setZone(Zone zone) {this.zone = zone;}
 
     public String getShift() {
         return shift;

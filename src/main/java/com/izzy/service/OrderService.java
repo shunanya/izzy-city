@@ -173,7 +173,6 @@ public class OrderService {
         order.setUpdatedAt(orderInfo.getUpdatedAt());
         order.setAssignedTo(orderInfo.getAssignedTo());
         order.setStatus(orderInfo.getStatus());
-        order.setTakenBy(orderInfo.getTakenBy());
         order.setTakenAt(orderInfo.getTakenAt());
         order.setDoneAt(orderInfo.getDoneAt());
         List<OrderScooter> orderScooters = convertTasksToOrderScooters(orderInfo.getTasks(), order);

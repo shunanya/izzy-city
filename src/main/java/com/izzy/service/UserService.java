@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,7 +59,7 @@ public class UserService {
         if (tmp != null && !tmp.isBlank()) user.setPhoneNumber(tmp);
         tmp = userRequest.getPassword();
         if (tmp != null && !tmp.isBlank()) user.setPassword(passwordEncoder.encode(tmp));
-        else {// Create temporary password (last 5 digits of phone number)
+        else {// Create temporary password (last 6 digits of phone number)
             tmp = user.getPhoneNumber();
             user.setPassword(passwordEncoder.encode(tmp.substring(tmp.length() - 6)));
         }
@@ -73,7 +70,7 @@ public class UserService {
         tmp = userRequest.getZone();
         if (tmp != null && !tmp.isBlank()) {
             Optional<Zone> existingZone = zoneRepository.findByName(tmp);
-            if (existingZone.isPresent()) user.setZone(tmp);
+            if (existingZone.isPresent()) user.setZone(existingZone.get());
             else throw new IllegalArgumentException(String.format("Error: Provided zone named '%s' not found", tmp));
         }
         tmp = userRequest.getShift();
@@ -99,7 +96,7 @@ public class UserService {
         }
         Set<String> rawRole = userRequest.getRole();
         if (rawRole != null && !rawRole.isEmpty()) {
-            Set<Role> roles = new HashSet<>();
+            List<Role> roles = new ArrayList<>();
             rawRole.forEach(r -> {
                 Role existingRole = roleService.getRoleByName(r);
                 if (existingRole != null) roles.add(existingRole);

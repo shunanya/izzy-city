@@ -32,8 +32,6 @@ public class Order {
     private Long assignedTo = 0L; // default value = 0
     @Column(name = "status", nullable = false, length = 50)
     private String status;
-    @Column(name = "taken_by")
-    private Long takenBy = 0L; // default value = 0
     @Column(name = "taken_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Timestamp takenAt;
     @Column(name = "done_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
@@ -125,14 +123,6 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public Long getTakenBy() {
-        return takenBy;
-    }
-
-    public void setTakenBy(Long takenBy) {
-        this.takenBy = takenBy;
     }
 
     public Timestamp getTakenAt() {

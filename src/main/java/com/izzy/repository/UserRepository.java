@@ -32,7 +32,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "(:phoneNumber IS NULL OR u.phone_number ILIKE %:phoneNumber%) AND " +
             "(:gender IS NULL OR u.gender = :gender) AND " +
             "(:shift IS NULL OR u.shift = :shift) AND " +
-            "(:zone IS NULL OR u.zone = :zone) AND " +
+            "(:zone IS NULL OR u.zone.name = :zone) AND " +
             "(:roles IS NULL OR EXISTS (SELECT r FROM u.roles r WHERE r.name IN :roles))")
     List<User> findUsersByFilters(@Param("firstName") String firstName,
                                   @Param("lastName") String lastName,

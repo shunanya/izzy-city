@@ -39,7 +39,6 @@ public class OrderInfo implements Serializable {
         this.updatedAt = order.getUpdatedAt();
         this.assignedTo = order.getAssignedTo();
         this.status = order.getStatus();
-        this.takenBy = order.getTakenBy();
         this.takenAt = order.getTakenAt();
         this.doneAt = order.getDoneAt();
         List<OrderScooter> orderScooter = order.getOrderScooters();
