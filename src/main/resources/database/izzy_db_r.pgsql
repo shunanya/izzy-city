@@ -25,8 +25,8 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.order_scooter (
-    "order_Id" bigint NOT NULL,
-    "scooter_Id" bigint NOT NULL,
+    order_id bigint NOT NULL,
+    scooter_id bigint NOT NULL,
     priority integer
 );
 
@@ -41,17 +41,17 @@ COMMENT ON TABLE public.order_scooter IS 'Intermediate table holding records lin
 
 
 --
--- Name: COLUMN order_scooter."order_Id"; Type: COMMENT; Schema: public; Owner: root
+-- Name: COLUMN order_scooter.order_id; Type: COMMENT; Schema: public; Owner: root
 --
 
-COMMENT ON COLUMN public.order_scooter."order_Id" IS 'link to orders';
+COMMENT ON COLUMN public.order_scooter.order_id IS 'link to orders';
 
 
 --
--- Name: COLUMN order_scooter."scooter_Id"; Type: COMMENT; Schema: public; Owner: root
+-- Name: COLUMN order_scooter.scooter_id; Type: COMMENT; Schema: public; Owner: root
 --
 
-COMMENT ON COLUMN public.order_scooter."scooter_Id" IS 'link to scooters';
+COMMENT ON COLUMN public.order_scooter.scooter_id IS 'link to scooters';
 
 
 --
@@ -64,14 +64,13 @@ CREATE TABLE public.orders (
     name character varying(255),
     description character varying(255),
     created_by bigint,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_by bigint,
-    updated_at timestamp without time zone,
+    updated_at timestamp with time zone,
     assigned_to bigint,
     status character varying(255),
-    taken_by bigint,
-    taken_at timestamp without time zone,
-    done_at timestamp without time zone,
+    taken_at timestamp with time zone,
+    done_at timestamp with time zone,
     CONSTRAINT orders_action_check CHECK (((action)::text = ANY (ARRAY[('Move'::character varying)::text, ('Charge'::character varying)::text, ('Repair'::character varying)::text]))),
     CONSTRAINT orders_status_check CHECK (((status)::text = ANY (ARRAY[('Created'::character varying)::text, ('Assigned'::character varying)::text, ('In_Progress'::character varying)::text, ('Fulfilled'::character varying)::text, ('Canceled'::character varying)::text])))
 );
@@ -269,10 +268,10 @@ CREATE TABLE public.users (
     phone_number character varying(50) NOT NULL,
     gender character varying(20),
     date_of_birth date,
-    zone character varying(50),
+    zone bigint,
     shift character varying(50),
     created_by bigint,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     head_for_user bigint,
     CONSTRAINT users_gender_check CHECK (((gender)::text = ANY (ARRAY[('Male'::character varying)::text, ('Female'::character varying)::text, ('Not specified'::character varying)::text]))),
     CONSTRAINT users_shift_check CHECK (((shift)::text = ANY (ARRAY[('day shift'::character varying)::text, ('night shift'::character varying)::text])))
@@ -444,20 +443,28 @@ ALTER TABLE ONLY public.zones ALTER COLUMN id SET DEFAULT nextval('public.zones_
 -- Data for Name: order_scooter; Type: TABLE DATA; Schema: public; Owner: root
 --
 
+INSERT INTO public.order_scooter VALUES (19, 1, 2);
+INSERT INTO public.order_scooter VALUES (19, 3, 1);
+INSERT INTO public.order_scooter VALUES (19, 2, 3);
 
 
 --
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:38:03.509133', NULL, NULL, NULL, 'Created', NULL, NULL, NULL);
+INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:38:03.509133+04', NULL, NULL, NULL, 'Created', NULL, NULL);
+INSERT INTO public.orders VALUES (19, 'Charge', 'order1', 'test-order', 3, '2024-07-26 16:23:47.872315+04', NULL, NULL, 6, 'Created', NULL, NULL);
 
 
 --
 -- Data for Name: refreshtoken; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.refreshtoken VALUES (8, '2024-07-24 17:28:54.10773+04', 'db2c4f34-fdcc-44f9-9f28-7143427e1d8b', 3);
+INSERT INTO public.refreshtoken VALUES (12, '2024-08-01 17:38:23.737976+04', '074e54ba-374b-483a-b69b-e205a8f67952', 29);
+INSERT INTO public.refreshtoken VALUES (16, '2024-08-03 20:36:39.763565+04', 'e6b9fe82-dba2-4f01-b235-fe45543c88a0', 39);
+INSERT INTO public.refreshtoken VALUES (9, '2024-08-11 17:57:35.84624+04', '96d5fa9d-6d09-4349-8d5e-e6f64c904595', 6);
+INSERT INTO public.refreshtoken VALUES (11, '2024-08-11 17:58:15.554797+04', '6eda096d-35ae-43ae-8deb-34272db24053', 26);
+INSERT INTO public.refreshtoken VALUES (14, '2024-08-11 17:58:48.986687+04', '346fac0b-96dc-4b81-82da-aa0cae4b4c78', 3);
 
 
 --
@@ -475,7 +482,11 @@ INSERT INTO public.roles VALUES (5, 'Scout');
 -- Data for Name: scooters; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.scooters VALUES (1, '3366', 'Active', 40, NULL, 50);
+INSERT INTO public.scooters VALUES (3, '3388', 'Blocked', 20, 1, 30);
+INSERT INTO public.scooters VALUES (1, '3366', 'Active', 40, 1, 50);
+INSERT INTO public.scooters VALUES (2, '3367', 'Active', 80, 2, 45);
+INSERT INTO public.scooters VALUES (4, '4466', 'Active', 40, 3, 100);
+INSERT INTO public.scooters VALUES (5, '4444', 'Active', 40, 1, 50);
 
 
 --
@@ -484,15 +495,30 @@ INSERT INTO public.scooters VALUES (1, '3366', 'Active', 40, NULL, 50);
 
 INSERT INTO public.user_roles VALUES (3, 1);
 INSERT INTO public.user_roles VALUES (6, 5);
-INSERT INTO public.user_roles VALUES (6, 4);
+INSERT INTO public.user_roles VALUES (25, 4);
+INSERT INTO public.user_roles VALUES (25, 5);
+INSERT INTO public.user_roles VALUES (26, 2);
+INSERT INTO public.user_roles VALUES (27, 1);
+INSERT INTO public.user_roles VALUES (28, 5);
+INSERT INTO public.user_roles VALUES (28, 4);
+INSERT INTO public.user_roles VALUES (29, 4);
+INSERT INTO public.user_roles VALUES (29, 5);
+INSERT INTO public.user_roles VALUES (39, 3);
+INSERT INTO public.user_roles VALUES (39, 4);
 
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.users VALUES (6, 'user_scout', NULL, NULL, '71001122', 'Male', NULL, NULL, NULL, NULL, '2024-07-17 20:51:43.468797', NULL);
-INSERT INTO public.users VALUES (3, 'duty_admin', NULL, '$2a$10$KDr0088bx1wGYDXuRT.YL.5Xz5spiagqCiuFPiE.o0TZst7b3nudK', '55001122', 'Female', '2024-07-16', 'z01', 'day shift', 6, '2024-07-16 21:49:22.325', NULL);
+INSERT INTO public.users VALUES (26, 'manager', NULL, '$2a$10$0xDTxLnPWk972eEX9UJfJObssahQMNrFYjXmlPy6ojYPGWoRyE1h.', '77553311', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.users VALUES (27, 'admin', NULL, '$2a$10$WZXVlLM/q7jKNwZNy8gSIesnCZEI.SUgSk34IDQFvEVdKfAB95RwK', '56001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.users VALUES (28, 'user_scout', NULL, '$2a$10$v9iqzXU/RqobG.zTP2kk3ustMFM3N11N9l14d904cWRtGa/sbTMRi', '99001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.users VALUES (29, 'user_scout', NULL, '$2a$10$Ziiq1DJCCNk3yYqEAUZTPuAxkigvWeWKo/oBnZPKYSLc1bWAc0nrq', '95001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.users VALUES (39, 'Supervisor', NULL, '$2a$10$atYUerVtgumF/tL9Zy7iR.X0ExqfLaLIhRAfzhdgF.gf2alEXr11G', '73001122', 'Male', NULL, NULL, NULL, 3, '2024-08-02 20:34:58.935859+04', NULL);
+INSERT INTO public.users VALUES (25, 'user_scout', NULL, '$2a$10$BuFWr5JvigR74woAsZpu.eMR8.PiWzqRcn2Ic4I8kz86PGSFlsrL6', '94001122', 'Male', NULL, 1, NULL, 3, '2024-07-27 14:47:43.379171+04', NULL);
+INSERT INTO public.users VALUES (3, 'duty_admin', NULL, '$2a$10$KDr0088bx1wGYDXuRT.YL.5Xz5spiagqCiuFPiE.o0TZst7b3nudK', '55001122', 'Female', '2024-07-16', 2, 'day shift', 6, '2024-07-16 21:49:22.325+04', NULL);
+INSERT INTO public.users VALUES (6, 'Scout', 'Smith', '$2a$10$Vu1UO5EpZptJJSCY2qQOMe9won4/A07UnT74EHgIdxUhrcN2lc8Z.', '71001122', 'Female', NULL, 3, 'night shift', 3, '2024-07-17 20:51:43.468797+04', NULL);
 
 
 --
@@ -508,14 +534,14 @@ INSERT INTO public.zones VALUES (3, 'z03');
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 15, true);
+SELECT pg_catalog.setval('public.orders_id_seq', 34, true);
 
 
 --
 -- Name: refreshtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.refreshtoken_id_seq', 8, true);
+SELECT pg_catalog.setval('public.refreshtoken_id_seq', 16, true);
 
 
 --
@@ -529,14 +555,14 @@ SELECT pg_catalog.setval('public.roles_id_seq', 5, true);
 -- Name: scooters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.scooters_id_seq', 1, true);
+SELECT pg_catalog.setval('public.scooters_id_seq', 5, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 8, true);
+SELECT pg_catalog.setval('public.users_id_seq', 39, true);
 
 
 --
@@ -551,7 +577,7 @@ SELECT pg_catalog.setval('public.zones_id_seq', 1, false);
 --
 
 ALTER TABLE ONLY public.order_scooter
-    ADD CONSTRAINT "PK_OrderScooter" PRIMARY KEY ("order_Id", "scooter_Id");
+    ADD CONSTRAINT "PK_OrderScooter" PRIMARY KEY (order_id, scooter_id);
 
 
 --
@@ -671,7 +697,7 @@ ALTER TABLE ONLY public.zones
 --
 
 ALTER TABLE ONLY public.order_scooter
-    ADD CONSTRAINT "FK_OrderScooter_Order_Id" FOREIGN KEY ("order_Id") REFERENCES public.orders(id);
+    ADD CONSTRAINT "FK_OrderScooter_Order_Id" FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
 
 
 --
@@ -679,7 +705,7 @@ ALTER TABLE ONLY public.order_scooter
 --
 
 ALTER TABLE ONLY public.order_scooter
-    ADD CONSTRAINT "FK_OrderScooter_Scooter_Id" FOREIGN KEY ("scooter_Id") REFERENCES public.scooters(id);
+    ADD CONSTRAINT "FK_OrderScooter_Scooter_Id" FOREIGN KEY (scooter_id) REFERENCES public.scooters(id) ON DELETE CASCADE;
 
 
 --
@@ -695,7 +721,7 @@ ALTER TABLE ONLY public.user_roles
 --
 
 ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT "FK_UserRole_User_Id" FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT "FK_UserRole_User_Id" FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -703,15 +729,7 @@ ALTER TABLE ONLY public.user_roles
 --
 
 ALTER TABLE ONLY public.refreshtoken
-    ADD CONSTRAINT "FK_refreshtoken_user_id" FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: users head_fk; Type: FK CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT head_fk FOREIGN KEY (head_for_user) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT "FK_refreshtoken_user_id" FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -719,7 +737,7 @@ ALTER TABLE ONLY public.users
 --
 
 ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT orders_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES public.users(id);
+    ADD CONSTRAINT orders_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -727,15 +745,7 @@ ALTER TABLE ONLY public.orders
 --
 
 ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT orders_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
-
-
---
--- Name: orders orders_taken_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT orders_taken_by_fkey FOREIGN KEY (taken_by) REFERENCES public.users(id);
+    ADD CONSTRAINT orders_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -743,7 +753,7 @@ ALTER TABLE ONLY public.orders
 --
 
 ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT orders_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
+    ADD CONSTRAINT orders_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -755,11 +765,27 @@ ALTER TABLE ONLY public.scooters
 
 
 --
--- Name: users users_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: root
+-- Name: users user_head_fk; Type: FK CONSTRAINT; Schema: public; Owner: root
 --
 
 ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
+    ADD CONSTRAINT user_head_fk FOREIGN KEY (head_for_user) REFERENCES public.users(id) ON DELETE SET DEFAULT;
+
+
+--
+-- Name: users users_users_fk; Type: FK CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_users_fk FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET DEFAULT;
+
+
+--
+-- Name: users users_zones_fk; Type: FK CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_zones_fk FOREIGN KEY (zone) REFERENCES public.zones(id);
 
 
 --
