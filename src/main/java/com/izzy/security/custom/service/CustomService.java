@@ -1,8 +1,13 @@
 package com.izzy.security.custom.service;
 
+import com.izzy.exception.CustomException;
+import com.izzy.exception.ResourceNotFoundException;
+import com.izzy.model.Order;
 import com.izzy.model.Role;
 import com.izzy.model.User;
+import com.izzy.repository.OrderRepository;
 import com.izzy.repository.RoleRepository;
+import com.izzy.repository.UserRepository;
 import com.izzy.service.RoleService;
 import com.izzy.service.user_details.UserPrincipal;
 import org.springframework.lang.NonNull;
@@ -28,10 +33,14 @@ public class CustomService {
 
     private final RoleRepository roleRepository;
     private final RoleService roleService;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public CustomService(RoleRepository roleRepository, RoleService roleService) {
+    public CustomService(RoleRepository roleRepository, RoleService roleService, UserRepository userRepository, OrderRepository orderRepository) {
         this.roleRepository = roleRepository;
         this.roleService = roleService;
+        this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
     public boolean checkAllowability(@NonNull User requestedUser) {
@@ -72,7 +81,21 @@ public class CustomService {
                 || currentRole > requestingRole; // current user role higher than requesting user
     }
 
-    public Set<Role> getCurrenUserRoles() {
+    public boolean checkAllowability(@NonNull Long orderId) {
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isEmpty()) throw new ResourceNotFoundException("Order", "id", orderId);
+        return checkAllowability(orderOptional.get());
+    }
+
+    public boolean checkAllowability(@NonNull Order order) {
+        Long createdUserId = order.getCreatedBy();
+        Optional<User> user = userRepository.findById(createdUserId);
+        if (createdUserId == null || user.isEmpty())
+            throw new CustomException(500, "Error: Order with erroneous 'createdBy' field: " + createdUserId);
+        return checkAllowability(user.get());
+    }
+
+    public List<Role> getCurrenUserRoles() {
         List<String> auths = new ArrayList<>();
         // Obtains current user role
         Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
@@ -81,7 +104,7 @@ public class CustomService {
             UserPrincipal currentUserDetails = (UserPrincipal) currenUserAuth.getPrincipal();
             auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         }
-        Set<Role> roleSet = new HashSet<>();
+        List<Role> roleSet = new ArrayList<>();
         for (String auth : auths) {
             if (auth != null) roleRepository.findByName(auth.replace("ROLE_", "")).ifPresent(roleSet::add);
         }

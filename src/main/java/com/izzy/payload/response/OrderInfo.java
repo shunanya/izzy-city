@@ -2,7 +2,7 @@ package com.izzy.payload.response;
 
 import com.izzy.model.Order;
 import com.izzy.model.OrderScooter;
-import com.izzy.payload.misk.Task;
+import com.izzy.model.misk.Task;
 
 import java.io.Serializable;
 import java.sql.Timestamp;

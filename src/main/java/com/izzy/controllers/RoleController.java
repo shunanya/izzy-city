@@ -35,15 +35,15 @@ public class RoleController {
 
     @PostMapping
     @PreAuthorize("hasRole('Admin')")
-    public ResponseEntity<Role> createRole(@RequestBody Role role) {
-        Role createdRole = roleService.createRole(role);
+    public ResponseEntity<Role> createRole(@RequestBody String roleName) {
+        Role createdRole = roleService.createRole(roleName);
         return ResponseEntity.ok(createdRole);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('Admin')")
-    public ResponseEntity<Role> updateRole(@PathVariable Long id, @RequestBody Role role) {
-        Role updatedRole = roleService.updateRole(id, role);
+    public ResponseEntity<Role> updateRole(@PathVariable Long id, @RequestBody String roleName) {
+        Role updatedRole = roleService.updateRole(id, roleName);
         if (updatedRole != null) {
             return ResponseEntity.ok(updatedRole);
         }

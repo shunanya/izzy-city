@@ -1,5 +1,6 @@
 package com.izzy.service;
 
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Role;
 import com.izzy.repository.RoleRepository;
@@ -42,14 +43,14 @@ public class RoleService {
     }
 
     @Transactional
-    public Role createRole(Role role) {
-        return roleRepository.save(role);
+    public Role createRole(String roleName) {
+        return roleRepository.save(new Role(roleName));
     }
 
     @Transactional
-    public Role updateRole(Long id, Role role) {
+    public Role updateRole(Long id, String roleName) {
         return roleRepository.findById(id).map(existingRole -> {
-            existingRole.setName(role.getName());
+            existingRole.setName(roleName);
             return roleRepository.save(existingRole);
         }).orElse(null);
     }
@@ -71,10 +72,9 @@ public class RoleService {
      */
     public List<Long> convertToRef(@NonNull List<String> roles) {
         List<Long> roleRef = new ArrayList<>();
-        roles.forEach(r -> {
-            Optional<Role> role = roleRepository.findByName(r);
-            role.ifPresent(value -> roleRef.add(value.getId()));
-        });
+        roles.stream().map(roleRepository::findByName).forEach(role -> role.ifPresentOrElse(value -> roleRef.add(value.getId()), () -> {
+            throw new ResourceNotFoundException("Role", "name", role);
+        }));
         return roleRef;
     }
 

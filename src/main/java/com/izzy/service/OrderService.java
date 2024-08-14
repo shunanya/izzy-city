@@ -2,10 +2,9 @@ package com.izzy.service;
 
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
-import com.izzy.exception.CustomException;
 import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.*;
-import com.izzy.payload.misk.Task;
+import com.izzy.model.misk.Task;
 import com.izzy.payload.request.OrderRequest;
 import com.izzy.payload.response.OrderInfo;
 import com.izzy.repository.OrderRepository;
@@ -13,6 +12,7 @@ import com.izzy.repository.OrderScooterRepository;
 import com.izzy.repository.ScooterRepository;
 import com.izzy.repository.UserRepository;
 import com.izzy.security.custom.service.CustomService;
+import com.izzy.security.utils.Utils;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -57,7 +57,7 @@ public class OrderService {
         if (!orders.isEmpty()) {
             List<OrderInfo> orderInfos = new ArrayList<>();
             orders.forEach(order -> { // filtering permitted orders for current user
-                if (checkAllowability(order)) {
+                if (customService.checkAllowability(order)) {
                     orderInfos.add(convertOrderToOrderInfo(order));
                 }
             });
@@ -132,26 +132,12 @@ public class OrderService {
         return orderInfo;
     }
 
-    public boolean checkAllowability(@NonNull Long orderId) {
-        Optional<Order> orderOptional = orderRepository.findById(orderId);
-        if (orderOptional.isEmpty()) throw new ResourceNotFoundException("Order", "id", orderId);
-        return checkAllowability(orderOptional.get());
-    }
-
-    public boolean checkAllowability(@NonNull Order order) {
-        Long createdUserId = order.getCreatedBy();
-        Optional<User> user = userRepository.findById(createdUserId);
-        if (createdUserId == null || user.isEmpty())
-            throw new CustomException(500, "Error: Order with erroneous 'createdBy' field: " + createdUserId);
-        return customService.checkAllowability(user.get());
-    }
-
     public OrderInfo getOrderInfoByOrderId(@NotNull Long orderId) {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
             throw new ResourceNotFoundException("Order", "ID", orderId);
         }
-        if (checkAllowability(orderOptional.get())) {
+        if (customService.checkAllowability(orderOptional.get())) {
             return convertOrderToOrderInfo(orderOptional.get());
         } else throw new AccessDeniedException("not allowed to request order created with user above your role");
     }
@@ -205,7 +191,7 @@ public class OrderService {
         }
         List<OrderInfo> orderInfos = new ArrayList<>();
         orders.forEach(order -> { // filtering permitted orders for current user
-            if (checkAllowability(order)) {
+            if (customService.checkAllowability(order)) {
                 orderInfos.add(convertOrderToOrderInfo(order));
             }
         });
@@ -223,16 +209,15 @@ public class OrderService {
 
         List<Task> tasks = orderInfo.getTasks();
         if (tasks != null && !tasks.isEmpty()) {
-            orderScooterRepository.saveAll(convertTasksToOrderScooters(rearrangeTaskPriorities(tasks), savedOrder));
+            orderScooterRepository.saveAll(convertTasksToOrderScooters(Utils.rearrangeTasksPriorities(tasks), savedOrder));
         }
         orderInfo.setId(order.getId());
         return orderInfo;
     }
 
     public List<OrderScooter> convertTasksToOrderScooters(@NonNull List<Task> tasks, @NonNull Order order) {
-        List<OrderScooter> orderScooters = new ArrayList<>();
-        if (tasks != null && !tasks.isEmpty() && order.getId() != null) {
-            orderScooters = tasks.stream().map(task -> {
+        if (!tasks.isEmpty() && order.isValid()) {
+            List<OrderScooter> orderScooters = tasks.stream().map(task -> {
                 OrderScooter orderScooter = new OrderScooter();
                 orderScooter.setId(new OrderScooterId(order.getId(), task.getScooterId()));
                 orderScooter.setOrder(order);
@@ -242,10 +227,12 @@ public class OrderService {
                 orderScooter.setPriority(task.getPriority());
                 return orderScooter;
             }).collect(Collectors.toList());
+            return orderScooters;
+        } else {
+            throw new IllegalArgumentException("Order has not valid structure");
         }
-        return orderScooters;
     }
-
+/*
     private OrderScooter convertTaskToOrderScooter(@NonNull Task task, @NonNull Order order) {
         OrderScooter orderScooter = new OrderScooter();
         orderScooter.setId(new OrderScooterId(order.getId(), task.getScooterId()));
@@ -257,6 +244,7 @@ public class OrderService {
         return orderScooter;
     }
 
+
     public List<Task> convertOrderScooterToTasks(List<OrderScooter> orderScooters) {
         List<Task> tasks = new ArrayList<>();
         if (orderScooters != null && !orderScooters.isEmpty()) {
@@ -264,6 +252,7 @@ public class OrderService {
         }
         return tasks;
     }
+*/
 
     private Order saveOrder(Order order) {
         return orderRepository.save(order);
@@ -272,7 +261,7 @@ public class OrderService {
     @Transactional
     public Long updateOrderInfo(@NonNull Long id, @NonNull OrderInfo orderInfo) {
         Order order = prepareToUpdateOrder(id, orderInfo);
-        if (!checkAllowability(order))
+        if (!customService.checkAllowability(order))
             throw new AccessDeniedException("not allowed to update order created with user above your role");
 
         Order savedOrder = orderRepository.save(order);
@@ -281,7 +270,7 @@ public class OrderService {
         List<Task> tasks = orderInfo.getTasks();
         if (tasks != null && !tasks.isEmpty()) { // new tasks are given
             orderScooterRepository.deleteByOrderId(savedOrder.getId()); // remove old tasks
-            orderScooterRepository.saveAll(convertTasksToOrderScooters(rearrangeTaskPriorities(tasks), savedOrder)); // add new tasks
+            orderScooterRepository.saveAll(convertTasksToOrderScooters(Utils.rearrangeTasksPriorities(tasks), savedOrder)); // add new tasks
         }
         return id;
     }
@@ -329,25 +318,21 @@ public class OrderService {
     }
 
     public void deleteOrder(@NonNull Long orderId) {
-        if (!checkAllowability(orderId))
+        if (!customService.checkAllowability(orderId))
             throw new AccessDeniedException("not allowed to delete order created with user above your role");
         orderRepository.deleteById(orderId);
     }
 
-    public List<Task> getTasksByOrderId(@NonNull Long orderId) {
-        if (!checkAllowability(orderId))
-            throw new AccessDeniedException("not allowed to get tasks from order created with user above your role");
-        return convertOrderScooterToTasks(getOrderScootersByOrderId(orderId));
-//      return getOrderInfoByOrderId(orderId).getTasks();
-    }
+/*
 
-    /**
+/**
      * Appending a new task to the existing tasks
      *
      * @param orderId existing order id
      * @param task    a task to be appending
      * @return new list of tasks
-     */
+     *
+
     @Transactional
     public List<Task> appendTask(@NonNull Long orderId, @NonNull Task task) {
         if (!checkAllowability(orderId))
@@ -434,5 +419,6 @@ public class OrderService {
     public Integer getPriority(Long orderId, Long scooterId) {
         return orderScooterRepository.getPriorityByOrderIdAndScooterId(orderId, scooterId);
     }
+*/
 
 }

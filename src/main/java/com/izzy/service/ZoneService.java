@@ -24,14 +24,14 @@ public class ZoneService {
     }
 
     @Transactional
-    public Zone createZone(Zone zone) {
-        return zoneRepository.save(zone);
+    public Zone createZone(String zoneName) {
+        return zoneRepository.save(new Zone(zoneName));
     }
 
     @Transactional
-    public Zone updateZone(Long id, Zone zone) {
+    public Zone updateZone(Long id, String zoneName) {
         return zoneRepository.findById(id).map(existingZone -> {
-            existingZone.setName(zone.getName());
+            existingZone.setName(zoneName);
             return zoneRepository.save(existingZone);
         }).orElse(null);
     }

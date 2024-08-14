@@ -1,10 +1,15 @@
 package com.izzy.security.utils;
 
+import com.izzy.model.OrderScooter;
+import com.izzy.model.misk.Task;
+import org.springframework.lang.NonNull;
+
 import java.sql.Timestamp;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,6 +109,36 @@ public class Utils {
             return dateTime.toInstant(ZoneOffset.UTC);
         }
         return null;
+    }
+
+    public static List<Task> convertOrderScooterToTasks(List<OrderScooter> orderScooters) {
+        List<Task> tasks = new ArrayList<>();
+        if (orderScooters != null && !orderScooters.isEmpty()) {
+            tasks = orderScooters.stream().map(os -> new Task(os.getScooter().getId(), os.getPriority())).collect(Collectors.toList());
+        }
+        return tasks;
+    }
+
+    public static List<Task> rearrangeTasksPriorities(@NonNull List<Task> tasks) {
+        if (tasks.size() > 0) {
+            tasks.sort(Comparator.comparingInt(Task::getPriority));
+            int i = 1;
+            for (Task task : tasks) {
+                if (task.getPriority() > 0) task.setPriority(i++);
+            }
+        }
+        return tasks;
+    }
+
+    public static List<OrderScooter> rearrangeOrderScooterPriorities(@NonNull List<OrderScooter> orderScooters) {
+        if (orderScooters.size() > 0) {
+            orderScooters.sort(Comparator.comparingInt(OrderScooter::getPriority));
+            int i = 1;
+            for (OrderScooter os : orderScooters) {
+                if (os.getPriority() > 0) os.setPriority(i++);
+            }
+        }
+        return orderScooters;
     }
 
 }

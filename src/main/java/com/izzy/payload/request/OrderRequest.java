@@ -1,6 +1,6 @@
 package com.izzy.payload.request;
 
-import com.izzy.payload.misk.Task;
+import com.izzy.model.misk.Task;
 import jakarta.validation.constraints.Size;
 
 import java.sql.Timestamp;

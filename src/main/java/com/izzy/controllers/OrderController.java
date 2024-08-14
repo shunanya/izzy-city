@@ -1,7 +1,6 @@
 package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.izzy.payload.misk.Task;
 import com.izzy.payload.request.OrderRequest;
 import com.izzy.payload.response.OrderInfo;
 import com.izzy.security.utils.Utils;
@@ -90,6 +89,7 @@ public class OrderController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
+/*
 
     @GetMapping("/{orderId}/tasks")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
@@ -123,4 +123,5 @@ public class OrderController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
+*/
 }

@@ -15,6 +15,10 @@ public class Zone {
     public Zone() {
     }
 
+    public Zone(String name) {
+        this.name = name;
+    }
+
     // getters and setters
 
     public Long getId() {

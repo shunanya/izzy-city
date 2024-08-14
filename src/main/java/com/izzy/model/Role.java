@@ -12,7 +12,7 @@ public class Role {
     @Column(name = "id", nullable = false)
     private Long id;
     @Basic
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "role_id"))
@@ -22,15 +22,8 @@ public class Role {
     public Role() {
     }
 
-    public Role(Long id, String name){
-        this.id = id;
+    public Role(String name){
         this.name = name;
-    }
-
-    public Role(Long id, String name, List<Long> userIds){
-        this.id = id;
-        this.name = name;
-        this.userIds = userIds;
     }
 
     // getters and setters

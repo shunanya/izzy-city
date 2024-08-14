@@ -15,9 +15,9 @@ public class Order {
     @Column(name = "id", nullable = false)
     private Long id;
     @Column(name = "action", nullable = false, length = 50)
-    private String action;
+    private String action = "";
     @Column(name = "name", nullable = false, length = 50, unique = true)
-    private String name;
+    private String name = "";
     @Column(name = "description", length = -1)
     private String description;
     @Column(name = "created_by")
@@ -31,7 +31,7 @@ public class Order {
     @Column(name = "assigned_to")
     private Long assignedTo = 0L; // default value = 0
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private String status = "";
     @Column(name = "taken_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Timestamp takenAt;
     @Column(name = "done_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
@@ -147,5 +147,9 @@ public class Order {
 
     public void setOrderScooters(List<OrderScooter> orderScooters) {
         this.orderScooters = orderScooters;
+    }
+
+    public boolean isValid(){
+        return (this.id != null && action != null && name != null && status != null);
     }
 }

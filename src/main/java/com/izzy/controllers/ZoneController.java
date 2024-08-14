@@ -35,15 +35,15 @@ public class ZoneController {
 
     @PostMapping
     @PreAuthorize("hasRole('Admin')")
-    public ResponseEntity<Zone> createZone(@RequestBody Zone zone) {
-        Zone createdZone = zoneService.createZone(zone);
+    public ResponseEntity<Zone> createZone(@RequestBody String zoneName) {
+        Zone createdZone = zoneService.createZone(zoneName);
         return ResponseEntity.ok(createdZone);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('Admin')")
-    public ResponseEntity<Zone> updateZone(@PathVariable Long id, @RequestBody Zone zone) {
-        Zone updatedZone = zoneService.updateZone(id, zone);
+    public ResponseEntity<Zone> updateZone(@PathVariable Long id, @RequestBody String zoneName) {
+        Zone updatedZone = zoneService.updateZone(id, zoneName);
         if (updatedZone != null) {
             return ResponseEntity.ok(updatedZone);
         }

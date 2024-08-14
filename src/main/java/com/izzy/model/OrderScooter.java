@@ -19,7 +19,7 @@ public class OrderScooter {
     @JoinColumn(name = "scooter_id")
     private Scooter scooter;
     @Column(name = "priority", nullable = false, columnDefinition = "integer default 1")
-    private Integer priority;
+    private Integer priority = 1;
 
     // Constructors, getters, and setters
 
