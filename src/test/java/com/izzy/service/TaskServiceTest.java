@@ -1,10 +1,5 @@
 package com.izzy.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.*;
 import com.izzy.model.misk.Task;
@@ -20,7 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyIterable;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -32,15 +28,9 @@ public class TaskServiceTest {
     private UserRepository userRepository;
     private ScooterRepository scooterRepository;
     private CustomService customService;
-    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        // Create and configure ObjectMapper
-        this.objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new ParameterNamesModule())
-                .registerModule(new Jdk8Module())
-                .registerModule(new JavaTimeModule());
         orderRepository = mock(OrderRepository.class);
         orderScooterRepository = mock(OrderScooterRepository.class);
         userRepository = mock(UserRepository.class);
@@ -125,7 +115,7 @@ public class TaskServiceTest {
     }
 
     @Test
-    void rearrange_priorities_for_existing_order() throws JsonProcessingException {
+    void rearrange_priorities_for_existing_order() {
         Long orderId = 19L;
         Long scooterId = 2L;
         Order order = new Order();
@@ -149,11 +139,9 @@ public class TaskServiceTest {
 
         orderScooters.sort(Comparator.comparingInt(OrderScooter::getPriority));
         for (int i = 0; i < orderScooters.size(); i++) {
-            assertTrue(orderScooters.get(i).getPriority() == i - 1);
+            assertEquals((int) orderScooters.get(i).getPriority(), i - 1);
         }
-        orderScooters.forEach(os->{
-            System.out.printf("%s ", os.getPriority());
-        });
+        orderScooters.forEach(os-> System.out.printf("%s ", os.getPriority()));
     }
 
 }
