@@ -27,7 +27,8 @@ SET default_table_access_method = heap;
 CREATE TABLE public.order_scooter (
     order_id bigint NOT NULL,
     scooter_id bigint NOT NULL,
-    priority integer
+    priority integer,
+    comment character varying(255)
 );
 
 
@@ -52,6 +53,20 @@ COMMENT ON COLUMN public.order_scooter.order_id IS 'link to orders';
 --
 
 COMMENT ON COLUMN public.order_scooter.scooter_id IS 'link to scooters';
+
+
+--
+-- Name: COLUMN order_scooter.priority; Type: COMMENT; Schema: public; Owner: root
+--
+
+COMMENT ON COLUMN public.order_scooter.priority IS '1 - highest priority';
+
+
+--
+-- Name: COLUMN order_scooter.comment; Type: COMMENT; Schema: public; Owner: root
+--
+
+COMMENT ON COLUMN public.order_scooter.comment IS 'Description for completed or canceled task';
 
 
 --
@@ -443,17 +458,22 @@ ALTER TABLE ONLY public.zones ALTER COLUMN id SET DEFAULT nextval('public.zones_
 -- Data for Name: order_scooter; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.order_scooter VALUES (19, 1, 2);
-INSERT INTO public.order_scooter VALUES (19, 3, 1);
-INSERT INTO public.order_scooter VALUES (19, 2, 3);
+INSERT INTO public.order_scooter VALUES (19, 1, 2, NULL);
+INSERT INTO public.order_scooter VALUES (19, 3, 1, NULL);
+INSERT INTO public.order_scooter VALUES (19, 2, 3, NULL);
+INSERT INTO public.order_scooter VALUES (41, 1, 1, NULL);
+INSERT INTO public.order_scooter VALUES (41, 3, -1, 'CANCEL');
+INSERT INTO public.order_scooter VALUES (41, 5, 3, NULL);
+INSERT INTO public.order_scooter VALUES (41, 4, 2, NULL);
 
 
 --
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:38:03.509133+04', NULL, NULL, NULL, 'Created', NULL, NULL);
 INSERT INTO public.orders VALUES (19, 'Charge', 'order1', 'test-order', 3, '2024-07-26 16:23:47.872315+04', NULL, NULL, 6, 'Created', NULL, NULL);
+INSERT INTO public.orders VALUES (41, 'Move', 'order11', NULL, 3, '2024-08-15 13:12:58.359906+04', 3, '2024-08-15 18:35:33.250483+04', 6, 'Created', NULL, NULL);
+INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:38:03.509133+04', NULL, NULL, 28, 'Created', NULL, NULL);
 
 
 --
@@ -461,10 +481,11 @@ INSERT INTO public.orders VALUES (19, 'Charge', 'order1', 'test-order', 3, '2024
 --
 
 INSERT INTO public.refreshtoken VALUES (12, '2024-08-01 17:38:23.737976+04', '074e54ba-374b-483a-b69b-e205a8f67952', 29);
-INSERT INTO public.refreshtoken VALUES (16, '2024-08-03 20:36:39.763565+04', 'e6b9fe82-dba2-4f01-b235-fe45543c88a0', 39);
-INSERT INTO public.refreshtoken VALUES (9, '2024-08-11 17:57:35.84624+04', '96d5fa9d-6d09-4349-8d5e-e6f64c904595', 6);
-INSERT INTO public.refreshtoken VALUES (11, '2024-08-11 17:58:15.554797+04', '6eda096d-35ae-43ae-8deb-34272db24053', 26);
-INSERT INTO public.refreshtoken VALUES (14, '2024-08-11 17:58:48.986687+04', '346fac0b-96dc-4b81-82da-aa0cae4b4c78', 3);
+INSERT INTO public.refreshtoken VALUES (16, '2024-08-17 14:55:32.173243+04', '0084c24f-d075-419c-8f91-65b6f3df65e2', 39);
+INSERT INTO public.refreshtoken VALUES (11, '2024-08-17 15:37:36.105505+04', '37a8323e-2067-430f-bde9-1c64d9828cfc', 26);
+INSERT INTO public.refreshtoken VALUES (17, '2024-08-17 15:48:18.227818+04', 'ef95cf33-3c11-4f3b-a016-25d6e1083938', 25);
+INSERT INTO public.refreshtoken VALUES (9, '2024-08-17 15:49:12.956461+04', '08086343-f8fd-4317-92e0-af5d51e7db66', 6);
+INSERT INTO public.refreshtoken VALUES (14, '2024-08-17 16:06:04.861836+04', 'b30aee7f-63c3-476c-905c-34e4eb4db2d6', 3);
 
 
 --
@@ -515,10 +536,10 @@ INSERT INTO public.users VALUES (26, 'manager', NULL, '$2a$10$0xDTxLnPWk972eEX9U
 INSERT INTO public.users VALUES (27, 'admin', NULL, '$2a$10$WZXVlLM/q7jKNwZNy8gSIesnCZEI.SUgSk34IDQFvEVdKfAB95RwK', '56001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.users VALUES (28, 'user_scout', NULL, '$2a$10$v9iqzXU/RqobG.zTP2kk3ustMFM3N11N9l14d904cWRtGa/sbTMRi', '99001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.users VALUES (29, 'user_scout', NULL, '$2a$10$Ziiq1DJCCNk3yYqEAUZTPuAxkigvWeWKo/oBnZPKYSLc1bWAc0nrq', '95001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.users VALUES (39, 'Supervisor', NULL, '$2a$10$atYUerVtgumF/tL9Zy7iR.X0ExqfLaLIhRAfzhdgF.gf2alEXr11G', '73001122', 'Male', NULL, NULL, NULL, 3, '2024-08-02 20:34:58.935859+04', NULL);
-INSERT INTO public.users VALUES (25, 'user_scout', NULL, '$2a$10$BuFWr5JvigR74woAsZpu.eMR8.PiWzqRcn2Ic4I8kz86PGSFlsrL6', '94001122', 'Male', NULL, 1, NULL, 3, '2024-07-27 14:47:43.379171+04', NULL);
 INSERT INTO public.users VALUES (3, 'duty_admin', NULL, '$2a$10$KDr0088bx1wGYDXuRT.YL.5Xz5spiagqCiuFPiE.o0TZst7b3nudK', '55001122', 'Female', '2024-07-16', 2, 'day shift', 6, '2024-07-16 21:49:22.325+04', NULL);
 INSERT INTO public.users VALUES (6, 'Scout', 'Smith', '$2a$10$Vu1UO5EpZptJJSCY2qQOMe9won4/A07UnT74EHgIdxUhrcN2lc8Z.', '71001122', 'Female', NULL, 3, 'night shift', 3, '2024-07-17 20:51:43.468797+04', NULL);
+INSERT INTO public.users VALUES (39, 'Supervisor', NULL, '$2a$10$atYUerVtgumF/tL9Zy7iR.X0ExqfLaLIhRAfzhdgF.gf2alEXr11G', '73001122', 'Male', NULL, 1, NULL, 3, '2024-08-02 20:34:58.935859+04', NULL);
+INSERT INTO public.users VALUES (25, 'user_scout', NULL, '$2a$10$Hj6VjoSlmyYD/Gqjjb.nhupngoGqZR2I4NmPn1KQ2HBHHN8Clwe/2', '94001122', 'Male', NULL, 1, NULL, 3, '2024-07-27 14:47:43.379171+04', NULL);
 
 
 --
@@ -534,14 +555,14 @@ INSERT INTO public.zones VALUES (3, 'z03');
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 34, true);
+SELECT pg_catalog.setval('public.orders_id_seq', 41, true);
 
 
 --
 -- Name: refreshtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.refreshtoken_id_seq', 16, true);
+SELECT pg_catalog.setval('public.refreshtoken_id_seq', 17, true);
 
 
 --
