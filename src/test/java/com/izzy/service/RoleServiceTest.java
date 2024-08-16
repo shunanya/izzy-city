@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Role;
 import com.izzy.repository.RoleRepository;
@@ -87,8 +88,8 @@ class RoleServiceTest {
             add("Admin");
             add("Scout");
         }};
-        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role(1L, "Admin")));
-        when(roleRepository.findByName("Scout")).thenReturn(Optional.of(new Role(2L, "Scout")));
+        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role("Admin")));
+        when(roleRepository.findByName("Scout")).thenReturn(Optional.of(new Role("Scout")));
 
         List<Long> roleRefs = roleService.convertToRef(roleNames);
 
@@ -105,11 +106,8 @@ class RoleServiceTest {
         }};
         when(roleRepository.findByName("Creator")).thenReturn(Optional.empty());
 
-        List<Long> roleRefs = roleService.convertToRef(roleNames);
-        assert roleRefs.isEmpty() : "Not Empty list is received";
-
-        System.out.println(roleNames + " => " + roleRefs);
-    }
+        assertThrows(ResourceNotFoundException.class, ()->roleService.convertToRef(roleNames));
+     }
 
     @Test
     void convertToRef_WithPartlyFilledByExistingRoles() {
@@ -117,15 +115,11 @@ class RoleServiceTest {
             add("Admin");
             add("Creator");
         }};
-        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role(1L, "Admin")));
+        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role("Admin")));
         when(roleRepository.findByName("Creator")).thenReturn(Optional.empty());
 
-        List<Long> roleRefs = roleService.convertToRef(roleNames);
-        assert !roleRefs.isEmpty() : "Empty list is received";
-        assert roleRefs.size() < roleNames.size();
-
-        System.out.println(roleNames + " => " + roleRefs);
-    }
+        assertThrows(ResourceNotFoundException.class, ()->roleService.convertToRef(roleNames));
+     }
 
     @Test
     void convertToRoles_WithCorrectCondition() throws JsonProcessingException {
@@ -134,7 +128,7 @@ class RoleServiceTest {
         List<String> roles = roleService.getRolesFromParam(param);
         assert !roles.isEmpty() : "Error: result list is empty";
 
-        Role role = new Role(1L, "", new ArrayList<Long>(Arrays.asList(1L, 2L)));
+        Role role = new Role("", new ArrayList<Long>(Arrays.asList(1L, 2L)));
         when(roleRepository.findByName(anyString())).thenReturn(Optional.of(role));
 
         Set<Role> roleSet = roleService.convertToRoles(roles);
@@ -192,7 +186,7 @@ class RoleServiceTest {
     void convertToRoles_WithPartlyUserAttached() throws JsonProcessingException {
         List<String> list = new ArrayList<>(){{add("Admin"); add("Manager"); add("Supervisor");}};
 
-        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(new Role(1L, "", new ArrayList<Long>(Arrays.asList(1L, 2L)))));
+        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(new Role("", new ArrayList<Long>(Arrays.asList(1L, 2L)))));
 
         Set<Role> roles = roleService.convertToRoles(list);
 

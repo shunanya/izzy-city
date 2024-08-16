@@ -32,6 +32,25 @@ public class TaskController {
         }
     }
 
+    @GetMapping("/assigned")
+    @PreAuthorize("hasAnyRole('Charger','Scout')")
+    public List<Task> getTasksAssignedMe() {
+        try {
+            return taskService.getTasksAssignedMe();
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
+    }
+
+    @GetMapping("/assigned/{userId}")
+    public List<Task> getTasksByAssigned(@PathVariable Long userId) {
+        try {
+            return taskService.getTasksByAssigned(userId);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
+    }
+
     @PutMapping("/{orderId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<Task> appendTaskToOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
@@ -44,12 +63,41 @@ public class TaskController {
         }
     }
 
-    @DeleteMapping("/{orderId}/{scooterId}")
+    @DeleteMapping("/{orderId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<Void> deleteTaskFromOrderByOrderScooterIds(@PathVariable Long orderId, @PathVariable Long scooterId) {
+    public ResponseEntity<Void> deleteTaskFromOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
-            taskService.removeTask(orderId, scooterId);
+            // Validate request body
+            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
+            // Processing
+            taskService.removeTask(orderId, task);
             return ResponseEntity.noContent().build();
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
+    }
+
+    @PatchMapping("/complete/{orderId}")
+    public List<Task> markTaskAsCompleted(@PathVariable Long orderId, @RequestBody String taskRequestString) {
+        try {
+            // Validate request body
+            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
+            // Processing
+            return taskService.markTaskAsCompleted(orderId, task);
+
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
+    }
+
+    @PatchMapping("/cancel/{orderId}")
+    public List<Task> markTaskAsCanceled(@PathVariable Long orderId, @RequestBody String taskRequestString) {
+        try {
+            // Validate request body
+            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
+            // Processing
+            return taskService.markTaskAsCanceled(orderId, task);
+
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

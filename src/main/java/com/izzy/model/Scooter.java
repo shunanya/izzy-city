@@ -11,7 +11,7 @@ public class Scooter {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-    @Column(name = "identifier", nullable = false)
+    @Column(name = "identifier", nullable = false, unique = true)
     private String identifier;
     @Column(name = "status", nullable = false)
     private String status;

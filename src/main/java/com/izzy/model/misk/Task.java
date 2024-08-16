@@ -1,14 +1,19 @@
 package com.izzy.model.misk;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class Task implements Serializable {
 
+//    @JsonIgnore
+    private Long orderId;
     private Long scooterId;
+//    @JsonIgnore
     private int priority = 1;
     private @Nullable String comment;
 
@@ -17,14 +22,23 @@ public class Task implements Serializable {
     public Task() {
     }
 
-    public Task(@NonNull Long scooterId, int priority) {
-        this(scooterId, priority, null);
+    public Task(Long orderId, @NonNull Long scooterId, int priority) {
+        this(orderId, scooterId, priority, null);
     }
 
-    public Task(@NonNull Long scooterId, int priority, @Nullable String comment){
+    public Task(Long orderId, @NonNull Long scooterId, int priority, @Nullable String comment) {
+        this.orderId = orderId;
         this.scooterId = scooterId;
         this.priority = priority;
         this.comment = comment;
+    }
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
     public Long getScooterId() {
@@ -52,18 +66,39 @@ public class Task implements Serializable {
         this.comment = comment;
     }
 
-    public void setTaskAsCanceled () {this.priority = Status.CANCEL.value;}
+    public void setTaskAsCanceled() {
+        this.priority = Status.CANCEL.value;
+        this.comment = Status.CANCEL.toString();
+    }
 
-    public void setTaskAsCompleted() {this.priority = Status.COMPLETE.value;}
+    public void setTaskAsCompleted() {
+        this.priority = Status.COMPLETE.value;
+        this.comment = Status.COMPLETE.toString();
+    }
 
+    @JsonIgnore
     public boolean isValid() {
-        return this.scooterId != null;
+        return this.orderId != null && this.scooterId != null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return getPriority() == task.getPriority() && Objects.equals(getScooterId(), task.getScooterId()) && Objects.equals(getOrderId(), task.getOrderId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getScooterId(), getPriority());
     }
 
     @Override
     public String toString() {
         return "Task{" +
-                "scooterId=" + scooterId +
+                "orderId=" + orderId +
+                ", scooterId=" + scooterId +
                 ", priority=" + priority +
                 ", comment='" + comment + '\'' +
                 '}';
@@ -78,7 +113,7 @@ public class Task implements Serializable {
         }
 
         public static String statusByValue(int value) {
-            return Arrays.stream(values()).filter(m -> m.getValue()==value).findFirst().map(Enum::toString).orElse("ACTIVE");
+            return Arrays.stream(values()).filter(m -> m.getValue() == value).findFirst().map(Enum::toString).orElse("ACTIVE");
         }
 
         public int getValue() {

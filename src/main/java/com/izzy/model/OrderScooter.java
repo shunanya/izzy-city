@@ -20,20 +20,20 @@ public class OrderScooter {
     private Scooter scooter;
     @Column(name = "priority", nullable = false, columnDefinition = "integer default 1")
     private Integer priority = 1;
+    @Column(name="comment")
+    private String comment;
 
     // Constructors, getters, and setters
 
     public OrderScooter() {
     }
-
-    public OrderScooter(Order order, Scooter scooter) {
-        this(order, scooter, 0);
-    }
-
-    public OrderScooter(Order order, Scooter scooter, Integer priority) {
+    public OrderScooter(Order order, Scooter scooter) {this(order, scooter, 1);}
+    public OrderScooter(Order order, Scooter scooter, Integer priority) {this(order, scooter, priority, null);}
+    public OrderScooter(Order order, Scooter scooter, Integer priority, String comment) {
         this.order = order;
         this.scooter = scooter;
         this.priority = priority;
+        this.comment = comment;
     }
 
     public OrderScooterId getId() {
@@ -66,6 +66,14 @@ public class OrderScooter {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     @Override

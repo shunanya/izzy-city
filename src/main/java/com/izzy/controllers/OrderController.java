@@ -1,8 +1,8 @@
 package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.izzy.model.Order;
 import com.izzy.payload.request.OrderRequest;
-import com.izzy.payload.response.OrderInfo;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.OrderService;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public List<OrderInfo> getOrders(
+    public List<Order> getOrders(
             @RequestParam(required = false) String action,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long createdBy,
@@ -35,11 +35,11 @@ public class OrderController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<OrderInfo> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
         try {
-            OrderInfo orderInfo = orderService.getOrderInfoByOrderId(id);
-            if (orderInfo != null) {
-                return ResponseEntity.ok(orderInfo);
+            Order order = orderService.getOrderById(id);
+            if (order != null) {
+                return ResponseEntity.ok(order);
             }
             return ResponseEntity.notFound().build();
         } catch (Exception ex) {
@@ -49,14 +49,14 @@ public class OrderController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<OrderInfo> createOrder(@RequestBody String orderRequestString) {
+    public ResponseEntity<Order> createOrder(@RequestBody String orderRequestString) {
         try {
             // Validate request body
             OrderRequest orderRequest = (new ObjectMapper()).readValue(orderRequestString, OrderRequest.class);
             // processing
-            OrderInfo orderInfo = orderService.getOrderInfoFromOrderRequest(orderRequest, null);
-            OrderInfo createdOrderInfo = orderService.saveOrderInfo(orderInfo);
-            return ResponseEntity.ok(createdOrderInfo);
+            Order order = orderService.getOrderFromOrderRequest(orderRequest, null);
+            Order createdOrder = orderService.createOrder(order);
+            return ResponseEntity.ok(createdOrder);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -64,14 +64,14 @@ public class OrderController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<OrderInfo> updateOrder(@PathVariable Long id, @RequestBody String orderRequestString) {
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody String orderRequestString) {
         try {
             // Validate request body
             OrderRequest orderRequest = (new ObjectMapper()).readValue(orderRequestString, OrderRequest.class);
             // processing
-            OrderInfo orderInfo = orderService.getOrderInfoFromOrderRequest(orderRequest, id);
-            if (id.equals(orderService.updateOrderInfo(id, orderInfo))) {
-                return ResponseEntity.ok(orderService.getOrderInfoByOrderId(id));
+            Order order = orderService.getOrderFromOrderRequest(orderRequest, id);
+            if (id.equals(orderService.updateOrder(order))) {
+                return ResponseEntity.ok(order);
             }
             return ResponseEntity.notFound().build();
         } catch (Exception ex) {

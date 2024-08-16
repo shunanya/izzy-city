@@ -23,7 +23,12 @@ public class Role {
     }
 
     public Role(String name){
+        this(name, null);
+    }
+
+    public Role(String name, List<Long> userIds){
         this.name = name;
+        this.userIds = userIds;
     }
 
     // getters and setters

@@ -3,6 +3,7 @@ package com.izzy.payload.response;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.izzy.model.Role;
 import com.izzy.model.User;
+import com.izzy.model.Zone;
 import org.springframework.lang.NonNull;
 
 import java.io.Serializable;
@@ -34,7 +35,8 @@ public class UserShortInfo implements Serializable {
 //        List<String> roles = new ArrayList<>(role.size());
 //        role.forEach(r -> roles.add(r.getName()));
 //        this.roles = roles;
-        this.zone = user.getZone().getName();
+        Zone z = user.getZone();
+        this.zone = z == null?null:z.getName();
     }
 
         public UserShortInfo(@NonNull Long id, @NonNull String username, @NonNull String phoneNumber, @NonNull List<String> roles, String zone) {

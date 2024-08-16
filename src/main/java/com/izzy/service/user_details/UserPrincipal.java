@@ -35,15 +35,15 @@ public class UserPrincipal implements UserDetails {
 
     public static UserPrincipal build(@NotBlank User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
-            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
-            .collect(Collectors.toList());
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .collect(Collectors.toList());
 
         return new UserPrincipal(
-            user.getId(),
-            user.getFirstName(), user.getLastName(), user.getPassword(), user.getPhoneNumber(),
-            user.getGender(), user.getDateOfBirth(), user.getZone().getName(), user.getShift(),
-            user.getCreatedBy(), user.getCreatedAt(),
-            user.getHeadForUser(), authorities);
+                user.getId(),
+                user.getFirstName(), user.getLastName(), user.getPassword(), user.getPhoneNumber(),
+                user.getGender(), user.getDateOfBirth(), user.getZone() == null ? null : user.getZone().getName(),
+                user.getShift(), user.getCreatedBy(), user.getCreatedAt(),
+                user.getHeadForUser(), authorities);
     }
 
     @Override

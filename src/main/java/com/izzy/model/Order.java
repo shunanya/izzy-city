@@ -1,35 +1,53 @@
 package com.izzy.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.izzy.model.misk.Task;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
+@JsonPropertyOrder({
+        "id",
+        "name",
+        "description",
+        "action",
+        "status",
+        "assigned_to",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at",
+        "taken_at",
+        "done_at",
+        "tasks"
+})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-    @Column(name = "action", nullable = false, length = 50)
-    private String action = "";
     @Column(name = "name", nullable = false, length = 50, unique = true)
     private String name = "";
     @Column(name = "description", length = -1)
     private String description;
+    @Column(name = "action", nullable = false, length = 50)
+    private String action = "";
     @Column(name = "created_by")
-    private Long createdBy = 0L; // default value = 0
+    private Long createdBy; // default value = 0
     @Column(name = "created_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Timestamp createdAt;
     @Column(name = "updated_by")
-    private Long updatedBy = 0L; // default value = 0
+    private Long updatedBy; // default value = 0
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Timestamp updatedAt;
     @Column(name = "assigned_to")
-    private Long assignedTo = 0L; // default value = 0
+    private Long assignedTo; // default value = 0
     @Column(name = "status", nullable = false, length = 50)
     private String status = "";
     @Column(name = "taken_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
@@ -39,10 +57,18 @@ public class Order {
     @JsonIgnore
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderScooter> orderScooters = new ArrayList<>();
-
-    // Constructors, getters, and setters
+    @Transient
+    private List<Task> tasks = new ArrayList<>();
 
     public Order() {
+    }
+
+    @PostLoad
+    @PostPersist
+    @PostUpdate
+    private void loadTasks() { // Update tasks according to OrderScooters
+        if (!orderScooters.isEmpty())
+            this.tasks = orderScooters.stream().map(os -> new Task(os.getOrder().getId(), os.getScooter().getId(), os.getPriority(), os.getComment())).collect(Collectors.toList());
     }
 
     public Long getId() {
@@ -149,7 +175,16 @@ public class Order {
         this.orderScooters = orderScooters;
     }
 
-    public boolean isValid(){
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+    @JsonIgnore
+    public boolean isValid() {
         return (this.id != null && action != null && name != null && status != null);
     }
 }

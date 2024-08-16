@@ -27,7 +27,7 @@ public class CustomService {
         roles.put("ROLE_Admin", 5);
         roles.put("ROLE_Manager", 4);
         roles.put("ROLE_Supervisor", 3);
-        roles.put("ROLE_Charger", 2);
+        roles.put("ROLE_Charger", 1);
         roles.put("ROLE_Scout", 1);
     }
 
@@ -41,6 +41,14 @@ public class CustomService {
         this.roleService = roleService;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+    }
+
+    public boolean checkAllowability(@NonNull Long userId, boolean canActOnHimself) {
+       Optional<User> user = userRepository.findById(userId);
+       if (user.isEmpty()) {
+           throw new ResourceNotFoundException("User", "id", userId);
+       }
+       return checkAllowability(user.get(), canActOnHimself);
     }
 
     public boolean checkAllowability(@NonNull User requestedUser) {
@@ -82,17 +90,14 @@ public class CustomService {
     }
 
     public boolean checkAllowability(@NonNull Long orderId) {
-        Optional<Order> orderOptional = orderRepository.findById(orderId);
-        if (orderOptional.isEmpty()) throw new ResourceNotFoundException("Order", "id", orderId);
-        return checkAllowability(orderOptional.get());
+        Order order = orderRepository.findById(orderId).orElseThrow(()->new ResourceNotFoundException("Order", "id", orderId));
+        return checkAllowability(order);
     }
 
     public boolean checkAllowability(@NonNull Order order) {
         Long createdUserId = order.getCreatedBy();
-        Optional<User> user = userRepository.findById(createdUserId);
-        if (createdUserId == null || user.isEmpty())
-            throw new CustomException(500, "Error: Order with erroneous 'createdBy' field: " + createdUserId);
-        return checkAllowability(user.get());
+        User user = userRepository.findById(createdUserId).orElseThrow(()->new CustomException(500, "Error: Order with erroneous 'createdBy' field: " + createdUserId));
+        return checkAllowability(user);
     }
 
     public List<Role> getCurrenUserRoles() {

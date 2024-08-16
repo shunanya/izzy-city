@@ -3,11 +3,13 @@ package com.izzy.service;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
+import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Order;
 import com.izzy.model.OrderScooter;
 import com.izzy.model.OrderScooterId;
 import com.izzy.model.Scooter;
 import com.izzy.model.misk.Task;
+import com.izzy.repository.OrderRepository;
 import com.izzy.repository.OrderScooterRepository;
 import com.izzy.repository.ScooterRepository;
 import com.izzy.security.custom.service.CustomService;
@@ -24,11 +26,16 @@ import java.util.Optional;
 public class TaskService {
 
     private final CustomService customService;
+    private final OrderRepository orderRepository;
     private final ScooterRepository scooterRepository;
     private final OrderScooterRepository orderScooterRepository;
 
-    public TaskService(CustomService customService, ScooterRepository scooterRepository, OrderScooterRepository orderScooterRepository) {
+    public TaskService(CustomService customService,
+                       OrderRepository orderRepository,
+                       ScooterRepository scooterRepository,
+                       OrderScooterRepository orderScooterRepository) {
         this.customService = customService;
+        this.orderRepository = orderRepository;
         this.scooterRepository = scooterRepository;
         this.orderScooterRepository = orderScooterRepository;
     }
@@ -44,84 +51,153 @@ public class TaskService {
     public List<Task> appendTask(@NonNull Long orderId, @NonNull Task task) {
         if (!customService.checkAllowability(orderId))
             throw new AccessDeniedException("not allowed to append task to order created with user above your role");
-        List<OrderScooter> orderScooters = getOrderScootersByOrderId(orderId);
-        if (orderScooters != null && !orderScooters.isEmpty()) {
-            OrderScooter newOrderScooter = convertTaskToOrderScooter(task, orderScooters.get(0).getOrder());
-            for (OrderScooter os : orderScooters) {
-                if (newOrderScooter.equals(os)) {
-                    if (newOrderScooter.getPriority().equals(os.getPriority())) {
-                        throw new BadRequestException("Given task is already included");
-                    } else {
-                        os.setPriority(newOrderScooter.getPriority());
-                        newOrderScooter = null;
-                        break;
-                    }
-                }
-            }
-            if (newOrderScooter != null) orderScooters.add(newOrderScooter);
-        } else {
-            throw new ResourceNotFoundException("Order", "id", orderId);
+        task.setOrderId(orderId);
+        if (!task.isValid()) {
+            throw new IllegalArgumentException("Task has not valid structure.");
         }
-        orderScooterRepository.saveAll(Utils.rearrangeOrderScooterPriorities(orderScooters)); // update tasks
-        return Utils.convertOrderScooterToTasks(orderScooters);
+        Order order = orderRepository.findById(orderId).orElseThrow(()->new ResourceNotFoundException("Order", "id", orderId));
+        List<Task> tasks = order.getTasks();
+        boolean updated = false;
+        for (Task t : tasks) {
+            if (t.equals(task)) {
+                throw new BadRequestException("Given task is already included");
+            } else if (t.getScooterId().equals(task.getScooterId())) {
+                t.setPriority(task.getPriority());
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) tasks.add(task);
+        return pushTasks(tasks);
+    }
+
+    public List<Task> markTaskAsCompleted(Long orderId, Task task){
+       return markTask(orderId, task, Task.Status.COMPLETE);
+    }
+
+    public List<Task> markTaskAsCanceled(Long orderId, Task task) {
+        return markTask(orderId, task, Task.Status.CANCEL);
+    }
+
+    public List<Task> markTask(Long orderId, Task task, Task.Status action) {
+        task.setOrderId(orderId);
+         if (!task.isValid()) {
+            throw new IllegalArgumentException("Task has not valid structure.");
+        }
+        Order order = orderRepository.findById(task.getOrderId()).orElseThrow(()->new ResourceNotFoundException("Order", "id", orderId));
+        List<Task> tasks = order.getTasks();
+        boolean updated = false;
+        Long id = task.getScooterId();
+        for (Task t : tasks) {
+            if (t.getScooterId().equals(id)) {
+                switch (action) {
+                    case COMPLETE -> t.setTaskAsCompleted();
+                    case CANCEL -> t.setTaskAsCanceled();
+                    default ->
+                            throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", action));
+                }
+                updated = true;
+                break;
+            }
+        }
+        if (!updated)
+            throw new ResourceNotFoundException("Task", "", String.format("{orderId: %s, ScooterId: %s}", orderId, task.getScooterId()));
+        return pushTasks(tasks);
+    }
+
+
+    private List<Task> pushTasks(@NonNull List<Task> tasks) {
+        List<Task> keptTasks = new ArrayList<>();
+        if (!tasks.isEmpty()) {
+//                orderScooterRepository.deleteByOrderId(orderId); // remove old tasks
+//                orderScooterRepository.flush();
+            keptTasks = Utils.rearrangeTasksPriorities(tasks);
+            orderScooterRepository.saveAll(convertTasksToOrderScooters(keptTasks)); // store tasks
+        }
+        return keptTasks;
     }
 
     @Transactional
-    public List<Task> removeTask(@NonNull Long orderId, @NonNull Long scooterId) {
+    public void removeTask(@NonNull Long orderId, @NonNull Long scooterId) {
         if (!customService.checkAllowability(orderId))
             throw new AccessDeniedException("not allowed to remove task in order created with user above your role");
         Optional<OrderScooter> optionalOrderScooter = orderScooterRepository.findByOrderAndScooterIds(orderId, scooterId);
         optionalOrderScooter.ifPresentOrElse(
                 os -> orderScooterRepository.deleteByOrderAndScooterIds(os.getOrder().getId(), os.getScooter().getId()),
                 () -> {
-                    throw new ResourceNotFoundException("OrderScooter", "Task", new OrderScooterId(orderId, scooterId));
+                    throw new ResourceNotFoundException("Task", "", String.format("{orderId: %s, scooterId: %s}", orderId, scooterId));
                 });
-        return Utils.convertOrderScooterToTasks(Utils.rearrangeOrderScooterPriorities(orderScooterRepository.findByOrderId(orderId)));
     }
 
     @Transactional
-    public List<Task> removeTask(@NonNull Long orderId, @NonNull Task task) {
-        return removeTask(orderId, task.getScooterId());
+    public void removeTask(@NonNull Long orderId, @NonNull Task task) {
+        removeTask(orderId, task.getScooterId());
     }
 
     public List<OrderScooter> getOrderScootersByOrderId(@NonNull Long orderId) {
         return orderScooterRepository.findByOrderId(orderId);
     }
 
-    private OrderScooter convertTaskToOrderScooter(@NonNull Task task, @NonNull Order order) {
-        if (task.isValid() && order.isValid()) {
+    private OrderScooter convertTaskToOrderScooter(@NonNull Task task) {
+        if (task.isValid()) {
             OrderScooter orderScooter = new OrderScooter();
-            orderScooter.setId(new OrderScooterId(order.getId(), task.getScooterId()));
+            orderScooter.setId(new OrderScooterId(task.getOrderId(), task.getScooterId()));
+            Order order = orderRepository.findById(task.getOrderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Order", "id", task.getOrderId()));
             orderScooter.setOrder(order);
             Scooter scooter = scooterRepository.findById(task.getScooterId())
                     .orElseThrow(() -> new ResourceNotFoundException("Scooter", "id", task.getScooterId()));
             orderScooter.setScooter(scooter);
             orderScooter.setPriority(task.getPriority());
+            orderScooter.setComment(task.getComment());
             return orderScooter;
         } else {
             throw new IllegalArgumentException("Task or Order has not valid structure.");
         }
     }
 
-    public List<OrderScooter> convertTasksToOrderScooters(@NonNull List<Task> tasks, @NonNull Order order) {
+    public List<OrderScooter> convertTasksToOrderScooters(@NonNull List<Task> tasks) {
         List<OrderScooter> orderScooters = new ArrayList<>();
         for (Task task : tasks) {
-            orderScooters.add(convertTaskToOrderScooter(task, order));
+            orderScooters.add(convertTaskToOrderScooter(task));
         }
         return orderScooters;
     }
 
     public List<Task> getTasksByOrderId(@NonNull Long orderId) {
-        if (!customService.checkAllowability(orderId))
+        Order order = orderRepository.findById(orderId).orElseThrow(()->new ResourceNotFoundException("Order", "id", orderId));
+        if (!customService.checkAllowability(order))
             throw new AccessDeniedException("not allowed to get tasks from order created with user above your role");
-        return Utils.convertOrderScooterToTasks(getOrderScootersByOrderId(orderId));
+         return order.getTasks();
+    }
+
+    public List<Task> getTasksByAssigned(Long assignedToUserId) {
+        if (!assignedToUserId.equals(customService.currentUserId()) && !customService.checkAllowability(assignedToUserId, false) ){
+            throw new AccessDeniedException("not allowed to get tasks not assigned you");
+        }
+        List<Task> tasks = new ArrayList<>();
+        List<Order> orders = orderRepository.findOrdersByFilters(null, null, null, assignedToUserId);
+        if (!orders.isEmpty()) {
+            orders.forEach(order->{
+                List<Task> orderTasks = order.getTasks();
+                if (!orderTasks.isEmpty()) {
+                    tasks.addAll(orderTasks);
+                }
+            });
+         }
+        return Utils.rearrangeTasksPriorities(tasks);
+    }
+
+    public List<Task> getTasksAssignedMe() {
+        Long userId = customService.currentUserId();
+        return getTasksByAssigned(userId);
     }
 
     public List<OrderScooter> rearrangeOrderScooterPriorities(Long orderId) {
         return Utils.rearrangeOrderScooterPriorities(getOrderScootersByOrderId(orderId));
     }
 
-
+/*
     @Transactional
     public OrderScooter updatePriority(Long orderId, Long scooterId, Integer priority) {
         OrderScooter orderScooter = orderScooterRepository.findByOrderAndScooterIds(orderId, scooterId)
@@ -133,5 +209,6 @@ public class TaskService {
     public Integer getPriority(Long orderId, Long scooterId) {
         return orderScooterRepository.getPriorityByOrderIdAndScooterId(orderId, scooterId);
     }
+*/
 
 }

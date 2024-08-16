@@ -12,7 +12,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyIterable;
@@ -36,7 +39,7 @@ public class TaskServiceTest {
         userRepository = mock(UserRepository.class);
         scooterRepository = mock(ScooterRepository.class);
         customService = mock(CustomService.class);
-        taskService = new TaskService(customService, /*orderRepository,*/ scooterRepository, orderScooterRepository);
+        taskService = new TaskService(customService, orderRepository, scooterRepository, orderScooterRepository);
     }
 
     // Append a valid task to an existing order
@@ -44,7 +47,7 @@ public class TaskServiceTest {
     public void append_valid_task_to_existing_order() {
         Long orderId = 19L;
         Long scooterId = 2L;
-        Task task = new Task(scooterId, 30);
+        Task task = new Task(orderId, scooterId, 30);
 
         Order order = new Order();
         order.setId(orderId);
@@ -53,8 +56,10 @@ public class TaskServiceTest {
         scooter.setId(scooterId);
         OrderScooter orderScooter = new OrderScooter(order, scooter, 300);
         orderScooter.setId(new OrderScooterId(orderId, scooterId));
+
         when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
-        when(orderScooterRepository.findByOrderId(orderId)).thenReturn(new ArrayList<>(Arrays.asList(orderScooter)));
+        doNothing().when(orderScooterRepository).deleteByOrderId(anyLong());
+        doNothing().when(orderScooterRepository).flush();
         when(orderScooterRepository.saveAll(anyIterable())).thenReturn(List.of(new OrderScooter(), new OrderScooter()));
         User user = new User();
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
@@ -72,7 +77,7 @@ public class TaskServiceTest {
     @Test
     public void append_task_to_non_existent_order() {
         Long nonExistentOrderId = 999L;
-        Task task = new Task(2L, 1);
+        Task task = new Task(19L, 2L, 1);
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
         when(orderScooterRepository.findByOrderId(anyLong())).thenReturn(new ArrayList<>());
         assertThrows(ResourceNotFoundException.class, () -> taskService.appendTask(nonExistentOrderId, task));
@@ -83,7 +88,7 @@ public class TaskServiceTest {
     void remove_task_from_existing_order() {
         Long orderId = 19L;
         Long scooterId = 2L;
-        Task task = new Task(2L, 30);
+        Task task = new Task(orderId, scooterId, 30);
 
         Order order = new Order();
         order.setId(orderId);
@@ -100,9 +105,7 @@ public class TaskServiceTest {
         when(orderScooterRepository.findByOrderId(anyLong())).thenReturn(new ArrayList<>(List.of(orderScooter)));
         doNothing().when(orderScooterRepository).deleteByOrderAndScooterIds(anyLong(), anyLong());
 
-        List<Task> tasks = taskService.removeTask(orderId, task);
-
-        assertTrue(tasks != null && !tasks.isEmpty()); // Adjusted assertion
+        taskService.removeTask(orderId, task);
     }
 
     @Test
