@@ -73,11 +73,11 @@ public class TaskService {
     }
 
     public List<Task> markTaskAsCompleted(Long orderId, Task task){
-       return markTask(orderId, task, Task.Status.COMPLETE);
+       return markTask(orderId, task, Task.Status.COMPLETED);
     }
 
     public List<Task> markTaskAsCanceled(Long orderId, Task task) {
-        return markTask(orderId, task, Task.Status.CANCEL);
+        return markTask(orderId, task, Task.Status.CANCELED);
     }
 
     private List<Task> markTask(@NonNull Long orderId, @NonNull Task task, Task.Status action) {
@@ -92,8 +92,8 @@ public class TaskService {
         for (Task t : tasks) {
             if (t.getScooterId().equals(id)) {
                 switch (action) {
-                    case COMPLETE -> t.setTaskAsCompleted();
-                    case CANCEL -> t.setTaskAsCanceled();
+                    case COMPLETED -> t.setTaskAsCompleted();
+                    case CANCELED -> t.setTaskAsCanceled();
                     default ->
                             throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", action));
                 }

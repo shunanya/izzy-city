@@ -147,7 +147,7 @@ public class OrderRequest {
     }
 
     public enum Status {
-        CREATED("Created"), ASSIGNED("Assigned"), IN_PROGRESS("In_Progress"), FULFILLED("Fulfilled"), CANCELED("Canceled");
+        CREATED("Created"), ASSIGNED("Assigned"), IN_PROGRESS("In_Progress"), COMPLETED("Completed"), CANCELED("Canceled");
         private final String value;
 
         Status(String value) {

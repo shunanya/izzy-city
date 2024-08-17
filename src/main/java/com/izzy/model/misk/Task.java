@@ -67,13 +67,13 @@ public class Task implements Serializable {
     }
 
     public void setTaskAsCanceled() {
-        this.priority = Status.CANCEL.value;
-        this.comment = Status.CANCEL.toString();
+        this.priority = Status.CANCELED.value;
+        this.comment = Status.CANCELED.toString();
     }
 
     public void setTaskAsCompleted() {
-        this.priority = Status.COMPLETE.value;
-        this.comment = Status.COMPLETE.toString();
+        this.priority = Status.COMPLETED.value;
+        this.comment = Status.COMPLETED.toString();
     }
 
     @JsonIgnore
@@ -105,7 +105,7 @@ public class Task implements Serializable {
     }
 
     public enum Status {
-        CANCEL(-1), COMPLETE(0);
+        CANCELED(-1), COMPLETED(0);
         private final int value;
 
         Status(int value) {

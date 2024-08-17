@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.izzy.model.Order;
 import com.izzy.model.OrderScooter;
+import com.izzy.model.misk.Task;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -40,7 +41,13 @@ public class TaskInfo implements Serializable {
         List<OrderScooter> orderScooters = order.getOrderScooters();
         if (!orderScooters.isEmpty()) {
             orderScooters.sort(Comparator.comparingInt(OrderScooter::getPriority));
-            orderScooters.forEach(os-> taskInfos.add(new TaskInfo(os.getScooter().getIdentifier(), order.getAction(), order.getStatus())));
+            orderScooters.forEach(os-> {
+                Integer priority = os.getPriority();
+                String status = priority.equals(Task.Status.CANCELED.getValue())? Task.Status.CANCELED.toString()
+                        : priority.equals(Task.Status.COMPLETED.getValue())? Task.Status.COMPLETED.toString()
+                        : order.getStatus();
+                taskInfos.add(new TaskInfo(os.getScooter().getIdentifier(), order.getAction(), status));
+            });
         }
         return taskInfos;
     }
@@ -51,7 +58,13 @@ public class TaskInfo implements Serializable {
         List<OrderScooter> orderScooters = order.getOrderScooters();
         if (!orderScooters.isEmpty()) {
             orderScooters.sort(Comparator.comparingInt(OrderScooter::getPriority));
-            orderScooters.forEach(os-> taskInfos.add(new TaskInfo(order.getName(), order.getDescription(), order.getAssignedTo(), os.getScooter().getIdentifier(), order.getAction(), order.getStatus())));
+            orderScooters.forEach(os-> {
+                Integer priority = os.getPriority();
+                String status = priority.equals(Task.Status.CANCELED.getValue())? Task.Status.CANCELED.toString()
+                        : priority.equals(Task.Status.COMPLETED.getValue())? Task.Status.COMPLETED.toString()
+                        : order.getStatus();
+                taskInfos.add(new TaskInfo(order.getName(), order.getDescription(), order.getAssignedTo(), os.getScooter().getIdentifier(), order.getAction(), status));
+            });
         }
         return taskInfos;
     }
