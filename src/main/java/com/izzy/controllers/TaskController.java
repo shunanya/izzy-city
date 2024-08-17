@@ -107,7 +107,7 @@ public class TaskController {
             List<Task> tasks = taskService.markTaskAsCompleted(orderId, task);
             return tasks.isEmpty()?
                     ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong.")):
-                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task '%s' marked as completed.", taskRequestString)));
+                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -122,7 +122,7 @@ public class TaskController {
             List<Task> tasks = taskService.markTaskAsCanceled(orderId, task);
             return tasks.isEmpty()?
                     ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong.")):
-                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task '%s' marked as canceled.", taskRequestString)));
+                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task '%s' marked as canceled.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

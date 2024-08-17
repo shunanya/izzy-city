@@ -91,14 +91,15 @@ public class TaskService {
         Long id = task.getScooterId();
         for (Task t : tasks) {
             if (t.getScooterId().equals(id)) {
-                switch (action) {
-                    case COMPLETED -> t.setTaskAsCompleted();
-                    case CANCELED -> t.setTaskAsCanceled();
-                    default ->
-                            throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", action));
-                }
-                updated = true;
-                break;
+                if (t.getPriority() != action.getValue()) {
+                    switch (action) {
+                        case COMPLETED -> t.setTaskAsCompleted();
+                        case CANCELED -> t.setTaskAsCanceled();
+                        default -> throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", action));
+                    }
+                    updated = true;
+                    break;
+                } else throw new BadRequestException("Task already marked as "+action.toString());
             }
         }
         if (!updated)
