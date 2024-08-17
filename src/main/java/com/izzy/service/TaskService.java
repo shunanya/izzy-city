@@ -9,6 +9,7 @@ import com.izzy.model.OrderScooter;
 import com.izzy.model.OrderScooterId;
 import com.izzy.model.Scooter;
 import com.izzy.model.misk.Task;
+import com.izzy.payload.response.TaskInfo;
 import com.izzy.repository.OrderRepository;
 import com.izzy.repository.OrderScooterRepository;
 import com.izzy.repository.ScooterRepository;
@@ -79,7 +80,7 @@ public class TaskService {
         return markTask(orderId, task, Task.Status.CANCEL);
     }
 
-    public List<Task> markTask(Long orderId, Task task, Task.Status action) {
+    private List<Task> markTask(@NonNull Long orderId, @NonNull Task task, Task.Status action) {
         task.setOrderId(orderId);
          if (!task.isValid()) {
             throw new IllegalArgumentException("Task has not valid structure.");
@@ -104,7 +105,6 @@ public class TaskService {
             throw new ResourceNotFoundException("Task", "", String.format("{orderId: %s, ScooterId: %s}", orderId, task.getScooterId()));
         return pushTasks(tasks);
     }
-
 
     private List<Task> pushTasks(@NonNull List<Task> tasks) {
         List<Task> keptTasks = new ArrayList<>();
@@ -134,7 +134,7 @@ public class TaskService {
         removeTask(orderId, task.getScooterId());
     }
 
-    public List<OrderScooter> getOrderScootersByOrderId(@NonNull Long orderId) {
+    private List<OrderScooter> getOrderScootersByOrderId(@NonNull Long orderId) {
         return orderScooterRepository.findByOrderId(orderId);
     }
 
@@ -156,7 +156,7 @@ public class TaskService {
         }
     }
 
-    public List<OrderScooter> convertTasksToOrderScooters(@NonNull List<Task> tasks) {
+    private List<OrderScooter> convertTasksToOrderScooters(@NonNull List<Task> tasks) {
         List<OrderScooter> orderScooters = new ArrayList<>();
         for (Task task : tasks) {
             orderScooters.add(convertTaskToOrderScooter(task));
@@ -164,19 +164,35 @@ public class TaskService {
         return orderScooters;
     }
 
-    public List<Task> getTasksByOrderId(@NonNull Long orderId) {
+    private Order getOrderByOrderId(Long orderId){
         Order order = orderRepository.findById(orderId).orElseThrow(()->new ResourceNotFoundException("Order", "id", orderId));
         if (!customService.checkAllowability(order))
             throw new AccessDeniedException("not allowed to get tasks from order created with user above your role");
-         return order.getTasks();
+        return order;
+    }
+    public List<Task> getTasksByOrderId(@NonNull Long orderId) {
+         return getOrderByOrderId(orderId).getTasks();
+    }
+
+    public List<TaskInfo> getShortTaskInfosByOrderId(Long orderId){
+        return TaskInfo.getShortTaskInfos(getOrderByOrderId(orderId));
+    }
+
+    public List<TaskInfo> getDetailedTaskInfosByOrderId(Long orderId){
+        return TaskInfo.getDetailedTaskInfos(getOrderByOrderId(orderId));
+    }
+
+    private List<Order> getOrdersByAssignedToUserId(Long assignedToUserId){
+        if (!customService.checkAllowability(assignedToUserId, true) ){
+            throw new AccessDeniedException("not allowed to get order not assigned you");
+        }
+        return orderRepository.findOrdersByFilters(null, null, null, assignedToUserId);
     }
 
     public List<Task> getTasksByAssigned(Long assignedToUserId) {
-        if (!assignedToUserId.equals(customService.currentUserId()) && !customService.checkAllowability(assignedToUserId, false) ){
-            throw new AccessDeniedException("not allowed to get tasks not assigned you");
-        }
+        List<Order> orders = getOrdersByAssignedToUserId(assignedToUserId);
+
         List<Task> tasks = new ArrayList<>();
-        List<Order> orders = orderRepository.findOrdersByFilters(null, null, null, assignedToUserId);
         if (!orders.isEmpty()) {
             orders.forEach(order->{
                 List<Task> orderTasks = order.getTasks();
@@ -188,9 +204,67 @@ public class TaskService {
         return Utils.rearrangeTasksPriorities(tasks);
     }
 
-    public List<Task> getTasksAssignedMe() {
+    private List<TaskInfo> getTaskInfosByAssigned(Long assignedToUserId, Boolean shortView){
+        List<Order> orders = getOrdersByAssignedToUserId(assignedToUserId);
+
+        List<TaskInfo> tasks = new ArrayList<>();
+        if (!orders.isEmpty()) {
+            orders.forEach(order->{
+                List<TaskInfo> orderTaskInfos = shortView?TaskInfo.getShortTaskInfos(order):TaskInfo.getDetailedTaskInfos(order);
+                if (!orderTaskInfos.isEmpty()) {
+                    tasks.addAll(orderTaskInfos);
+                }
+            });
+        }
+        return tasks;
+
+    }
+    public List<TaskInfo> getShortTaskInfosByAssigned(Long assignedToUserId) {
+        return getTaskInfosByAssigned(assignedToUserId, true);
+    }
+
+    public List<TaskInfo> getDetailedTaskInfosByAssigned(Long assignedToUserId) {
+        return getTaskInfosByAssigned(assignedToUserId, false);
+    }
+
+    private List<Order> getOrdersAssignedMe(){
         Long userId = customService.currentUserId();
-        return getTasksByAssigned(userId);
+        return orderRepository.findOrdersByFilters(null, null, null, userId);
+    }
+
+    public List<Task> getTasksAssignedMe() {
+        List<Order> orders = getOrdersAssignedMe();
+        List<Task> tasks = new ArrayList<>();
+        if (!orders.isEmpty()) {
+            orders.forEach(order->{
+                List<Task> orderTasks = order.getTasks();
+                if (!orderTasks.isEmpty()) {
+                    tasks.addAll(orderTasks);
+                }
+            });
+        }
+        return Utils.rearrangeTasksPriorities(tasks);
+    }
+
+    private List<TaskInfo> getTaskInfosAssignedMe(Boolean shortView){
+        List<Order> orders = getOrdersAssignedMe();
+        List<TaskInfo> taskInfos = new ArrayList<>();
+        if (!orders.isEmpty()) {
+            orders.forEach(order->{
+                List<TaskInfo> orderTaskInfos = shortView?TaskInfo.getShortTaskInfos(order):TaskInfo.getDetailedTaskInfos(order);
+                if (!orderTaskInfos.isEmpty()) {
+                    taskInfos.addAll(orderTaskInfos);
+                }
+            });
+        }
+        return taskInfos;
+    }
+    public List<TaskInfo> getShortTaskInfosAssignedMe(){
+        return getTaskInfosAssignedMe(true);
+    }
+
+    public List<TaskInfo> getDetailedTaskInfosAssignedMe(){
+        return getTaskInfosAssignedMe(false);
     }
 
     public List<OrderScooter> rearrangeOrderScooterPriorities(Long orderId) {

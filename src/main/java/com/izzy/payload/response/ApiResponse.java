@@ -1,11 +1,9 @@
 package com.izzy.payload.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.springframework.http.HttpStatus;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 
@@ -14,10 +12,6 @@ import java.io.Serializable;
     "message"
 })
 public class ApiResponse implements Serializable {
-
-    @Serial
-    @JsonIgnore
-    private static final long serialVersionUID = 7702134516418120340L;
 
     @JsonProperty("status")
     private int status;
