@@ -128,7 +128,7 @@ class RoleServiceTest {
         List<String> roles = roleService.getRolesFromParam(param);
         assert !roles.isEmpty() : "Error: result list is empty";
 
-        Role role = new Role("", new ArrayList<Long>(Arrays.asList(1L, 2L)));
+        Role role = new Role("", new ArrayList<>(Arrays.asList(1L, 2L)));
         when(roleRepository.findByName(anyString())).thenReturn(Optional.of(role));
 
         Set<Role> roleSet = roleService.convertToRoles(roles);
@@ -186,7 +186,7 @@ class RoleServiceTest {
     void convertToRoles_WithPartlyUserAttached() throws JsonProcessingException {
         List<String> list = new ArrayList<>(){{add("Admin"); add("Manager"); add("Supervisor");}};
 
-        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(new Role("", new ArrayList<Long>(Arrays.asList(1L, 2L)))));
+        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(new Role("", new ArrayList<>(Arrays.asList(1L, 2L)))));
 
         Set<Role> roles = roleService.convertToRoles(list);
 

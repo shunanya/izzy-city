@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyIterable;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -77,7 +75,7 @@ public class TaskServiceTest {
     @Test
     public void append_task_to_non_existent_order() {
         Long nonExistentOrderId = 999L;
-        Task task = new Task(19L, 2L, 1);
+        Task task = new Task(2L, 1);
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
         when(orderScooterRepository.findByOrderId(anyLong())).thenReturn(new ArrayList<>());
         assertThrows(ResourceNotFoundException.class, () -> taskService.appendTask(nonExistentOrderId, task));

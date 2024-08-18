@@ -19,7 +19,10 @@ public class Task implements Serializable {
 
     // Constructors, getters, and setters
 
-    public Task() {
+    public Task() {}
+
+    public Task(@NonNull Long scooterId, int priority) {
+        this(null, scooterId, priority);
     }
 
     public Task(Long orderId, @NonNull Long scooterId, int priority) {

@@ -1,6 +1,7 @@
 package com.izzy.service;
 
 import com.izzy.exception.BadRequestException;
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
@@ -53,7 +54,7 @@ public class UserService {
      */
     public User getUserFromUserRequest(@Nullable Long id, @NonNull UserRequest userRequest) {
         boolean createUser = (id == null);
-        User user = (id == null) ? new User() : userRepository.findById(id).get();
+        User user = (id == null) ? new User() : userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User", "id", id));
         String tmp = userRequest.getFirstName();
         if (tmp != null && !tmp.isBlank()) user.setFirstName(tmp);
         tmp = userRequest.getLastName();
