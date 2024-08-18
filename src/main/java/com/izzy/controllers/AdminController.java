@@ -21,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
  * controller for managing the operations allowed to the administrator only.
  * Handles access control and exception management.
  */
-@
 @RestController
 @RequestMapping("/izzy/admin")
 public class AdminController {
