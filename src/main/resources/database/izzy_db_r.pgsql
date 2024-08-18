@@ -462,9 +462,9 @@ INSERT INTO public.order_scooter VALUES (19, 1, 2, NULL);
 INSERT INTO public.order_scooter VALUES (19, 3, 1, NULL);
 INSERT INTO public.order_scooter VALUES (19, 2, 3, NULL);
 INSERT INTO public.order_scooter VALUES (41, 1, 1, NULL);
-INSERT INTO public.order_scooter VALUES (41, 3, -1, 'CANCEL');
-INSERT INTO public.order_scooter VALUES (41, 5, 3, NULL);
-INSERT INTO public.order_scooter VALUES (41, 4, 2, NULL);
+INSERT INTO public.order_scooter VALUES (41, 3, -1, 'CANCELED');
+INSERT INTO public.order_scooter VALUES (41, 5, 2, NULL);
+INSERT INTO public.order_scooter VALUES (41, 4, 0, 'COMPLETED');
 
 
 --
@@ -480,12 +480,12 @@ INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:
 -- Data for Name: refreshtoken; Type: TABLE DATA; Schema: public; Owner: root
 --
 
+INSERT INTO public.refreshtoken VALUES (17, '2024-08-17 22:22:06.535785+04', '0dc2645d-ac93-4433-a0a8-38e12b488a31', 25);
+INSERT INTO public.refreshtoken VALUES (9, '2024-08-18 12:04:45.488856+04', '9eb088e5-60ef-42b2-b47f-e82646d09294', 6);
+INSERT INTO public.refreshtoken VALUES (11, '2024-08-18 20:48:35.148349+04', '9d0c7729-d312-49a4-ac9f-184ac0f15f71', 26);
+INSERT INTO public.refreshtoken VALUES (14, '2024-08-18 20:49:44.25124+04', '5f46564a-58e3-4f50-a190-c6d912c91c16', 3);
 INSERT INTO public.refreshtoken VALUES (12, '2024-08-01 17:38:23.737976+04', '074e54ba-374b-483a-b69b-e205a8f67952', 29);
 INSERT INTO public.refreshtoken VALUES (16, '2024-08-17 14:55:32.173243+04', '0084c24f-d075-419c-8f91-65b6f3df65e2', 39);
-INSERT INTO public.refreshtoken VALUES (11, '2024-08-17 15:37:36.105505+04', '37a8323e-2067-430f-bde9-1c64d9828cfc', 26);
-INSERT INTO public.refreshtoken VALUES (17, '2024-08-17 15:48:18.227818+04', 'ef95cf33-3c11-4f3b-a016-25d6e1083938', 25);
-INSERT INTO public.refreshtoken VALUES (9, '2024-08-17 15:49:12.956461+04', '08086343-f8fd-4317-92e0-af5d51e7db66', 6);
-INSERT INTO public.refreshtoken VALUES (14, '2024-08-17 16:06:04.861836+04', 'b30aee7f-63c3-476c-905c-34e4eb4db2d6', 3);
 
 
 --
@@ -508,6 +508,7 @@ INSERT INTO public.scooters VALUES (1, '3366', 'Active', 40, 1, 50);
 INSERT INTO public.scooters VALUES (2, '3367', 'Active', 80, 2, 45);
 INSERT INTO public.scooters VALUES (4, '4466', 'Active', 40, 3, 100);
 INSERT INTO public.scooters VALUES (5, '4444', 'Active', 40, 1, 50);
+INSERT INTO public.scooters VALUES (6, '4455', 'Active', 40, 2, 50);
 
 
 --
@@ -576,7 +577,7 @@ SELECT pg_catalog.setval('public.roles_id_seq', 5, true);
 -- Name: scooters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.scooters_id_seq', 5, true);
+SELECT pg_catalog.setval('public.scooters_id_seq', 6, true);
 
 
 --
