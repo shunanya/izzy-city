@@ -2,6 +2,7 @@ package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.AccessDeniedException;
+import com.izzy.exception.ApiException;
 import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.User;
 import com.izzy.payload.request.UserRequest;
@@ -17,7 +18,6 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.net.UnknownServiceException;
 import java.util.List;
 
 /**
@@ -163,7 +163,7 @@ public class UserController {
      * @return ResponseEntity containing a success message.
      * @throws ResourceNotFoundException if the user is not found.
      * @throws AccessDeniedException     if operation is not permitted for current user
-     * @throws UnknownServiceException   if operation cannot be fulfilled by unknown reason
+     * @throws ApiException              if operation cannot be fulfilled by unknown reason
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
@@ -174,7 +174,7 @@ public class UserController {
                     if (userService.deleteUser(id)) {
                         return ResponseEntity.ok(new MessageResponse("User deleted"));
                     } else
-                        throw new UnknownServiceException("Couldn't delete user with id=" + id);
+                        throw new ApiException("Couldn't delete user with id=" + id);
                 } else
                     throw new AccessDeniedException("not allowed to delete user with above your role");
             } else

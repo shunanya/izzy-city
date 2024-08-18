@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for managing role-related operations.
+ * Provides endpoints for creating, updating, and retrieving role information.
+ * Handles access control and exception management.
+ */
 @RestController
 @RequestMapping("/roles")
 public class RoleController {

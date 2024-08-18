@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for managing zone-related operations.
+ * Provides endpoints for creating, updating, and retrieving zone information.
+ * Handles access control and exception management.
+ */
 @RestController
 @RequestMapping("/zones")
 public class ZoneController {

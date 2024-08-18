@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * controller for managing the operations allowed to the administrator only.
+ * Handles access control and exception management.
+ */
+@
 @RestController
 @RequestMapping("/izzy/admin")
 public class AdminController {

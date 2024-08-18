@@ -66,9 +66,9 @@ public class RoleService {
     /**
      * Converts list of roles name to List of roles id
      *
+     * <p>Note: The returned list may be smaller than the source list due to incorrect role names</p>
      * @param roles the list of existing roles name
      * @return the references list of Role {@link Role} id
-     * @implNote The returned list may be smaller than the source list due to incorrect role names
      */
     public List<Long> convertToRef(@NonNull List<String> roles) {
         List<Long> roleRef = new ArrayList<>();

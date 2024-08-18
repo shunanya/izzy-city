@@ -258,7 +258,6 @@ public class OrderService {
      * Deletes an order by their ID.
      *
      * @param orderId the ID of the order to delete.
-     * @return nothing
      * @throws ResourceNotFoundException if the order is not found in database.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */

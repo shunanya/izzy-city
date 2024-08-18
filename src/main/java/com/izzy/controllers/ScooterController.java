@@ -16,6 +16,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+/**
+ * Controller for managing Scooter-related operations.
+ * Provides endpoints for creating, updating, and retrieving scooter information.
+ * Handles access control and exception management.
+ */
 @RestController
 @RequestMapping("/izzy/scooters")
 public class ScooterController {
