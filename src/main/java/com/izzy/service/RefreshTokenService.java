@@ -41,6 +41,7 @@ public class RefreshTokenService {
      *
      * @param userId user id whose token should be created
      * @return created refresh token
+     * @throws ResourceNotFoundException if user not found in storage
      */
     @Transactional
     public RefreshToken createRefreshToken(Long userId) {
@@ -70,7 +71,7 @@ public class RefreshTokenService {
      *
      * @param token verifying token
      * @return token on success
-     * @throws TokenRefreshException if expired
+     * @throws TokenRefreshException if refresh token expired
      */
     @Transactional
     public RefreshToken verifyExpiration(RefreshToken token) {

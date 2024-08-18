@@ -114,7 +114,7 @@ public class Utils {
     public static List<Task> convertOrderScooterToTasks(List<OrderScooter> orderScooters) {
         List<Task> tasks = new ArrayList<>();
         if (orderScooters != null && !orderScooters.isEmpty()) {
-            tasks = orderScooters.stream().map(os -> new Task(os.getOrder().getId(), os.getScooter().getId(), os.getPriority())).collect(Collectors.toList());
+            tasks = orderScooters.stream().map(os -> new Task(os.getOrder().getId(), os.getScooter().getId(), os.getPriority(), os.getComment())).collect(Collectors.toList());
         }
         return tasks;
     }

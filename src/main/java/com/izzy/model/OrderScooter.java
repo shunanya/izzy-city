@@ -1,5 +1,6 @@
 package com.izzy.model;
 
+import com.izzy.model.misk.Task;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -74,6 +75,16 @@ public class OrderScooter {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public void setTaskAsCanceled() {
+        this.priority = Task.Status.CANCELED.getValue();
+        this.comment = Task.Status.CANCELED.toString();
+    }
+
+    public void setTaskAsCompleted() {
+        this.priority = Task.Status.COMPLETED.getValue();
+        this.comment = Task.Status.COMPLETED.toString();
     }
 
     @Override

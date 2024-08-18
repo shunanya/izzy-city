@@ -1,10 +1,12 @@
 package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
-import com.izzy.security.utils.Utils;
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.Scooter;
 import com.izzy.payload.request.ScooterRequest;
+import com.izzy.security.utils.Utils;
 import com.izzy.service.ScooterService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +25,26 @@ public class ScooterController {
         this.scooterService = scooterService;
     }
 
+    /**
+     * Retrieve all scooters
+     *
+     * @return list of scooters
+     * @throws AccessDeniedException if operation is not permitted for current user
+     */
     @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<Scooter> getAllScooters() {
         return scooterService.getAllScooters();
     }
 
+    /**
+     * Retrieves a scooter by their ID.
+     *
+     * @param id the ID of the scooter to retrieve.
+     * @return a ResponseEntity containing the scooter.
+     * @throws ResourceNotFoundException if the scooter is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<Scooter> getScooterById(@PathVariable Long id) {
@@ -39,6 +55,13 @@ public class ScooterController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Creates a new scooter.
+     *
+     * @param scooterRequestString the request payload containing scooter details.
+     * @return a ResponseEntity containing a created scooter details.
+     * @throws AccessDeniedException if operation is not permitted for current user
+     */
     @PostMapping
     @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Scooter> createScooter(@RequestBody String scooterRequestString) {
@@ -54,6 +77,15 @@ public class ScooterController {
         }
     }
 
+    /**
+     * Updates an existing scooter.
+     *
+     * @param id                   the ID of the scooter to update.
+     * @param scooterRequestString the request payload containing updating scooter details.
+     * @return ResponseEntity containing an updated scooter details.
+     * @throws ResourceNotFoundException if the scooter is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Scooter> updateScooter(@PathVariable Long id, @RequestBody String scooterRequestString) {
@@ -72,6 +104,14 @@ public class ScooterController {
         }
     }
 
+    /**
+     * Deletes a scooter by their ID.
+     *
+     * @param id the ID of the scooter to delete.
+     * @return ResponseEntity containing a success message.
+     * @throws ResourceNotFoundException if the scooter is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<Void> deleteScooter(@PathVariable Long id) {

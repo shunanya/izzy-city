@@ -25,6 +25,7 @@ public class AuthService {
      * @param phoneNumber provided unique user identifier (phone number)
      * @param rawPassword provided password
      * @return existing user or null otherwise
+     * @throws ResourceNotFoundException if user cannot be found in storage
      */
     public User login(String phoneNumber, String rawPassword) {
         Optional<User> userOptional = userRepository.findByPhoneNumber(phoneNumber);

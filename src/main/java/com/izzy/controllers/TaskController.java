@@ -1,6 +1,8 @@
 package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.izzy.exception.AccessDeniedException;
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.misk.Task;
 import com.izzy.payload.response.ApiResponse;
@@ -14,6 +16,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+/**
+ * Controller for managing task-related operations.
+ * Provides endpoints for creating, updating, and retrieving task information.
+ * Handles access control and exception management.
+ */
 @RestController
 @RequestMapping("/izzy/tasks")
 public class TaskController {
@@ -24,6 +31,15 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    /**
+     * Retrieve all tasks included into order
+     *
+     * @param orderId owner-order id of the tasks
+     * @param viewType optional parameter to get 'simple', 'short' and 'detailed' task data view (default is 'simple')
+     * @return list of tasks
+     * @throws ResourceNotFoundException if the order is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @GetMapping("/{orderId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<?> getTasksByOrderId(@PathVariable Long orderId,
@@ -41,6 +57,13 @@ public class TaskController {
         }
     }
 
+    /**
+     * Retrieve all tasks assigned to current user
+     *
+     * @param viewType optional parameter to get 'simple', 'short' and 'detailed' task data view (default is 'simple')
+     * @return list of tasks
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @GetMapping("/assigned")
     @PreAuthorize("hasAnyRole('Charger','Scout')")
     public List<?> getTasksAssignedMe(@RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
@@ -56,6 +79,15 @@ public class TaskController {
         }
     }
 
+    /**
+     * Retrieve all tasks assigned to user
+     *
+     * @param userId user ID whom assigned any task
+     * @param viewType optional parameter to get 'simple', 'short' and 'detailed' task data view (default is 'simple')
+     * @return list of tasks
+     * @throws ResourceNotFoundException if the user is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @GetMapping("/assigned/{userId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<?> getTasksByAssigned(@PathVariable Long userId,
@@ -72,6 +104,15 @@ public class TaskController {
         }
     }
 
+    /**
+     * Appent a new task to the existing tasks
+     *
+     * @param orderId owner-order id of the tasks
+     * @param taskRequestString task details to be appended
+     * @return updated list of tasks
+     * @throws ResourceNotFoundException if the order is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @PutMapping("/{orderId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<Task> appendTaskToOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
@@ -84,6 +125,15 @@ public class TaskController {
         }
     }
 
+    /**
+     * Remove task from existing tasks
+     *
+     * @param orderId owner-order id of the tasks
+     * @param taskRequestString task details to be removed
+     * @return nothing
+     * @throws ResourceNotFoundException if the order is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @DeleteMapping("/{orderId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<Void> deleteTaskFromOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
@@ -98,6 +148,15 @@ public class TaskController {
         }
     }
 
+    /**
+     * Change status of task to completed
+     *
+     * @param orderId owner-order id of the tasks
+     * @param taskRequestString task details to be updated
+     * @return ResponseEntity containing a success message
+     * @throws ResourceNotFoundException if the order is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @PatchMapping("/complete/{orderId}")
     public ResponseEntity<?> markTaskAsCompleted(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
@@ -113,6 +172,15 @@ public class TaskController {
         }
     }
 
+    /**
+     * Change status of task to canceled
+     *
+     * @param orderId owner-order id of the tasks
+     * @param taskRequestString task details to be updated
+     * @return ResponseEntity containing a success message
+     * @throws ResourceNotFoundException if the order is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     @PatchMapping("/cancel/{orderId}")
     public ResponseEntity<?> markTaskAsCanceled(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {

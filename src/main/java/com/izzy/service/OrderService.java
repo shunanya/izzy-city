@@ -69,6 +69,10 @@ public class OrderService {
      * @param orderRequest the provided data {@link OrderRequest}
      * @param orderId      Should be Null on creation.
      * @return entity Order on success
+     * @throws ResourceNotFoundException if some resource cannot be found
+     * @throws IllegalArgumentException  if some of provided arguments are wrong
+     * @throws BadRequestException       if any required arguments are missing during creation
+     * @throws AccessDeniedException     if operation is not permitted for current user
      */
     public Order getOrderFromOrderRequest(OrderRequest orderRequest, Long orderId) {
         boolean creation = (orderId == null);
@@ -140,6 +144,7 @@ public class OrderService {
      * @param createdBy  the filtering parameter
      * @param assignedTo the filtering parameter
      * @return the filtered List of orders
+     * @throws AccessDeniedException if operation is not permitted for current user
      */
     public List<Order> getOrders(@Nullable String action,
                                  @Nullable String status,
@@ -163,9 +168,16 @@ public class OrderService {
         return allowedOrders;
     }
 
+    /**
+     * Retrieves an order by their ID.
+     *
+     * @param id the ID of the order to retrieve.
+     * @return the order
+     * @throws AccessDeniedException if operation is not permitted for current user
+     */
     public Order getOrderById(Long id) {
         Optional<Order> orderOptional = orderRepository.findById(id);
-        if (orderOptional.isPresent()){
+        if (orderOptional.isPresent()) {
             if (customService.checkAllowability(orderOptional.get())) {
                 return orderOptional.get();
             } else {
@@ -208,6 +220,14 @@ public class OrderService {
         }
     }
 
+    /**
+     * Creates a new order.
+     *
+     * @param order the raw order with the required details to be saved.
+     * @return saved in database order.
+     * @throws AccessDeniedException if operation is not permitted for current user
+     */
+    @Transactional
     public Order createOrder(Order order) {
         Order savedOrder = orderRepository.save(order);
         List<Task> tasks = order.getTasks();
@@ -218,6 +238,13 @@ public class OrderService {
         return savedOrder;
     }
 
+    /**
+     * Updates an existing order.
+     *
+     * @param order the updated in memory order to be updated into database.
+     * @return an updated order database ID.
+     * @throws AccessDeniedException if operation is not permitted for current user
+     */
     @Transactional
     public Long updateOrder(@NonNull Order order) {
         if (!customService.checkAllowability(order))
@@ -227,6 +254,14 @@ public class OrderService {
         return savedOrder.getId();
     }
 
+    /**
+     * Deletes an order by their ID.
+     *
+     * @param orderId the ID of the order to delete.
+     * @return nothing
+     * @throws ResourceNotFoundException if the order is not found in database.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
     public void deleteOrder(@NonNull Long orderId) {
         if (!customService.checkAllowability(orderId))
             throw new AccessDeniedException("not allowed to delete order created with user above your role");

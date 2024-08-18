@@ -24,6 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Controller class responsible for handling authentication-related requests such as sign-in, sign-out, and token refresh.
+ * It utilizes services like {@link AuthService}, {@link RefreshTokenService}, and {@link JwtUtils} to perform authentication operations.
+ */
 @RestController
 @RequestMapping("/izzy/auth")
 public class AuthController {
@@ -37,6 +41,12 @@ public class AuthController {
         this.authService = authService;
     }
 
+    /**
+     * Handles the sign-in request by authenticating the user with the provided credentials.
+     *
+     * @param loginRequestString JSON string representation of the login request payload (phone number and password).
+     * @return ResponseEntity containing the user information and cookies with JWT tokens upon successful authentication.
+     */
     @PostMapping("/signin")
     public ResponseEntity<?> loginUser(@RequestBody String loginRequestString) {
         try {
@@ -59,6 +69,12 @@ public class AuthController {
         }
     }
 
+    /**
+     * Handles the sign-out request by invalidating the user's session and clearing JWT cookies.
+     *
+     * @param request HttpServletRequest object to access cookies.
+     * @return ResponseEntity indicating successful sign-out along with cleared cookies.
+     */
     @PostMapping("/signout")
     public ResponseEntity<?> logoutUser(HttpServletRequest request) {
         try {
@@ -85,6 +101,12 @@ public class AuthController {
         }
     }
 
+    /**
+     * Handles the token refresh request by validating the refresh token and issuing a new JWT.
+     *
+     * @param request HttpServletRequest object to access cookies.
+     * @return ResponseEntity indicating successful token refresh along with new JWT cookie.
+     */
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) {
         try {

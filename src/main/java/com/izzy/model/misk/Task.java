@@ -77,9 +77,17 @@ public class Task implements Serializable {
     }
 
     @JsonIgnore
+    public Status getTaskStatus(){
+        return Status.getStatusByValue(this.priority);
+    }
+
+    @JsonIgnore
     public boolean isValid() {
         return this.orderId != null && this.scooterId != null;
     }
+
+    @JsonIgnore
+    public boolean hasScooterId() {return this.scooterId != null;}
 
     @Override
     public boolean equals(Object o) {
@@ -105,11 +113,15 @@ public class Task implements Serializable {
     }
 
     public enum Status {
-        CANCELED(-1), COMPLETED(0);
+        CANCELED(-1), COMPLETED(0), ACTIVE(1);
         private final int value;
 
         Status(int value) {
             this.value = value;
+        }
+
+        public static Status getStatusByValue(int value) {
+            return Arrays.stream(values()).filter(m -> m.getValue() == value).findFirst().orElse(ACTIVE);
         }
 
         public static String statusByValue(int value) {

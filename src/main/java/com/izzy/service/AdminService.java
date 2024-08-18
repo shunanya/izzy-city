@@ -92,7 +92,7 @@ public class AdminService {
     /**
      * Checks for user data exist in storage
      *
-     * @param phoneNumber unified user identifier (phone number)
+     * @param phoneNumber unique user identifier (phone number)
      * @return True on exists
      */
     public Boolean existByUserIdentifier(String phoneNumber) {
