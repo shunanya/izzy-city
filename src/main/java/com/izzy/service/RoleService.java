@@ -152,7 +152,7 @@ public class RoleService {
                 }
             }
         }
-        return Arrays.stream(sp).toList();
+        return new ArrayList<>(Arrays.asList(sp));
     }
 
     List<String> combineRoles(@NonNull List<String> requiredList, @NonNull List<String> currentList) {

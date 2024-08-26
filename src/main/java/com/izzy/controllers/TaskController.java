@@ -105,7 +105,7 @@ public class TaskController {
     }
 
     /**
-     * Appent a new task to the existing tasks
+     * Append a new task to the existing tasks
      *
      * @param orderId owner-order id of the tasks
      * @param taskRequestString task details to be appended
@@ -126,7 +126,7 @@ public class TaskController {
     }
 
     /**
-     * Remove task from existing tasks
+     * Remove task from existing order tasks
      *
      * @param orderId owner-order id of the tasks
      * @param taskRequestString task details to be removed

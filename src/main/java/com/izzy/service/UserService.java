@@ -148,18 +148,22 @@ public class UserService {
             String zone,
             String shift,
             String roles) {
-        List<User> users;
-        List<String> availableRoles = customService.getCurrenUserAvailableRoles();
+        List<User> users = new ArrayList<>();
         if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
-            users = userRepository.findUsersByFilters(null, null, null, null, null, null, availableRoles);
-//            return userRepository.findAll();
+            users = userRepository.findUsersByFilters(null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    customService.getCurrenUserAvailableRoles());
         } else {
             // Detect current user available roles
             // Combine the specified role filters with the current user's available roles.
             if (roles != null && !roles.isBlank()) {
-                availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), availableRoles);
+                List<String> availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), customService.getCurrenUserAvailableRoles());
+                users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
             }
-            users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
         }
         return shortView ? users.stream().map(this::convertUserToShort).collect(Collectors.toList()) : users;
     }
