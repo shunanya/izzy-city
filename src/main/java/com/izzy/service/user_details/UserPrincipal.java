@@ -19,7 +19,8 @@ public class UserPrincipal implements UserDetails {
     private final Long id;
     @JsonIgnore
     private final String password;
-    private final String phone_number;
+    private final String phoneNumber;
+    private final Long headForUserId;
     private final Collection<? extends GrantedAuthority> authorities;
 
 
@@ -29,7 +30,8 @@ public class UserPrincipal implements UserDetails {
                           Long head_for_user, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.password = password;
-        this.phone_number = phone_number;
+        this.phoneNumber = phone_number;
+        this.headForUserId = head_for_user;
         this.authorities = authorities;
     }
 
@@ -66,7 +68,11 @@ public class UserPrincipal implements UserDetails {
     }
 
     public String getPhoneNumber() {
-        return phone_number;
+        return phoneNumber;
+    }
+
+    public Long getHeadForUserId() {
+        return headForUserId;
     }
 
     @Override

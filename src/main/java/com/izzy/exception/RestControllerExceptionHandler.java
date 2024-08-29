@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
@@ -33,6 +34,8 @@ public class RestControllerExceptionHandler extends ResponseEntityExceptionHandl
             response = new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         } else if (ex instanceof JsonProcessingException) {
             response = new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        } else if (ex instanceof NoHandlerFoundException) {
+            response = new ApiResponse(HttpStatus.NOT_FOUND.value(), "404 Error: Resource Not Found");
         } else {
             response = new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         }

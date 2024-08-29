@@ -11,6 +11,7 @@ import com.izzy.repository.UserRepository;
 import com.izzy.service.RoleService;
 import com.izzy.service.user_details.UserPrincipal;
 import org.springframework.lang.NonNull;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,11 +45,11 @@ public class CustomService {
     }
 
     public boolean checkAllowability(@NonNull Long userId, boolean canActOnHimself) {
-       Optional<User> user = userRepository.findById(userId);
-       if (user.isEmpty()) {
-           throw new ResourceNotFoundException("User", "id", userId);
-       }
-       return checkAllowability(user.get(), canActOnHimself);
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        }
+        return checkAllowability(user.get(), canActOnHimself);
     }
 
     public boolean checkAllowability(@NonNull User requestedUser) {
@@ -90,13 +91,13 @@ public class CustomService {
     }
 
     public boolean checkAllowability(@NonNull Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(()->new ResourceNotFoundException("Order", "id", orderId));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         return checkAllowability(order);
     }
 
     public boolean checkAllowability(@NonNull Order order) {
         Long createdUserId = order.getCreatedBy();
-        User user = userRepository.findById(createdUserId).orElseThrow(()->new CustomException(500, "Error: Order with erroneous 'createdBy' field: " + createdUserId));
+        User user = userRepository.findById(createdUserId).orElseThrow(() -> new CustomException(500, "Error: Order with erroneous 'createdBy' field: " + createdUserId));
         return checkAllowability(user);
     }
 
@@ -145,14 +146,20 @@ public class CustomService {
         return roleService.getRolesFromParam("<" + currentUserMaxRole.getName());
     }
 
-    public Long currentUserId() {
-        Long id = null;
+    public UserPrincipal currentUserDetails() {
         Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
-        if (currenUserAuth != null && currenUserAuth.isAuthenticated()) {
-            // Get the UserDetails object
-            UserPrincipal currentUserDetails = (UserPrincipal) currenUserAuth.getPrincipal();
-            id = currentUserDetails.getId();
+        if (currenUserAuth == null || !currenUserAuth.isAuthenticated()) {
+            throw new AuthorizationServiceException("User is not authorized");
         }
-        return id;
+        // Get the UserDetails object
+        return (UserPrincipal) currenUserAuth.getPrincipal();
+    }
+
+    public Long currentUserId() {
+        return currentUserDetails().getId();
+    }
+
+    public Long currentUserHeadId() {
+        return currentUserDetails().getHeadForUserId();
     }
 }
