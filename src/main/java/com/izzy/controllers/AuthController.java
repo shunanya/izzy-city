@@ -2,13 +2,13 @@ package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.TokenRefreshException;
-import com.izzy.security.utils.Utils;
 import com.izzy.model.RefreshToken;
 import com.izzy.model.User;
 import com.izzy.payload.request.LoginRequest;
 import com.izzy.payload.response.MessageResponse;
-import com.izzy.payload.response.UserShortInfo;
+import com.izzy.payload.response.UserInfo;
 import com.izzy.security.jwt.JwtUtils;
+import com.izzy.security.utils.Utils;
 import com.izzy.service.AuthService;
 import com.izzy.service.RefreshTokenService;
 import com.izzy.service.user_details.UserPrincipal;
@@ -18,10 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -61,7 +58,8 @@ public class AuthController {
                 return ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                         .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
-                        .body(new UserShortInfo(user));
+//                        .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                        .body(new UserInfo(user, authService.getUserById(user.getUserManager()), true));
             }
             throw new CredentialsExpiredException("Error: Provided credentials are wrong.");
         } catch (Exception ex) {

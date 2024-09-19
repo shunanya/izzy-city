@@ -1,6 +1,6 @@
 package com.izzy.payload.request;
 
-import com.izzy.model.misk.Task;
+import com.izzy.model.TaskDTO;
 import jakarta.validation.constraints.Size;
 
 import java.sql.Timestamp;
@@ -23,7 +23,7 @@ public class OrderRequest {
     private Long takenBy;
     private Timestamp takenAt;
     private Timestamp doneAt;
-    private List<Task> tasks;
+    private List<TaskDTO> tasks;
 
     public String getName() {
         return name;
@@ -121,12 +121,12 @@ public class OrderRequest {
         this.doneAt = doneAt;
     }
 
-    public List<Task> getTasks() {
+    public List<TaskDTO> getTasks() {
         return tasks;
     }
 
-    public void setTasks(List<Task> tasks) {
-        this.tasks = tasks;
+    public void setTasks(List<TaskDTO> tasksDTO) {
+        this.tasks = tasksDTO;
     }
 
     public enum Action {

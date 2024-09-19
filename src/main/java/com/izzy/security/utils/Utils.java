@@ -1,7 +1,7 @@
 package com.izzy.security.utils;
 
-import com.izzy.model.OrderScooter;
-import com.izzy.model.misk.Task;
+import com.izzy.model.Task;
+import com.izzy.model.TaskDTO;
 import org.springframework.lang.NonNull;
 
 import java.sql.Timestamp;
@@ -111,14 +111,6 @@ public class Utils {
         return null;
     }
 
-    public static List<Task> convertOrderScooterToTasks(List<OrderScooter> orderScooters) {
-        List<Task> tasks = new ArrayList<>();
-        if (orderScooters != null && !orderScooters.isEmpty()) {
-            tasks = orderScooters.stream().map(os -> new Task(os.getOrder().getId(), os.getScooter().getId(), os.getPriority(), os.getComment())).collect(Collectors.toList());
-        }
-        return tasks;
-    }
-
     public static List<Task> rearrangeTasksPriorities(@NonNull List<Task> tasks) {
         if (tasks.size() > 0) {
             tasks.sort(Comparator.comparingInt(Task::getPriority));
@@ -130,15 +122,14 @@ public class Utils {
         return tasks;
     }
 
-    public static List<OrderScooter> rearrangeOrderScooterPriorities(@NonNull List<OrderScooter> orderScooters) {
-        if (orderScooters.size() > 0) {
-            orderScooters.sort(Comparator.comparingInt(OrderScooter::getPriority));
+    public static List<TaskDTO> rearrangeTasksDTOPriorities(@NonNull List<TaskDTO> tasksDTO) {
+        if (tasksDTO.size() > 0) {
+            tasksDTO.sort(Comparator.comparingInt(TaskDTO::getPriority));
             int i = 1;
-            for (OrderScooter os : orderScooters) {
-                if (os.getPriority() > 0) os.setPriority(i++);
+            for (TaskDTO taskDTO : tasksDTO) {
+                if (taskDTO.getPriority() > 0) taskDTO.setPriority(i++);
             }
         }
-        return orderScooters;
+        return tasksDTO;
     }
-
 }

@@ -2,13 +2,11 @@ package com.izzy.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.izzy.model.misk.Task;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
@@ -54,21 +52,15 @@ public class Order {
     private Timestamp takenAt;
     @Column(name = "done_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Timestamp doneAt;
-    @JsonIgnore
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<OrderScooter> orderScooters = new ArrayList<>();
-    @Transient
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private List<Task> tasks = new ArrayList<>();
 
-    public Order() {
-    }
+    @JsonIgnore
+    private transient List<TaskDTO> rawTasks = new ArrayList<>();
 
-    @PostLoad
-    @PostPersist
-    @PostUpdate
-    private void loadTasks() { // Update tasks according to OrderScooters
-        if (!orderScooters.isEmpty())
-            this.tasks = orderScooters.stream().map(os -> new Task(os.getOrder().getId(), os.getScooter().getId(), os.getPriority(), os.getComment())).collect(Collectors.toList());
+    public Order() {
     }
 
     public Long getId() {
@@ -167,14 +159,6 @@ public class Order {
         this.doneAt = doneAt;
     }
 
-    public List<OrderScooter> getOrderScooters() {
-        return orderScooters;
-    }
-
-    public void setOrderScooters(List<OrderScooter> orderScooters) {
-        this.orderScooters = orderScooters;
-    }
-
     public List<Task> getTasks() {
         return tasks;
     }
@@ -186,5 +170,13 @@ public class Order {
     @JsonIgnore
     public boolean isValid() {
         return (this.id != null && action != null && name != null && status != null);
+    }
+
+    public List<TaskDTO> getRawTasks() {
+        return rawTasks;
+    }
+
+    public void setRawTasks(List<TaskDTO> rawTasks) {
+        this.rawTasks = rawTasks;
     }
 }

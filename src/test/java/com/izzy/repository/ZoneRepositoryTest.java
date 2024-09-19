@@ -34,7 +34,7 @@ class ZoneRepositoryTest {
     }
 
     @Test
-    void testZoneFindByNameWithoutZonename() throws JsonProcessingException {
+    void testZoneFindByNameWithoutZoneName() throws JsonProcessingException {
         Optional<Zone> zone = zoneRepository.findByName(null);
         System.out.println(zone);
         assertNotNull(zone);
@@ -50,4 +50,4 @@ class ZoneRepositoryTest {
         assertNotNull(zoneJson);
         assertFalse(zoneJson.isEmpty());
     }
-} //select z1_0.id,z1_0.name from zones z1_0 where z1_0.name ilike ? escape ''
+}

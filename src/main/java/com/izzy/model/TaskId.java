@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
-public class OrderScooterId implements Serializable {
+public class TaskId implements Serializable {
     @Column(name = "order_id")
     private Long orderId;
 
@@ -16,10 +16,10 @@ public class OrderScooterId implements Serializable {
 
     // Constructors, getters, and setters, equals and hashCode
 
-    public OrderScooterId() {
+    public TaskId() {
     }
 
-    public OrderScooterId(Long orderId, Long scooterId) {
+    public TaskId(Long orderId, Long scooterId) {
         this.orderId = orderId;
         this.scooterId = scooterId;
     }
@@ -44,12 +44,12 @@ public class OrderScooterId implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        OrderScooterId that = (OrderScooterId) o;
-        return Objects.equals(getOrderId(), that.getOrderId()) && Objects.equals(getScooterId(), that.getScooterId());
+        TaskId that = (TaskId) o;
+        return Objects.equals(orderId, that.orderId) && Objects.equals(scooterId, that.scooterId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getOrderId(), getScooterId());
+        return Objects.hash(orderId, scooterId);
     }
 }

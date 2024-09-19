@@ -1,5 +1,6 @@
 package com.izzy.service;
 
+import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.Scooter;
 import com.izzy.model.Zone;
 import com.izzy.payload.request.ScooterRequest;
@@ -42,7 +43,11 @@ public class ScooterService {
      * @return the scooter if found, otherwise null.
      */
     public Scooter getScooterById(Long id) {
-        return scooterRepository.findById(id).orElse(null);
+        return scooterRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Scooter", "id", id));
+    }
+
+    public Scooter getScooterByIdentifier(@NonNull String identifier){
+            return scooterRepository.findScooterByIdentifier(identifier).orElseThrow(()->new ResourceNotFoundException("Scooter", "identifier", identifier));
     }
 
     /**
@@ -109,7 +114,7 @@ public class ScooterService {
             i = scooter.getSpeedLimit();
             if (i != null) existingScooter.setSpeedLimit(i);
             return scooterRepository.save(existingScooter);
-        }).orElse(null);
+        }).orElseThrow(()->new ResourceNotFoundException("Scooter", "id", id));
     }
 
     /**
@@ -123,6 +128,6 @@ public class ScooterService {
         return scooterRepository.findById(id).map(scooter -> {
             scooterRepository.delete(scooter);
             return true;
-        }).orElse(false);
+        }).orElseThrow(()->new ResourceNotFoundException("Scooter", "id", id));
     }
 }

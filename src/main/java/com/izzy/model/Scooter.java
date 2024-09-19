@@ -1,9 +1,6 @@
 package com.izzy.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-
-import java.util.List;
 
 @Entity
 @Table(name = "scooters")
@@ -22,21 +19,23 @@ public class Scooter {
     private Zone zone;
     @Column(name = "speed_limit", nullable = false)
     private Integer speedLimit;
-    @JsonIgnore
+ /*   @JsonIgnore
     @OneToMany(mappedBy = "scooter", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderScooter> orderScooters;
-
+    private List<Task> tasks;
+*/
     public Scooter() {
     }
 
     // getters and setters
-    public List<OrderScooter> getOrderScooters() {
-        return orderScooters;
+/*
+    public List<Task> getTasks() {
+        return tasks;
     }
 
-    public void setOrderScooters(List<OrderScooter> orderScooters) {
-        this.orderScooters = orderScooters;
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
     }
+*/
 
     public Long getId() {
         return id;

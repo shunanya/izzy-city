@@ -1,12 +1,12 @@
 package com.izzy.service;
 
 import com.izzy.exception.ResourceNotFoundException;
-import com.izzy.model.*;
-import com.izzy.model.misk.Task;
-import com.izzy.repository.OrderRepository;
-import com.izzy.repository.OrderScooterRepository;
-import com.izzy.repository.ScooterRepository;
-import com.izzy.repository.UserRepository;
+import com.izzy.model.Order;
+import com.izzy.model.Scooter;
+import com.izzy.model.Task;
+import com.izzy.model.User;
+import com.izzy.model.TaskDTO;
+import com.izzy.repository.*;
 import com.izzy.security.custom.service.CustomService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,19 +25,21 @@ public class TaskServiceTest {
 
     private TaskService taskService;
     private OrderRepository orderRepository;
-    private OrderScooterRepository orderScooterRepository;
-    private UserRepository userRepository;
     private ScooterRepository scooterRepository;
+    private TaskRepository taskRepository;
+    private UserRepository userRepository;
     private CustomService customService;
+    private NotificationRepository notificationRepository;
 
     @BeforeEach
     void setUp() {
         orderRepository = mock(OrderRepository.class);
-        orderScooterRepository = mock(OrderScooterRepository.class);
-        userRepository = mock(UserRepository.class);
         scooterRepository = mock(ScooterRepository.class);
+        taskRepository = mock(TaskRepository.class);
+        userRepository = mock(UserRepository.class);
         customService = mock(CustomService.class);
-        taskService = new TaskService(customService, orderRepository, scooterRepository, orderScooterRepository);
+        notificationRepository = mock(NotificationRepository.class);
+        taskService = new TaskService(customService, orderRepository, scooterRepository, taskRepository, notificationRepository);
     }
 
     // Append a valid task to an existing order
@@ -50,21 +52,20 @@ public class TaskServiceTest {
         Order order = new Order();
         order.setId(orderId);
         order.setCreatedBy(3L);
+
         Scooter scooter = new Scooter();
         scooter.setId(scooterId);
-        OrderScooter orderScooter = new OrderScooter(order, scooter, 300);
-        orderScooter.setId(new OrderScooterId(orderId, scooterId));
 
         when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
-        doNothing().when(orderScooterRepository).deleteByOrderId(anyLong());
-        doNothing().when(orderScooterRepository).flush();
-        when(orderScooterRepository.saveAll(anyIterable())).thenReturn(List.of(new OrderScooter(), new OrderScooter()));
+        when(scooterRepository.findById(anyLong())).thenReturn(Optional.of(scooter));
+        when(taskRepository.deleteAllByIdOrderId(anyLong())).thenReturn(1);
+        doNothing().when(taskRepository).flush();
+        when(taskRepository.saveAll(anyIterable())).thenReturn(List.of(new Task(), new Task()));
         User user = new User();
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
-        when(scooterRepository.findById(anyLong())).thenReturn(Optional.of(new Scooter()));
 
-        List<Task> tasks = taskService.appendTask(orderId, task);
+        List<Task> tasks = taskService.appendTask(orderId, new TaskDTO(task));
 
         assertNotNull(tasks);
         assertTrue(tasks.size() > 0);
@@ -75,10 +76,10 @@ public class TaskServiceTest {
     @Test
     public void append_task_to_non_existent_order() {
         Long nonExistentOrderId = 999L;
-        Task task = new Task(2L, 1);
+        Task task = new Task(nonExistentOrderId, 1L);
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
-        when(orderScooterRepository.findByOrderId(anyLong())).thenReturn(new ArrayList<>());
-        assertThrows(ResourceNotFoundException.class, () -> taskService.appendTask(nonExistentOrderId, task));
+        when(taskRepository.findByIdOrderId(anyLong())).thenReturn(new ArrayList<>());
+        assertThrows(ResourceNotFoundException.class, () -> taskService.appendTask(nonExistentOrderId, new TaskDTO(task)));
     }
 
 
@@ -93,56 +94,53 @@ public class TaskServiceTest {
         order.setCreatedBy(3L);
         Scooter scooter = new Scooter();
         scooter.setId(scooterId);
-        OrderScooter orderScooter = new OrderScooter(order, scooter, 30);
-        orderScooter.setId(new OrderScooterId(orderId, scooterId));
 
         when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(new User()));
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
-        when(orderScooterRepository.findByOrderAndScooterIds(anyLong(), anyLong())).thenReturn(Optional.of(orderScooter));
-        when(orderScooterRepository.findByOrderId(anyLong())).thenReturn(new ArrayList<>(List.of(orderScooter)));
-        doNothing().when(orderScooterRepository).deleteByOrderAndScooterIds(anyLong(), anyLong());
+        when(taskRepository.findByIdOrderId(anyLong())).thenReturn(new ArrayList<>(List.of(task)));
+        when(taskRepository.findByOrderAndScooterIds(orderId, scooterId)).thenReturn(Optional.of(task));
+        when(taskRepository.deleteByOrderAndScooterIds(anyLong(), anyLong())).thenReturn(1);
 
-        taskService.removeTask(orderId, task);
+        taskService.removeTask(orderId, new TaskDTO(task));
     }
 
     @Test
     void remove_task_from_non_existent_order() {
         Long nonExistentOrderId = 999L;
-        Task task = new Task();
+        Long scooterId = 2L;
+        Task task = new Task(nonExistentOrderId, scooterId);
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
-        when(orderScooterRepository.findByOrderAndScooterIds(anyLong(), anyLong())).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> taskService.removeTask(nonExistentOrderId, task));
+        when(taskRepository.findByOrderAndScooterIds(anyLong(), anyLong())).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> taskService.removeTask(nonExistentOrderId, new TaskDTO(task)));
     }
 
     @Test
     void rearrange_priorities_for_existing_order() {
         Long orderId = 19L;
         Long scooterId = 2L;
-        Order order = new Order();
-        order.setId(orderId);
-        Scooter scooter = new Scooter();
-        scooter.setId(scooterId);
-        OrderScooter orderScooter = new OrderScooter(order, scooter, 30);
-        orderScooter.setId(new OrderScooterId(orderId, scooterId));
 
-        List<OrderScooter> oss = new ArrayList<>(){{
-            add(new OrderScooter(order, scooter, 0));
-            add(new OrderScooter(order, scooter, 10));
-            add(new OrderScooter(order, scooter, 20));
-            add(new OrderScooter(order, scooter, -1));
+        List<Task> tasks = new ArrayList<>(){{
+            add(new Task(orderId, scooterId, 0));
+            add(new Task(orderId, scooterId, 10));
+            add(new Task(orderId, scooterId, 20));
+            add(new Task(orderId, scooterId, -1));
         }};
-        when(orderScooterRepository.findByOrderId(orderId)).thenReturn(oss);
-        List<OrderScooter> orderScooters = taskService.rearrangeOrderScooterPriorities(orderId);
+        Order order = new Order();
+        order.setTasks(tasks);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(taskRepository.findByIdOrderId(orderId)).thenReturn(tasks);
+        when(customService.checkAllowability(order)).thenReturn(Boolean.TRUE);
+        List<Task> rearrangedTasks = taskService.rearrangeTaskPriorities(orderId);
 
-        assertNotNull(orderScooters);
-        assertFalse(orderScooters.isEmpty());
+        assertNotNull(rearrangedTasks);
+        assertFalse(rearrangedTasks.isEmpty());
 
-        orderScooters.sort(Comparator.comparingInt(OrderScooter::getPriority));
-        for (int i = 0; i < orderScooters.size(); i++) {
-            assertEquals((int) orderScooters.get(i).getPriority(), i - 1);
+        tasks.sort(Comparator.comparingInt(Task::getPriority));
+        for (int i = 0; i < rearrangedTasks.size(); i++) {
+            assertEquals((int) rearrangedTasks.get(i).getPriority(), i - 1);
         }
-        orderScooters.forEach(os-> System.out.printf("%s ", os.getPriority()));
+        rearrangedTasks.forEach(t-> System.out.printf("%s ", t.getPriority()));
     }
 
 }

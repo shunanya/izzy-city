@@ -1,7 +1,12 @@
 package com.izzy.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.izzy.model.Role;
 import com.izzy.model.User;
+import com.izzy.model.Zone;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -22,6 +27,7 @@ import java.util.List;
         "headForUser",
         "roles"
 })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserInfo implements Serializable {
     private Long id;
     private String firstName;
@@ -33,22 +39,33 @@ public class UserInfo implements Serializable {
     private String shift;
     private Long createdBy;
     private Timestamp createdAt;
-    private Long headForUser;
+    private UserInfo userManager;
     private List<String> roles;
 
-    public UserInfo(User user) {
+    public UserInfo(){}
+    public UserInfo(@NonNull User user, @Nullable User userManager, boolean shortInfo) {
+        if (!shortInfo) {
+            this.lastName = user.getLastName();
+            this.gender = user.getGender();
+            this.dateOfBirth = user.getDateOfBirth();
+            this.shift = user.getShift();
+            this.createdBy = user.getCreatedBy();
+            this.createdAt = user.getCreatedAt();
+        }
         this.id = user.getId();
-        this.firstName= user.getFirstName();
-        this.lastName = user.getLastName();
+        this.firstName = user.getFirstName();
         this.phoneNumber = user.getPhoneNumber();
-        this.gender = user.getGender();
-        this.dateOfBirth = user.getDateOfBirth();
-        this.zone = user.getZone().getName();
-        this.shift = user.getShift();
-        this.createdBy = user.getCreatedBy();
-        this.createdAt = user.getCreatedAt();
-        this.headForUser = user.getHeadForUser();
+        List<Role> roles = user.getRoles();
+//        this.roles = (roles == null || roles.isEmpty())?null:roles.stream().map(Role::getName).collect(Collectors.toList());
         this.roles = user.getRolesName();
+        Zone z = user.getZone();
+        this.zone = (z != null) ? z.getName() : null;
+        if (userManager != null) {
+            this.userManager =  new UserInfo(userManager, null, true);
+        } else if (user.getUserManager() != null){
+            this.userManager =  new UserInfo();
+            this.userManager.setId(user.getUserManager());
+        }
     }
 
     public Long getId() {
@@ -131,19 +148,19 @@ public class UserInfo implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public Long getHeadForUser() {
-        return headForUser;
-    }
-
-    public void setHeadForUser(Long headForUser) {
-        this.headForUser = headForUser;
-    }
-
     public List<String> getRoles() {
         return roles;
     }
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
+    }
+
+    public UserInfo getUserManager() {
+        return userManager;
+    }
+
+    public void setUserManager(UserInfo userManager) {
+        this.userManager = userManager;
     }
 }

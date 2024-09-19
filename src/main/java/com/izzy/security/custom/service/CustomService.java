@@ -17,7 +17,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class CustomService {
@@ -45,11 +48,8 @@ public class CustomService {
     }
 
     public boolean checkAllowability(@NonNull Long userId, boolean canActOnHimself) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException("User", "id", userId);
-        }
-        return checkAllowability(user.get(), canActOnHimself);
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        return checkAllowability(user, canActOnHimself);
     }
 
     public boolean checkAllowability(@NonNull User requestedUser) {
@@ -101,6 +101,11 @@ public class CustomService {
         return checkAllowability(user);
     }
 
+    /**
+     * Retrieve all roles for currently signed-in user
+     *
+     * @return the list of roles
+     */
     public List<Role> getCurrenUserRoles() {
         List<String> auths = new ArrayList<>();
         // Obtains current user role
@@ -117,7 +122,15 @@ public class CustomService {
         return roleSet;
     }
 
-    public Role getCurrenUserMaxRoles() {
+    /**
+     * Retrieve the highest role of the currently signed-in user.
+     * <p>
+     * User can have a few roles. The current method obtain the highest role.
+     * </p>
+     *
+     * @return {@link Role}
+     */
+    public Role getCurrenUserMaxRole() {
         List<String> auths = new ArrayList<>();
         // Detects current user role
         Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
@@ -140,12 +153,22 @@ public class CustomService {
         return roleRepository.findByName(currentRoleName).orElse(null);
     }
 
+    /**
+     * Retrieve the user roles that the signed-in user can manage.
+     *
+     * @return the list of roles name
+     */
     public List<String> getCurrenUserAvailableRoles() {
         // Detect current user available roles
-        Role currentUserMaxRole = getCurrenUserMaxRoles();
+        Role currentUserMaxRole = getCurrenUserMaxRole();
         return roleService.getRolesFromParam("<" + currentUserMaxRole.getName());
     }
 
+    /**
+     * Retrieve details for currently signed-in user
+     *
+     * @return {@link UserPrincipal}
+     */
     public UserPrincipal currentUserDetails() {
         Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
         if (currenUserAuth == null || !currenUserAuth.isAuthenticated()) {
@@ -155,10 +178,20 @@ public class CustomService {
         return (UserPrincipal) currenUserAuth.getPrincipal();
     }
 
+    /**
+     * Retrieve the ID of the currently signed-in user.
+     *
+     * @return user id
+     */
     public Long currentUserId() {
         return currentUserDetails().getId();
     }
 
+    /**
+     * Retrieve the manager ID of the currently signed-in user
+     *
+     * @return user's manager id
+     */
     public Long currentUserHeadId() {
         return currentUserDetails().getHeadForUserId();
     }

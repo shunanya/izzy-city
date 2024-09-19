@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.exception.UnrecognizedPropertyException;
-import com.izzy.model.misk.Task;
+import com.izzy.model.Task;
+import com.izzy.model.TaskDTO;
 import com.izzy.payload.response.ApiResponse;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.TaskService;
@@ -82,7 +83,7 @@ public class TaskController {
     /**
      * Retrieve all tasks assigned to user
      *
-     * @param userId user ID whom assigned any task
+     * @param userId user ID who assigned any task
      * @param viewType optional parameter to get 'simple', 'short' and 'detailed' task data view (default is 'simple')
      * @return list of tasks
      * @throws ResourceNotFoundException if the user is not found.
@@ -118,8 +119,8 @@ public class TaskController {
     public List<Task> appendTaskToOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
             // Validate request body
-            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
-            return taskService.appendTask(orderId, task);
+            TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
+            return taskService.appendTask(orderId, taskDTO);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -136,13 +137,13 @@ public class TaskController {
      */
     @DeleteMapping("/{orderId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<Void> deleteTaskFromOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
+    public ResponseEntity<?> deleteTaskFromOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
             // Validate request body
-            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
+            TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
-            taskService.removeTask(orderId, task);
-            return ResponseEntity.noContent().build();
+            taskService.removeTask(orderId, taskDTO);
+            return ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task deleted {orderId: %s, scooterId: %s}", orderId, taskDTO.getScooterId())));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -161,9 +162,9 @@ public class TaskController {
     public ResponseEntity<?> markTaskAsCompleted(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
             // Validate request body
-            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
+            TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
-            List<Task> tasks = taskService.markTaskAsCompleted(orderId, task);
+            List<Task> tasks = taskService.markTaskAsCompleted(orderId, taskDTO);
             return tasks.isEmpty()?
                     ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong.")):
                     ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
@@ -185,9 +186,9 @@ public class TaskController {
     public ResponseEntity<?> markTaskAsCanceled(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
             // Validate request body
-            Task task = (new ObjectMapper()).readValue(taskRequestString, Task.class);
+            TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
-            List<Task> tasks = taskService.markTaskAsCanceled(orderId, task);
+            List<Task> tasks = taskService.markTaskAsCanceled(orderId, taskDTO);
             return tasks.isEmpty()?
                     ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong.")):
                     ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task '%s' marked as canceled.", taskRequestString.replaceAll("\\s", ""))));

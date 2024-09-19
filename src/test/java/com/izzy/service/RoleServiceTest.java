@@ -49,7 +49,7 @@ class RoleServiceTest {
     }
 
     @Test
-    void getRolesFromParam_WithCorrectCondittion() {
+    void getRolesFromParam_WithCorrectCondition() {
         String param = "<Manager";
 
         List<String> roles = roleService.getRolesFromParam(param);
@@ -58,7 +58,7 @@ class RoleServiceTest {
     }
 
     @Test
-    void getRolesFromParam_WithInCorrectCondittion() {
+    void getRolesFromParam_WithInCorrectCondition() {
         String param = "=Manager";
         UnrecognizedPropertyException ex = assertThrows(UnrecognizedPropertyException.class, () -> roleService.getRolesFromParam(param));
         assertEquals("unrecognized parameter '=Manager'", ex.getMessage());

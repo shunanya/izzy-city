@@ -50,7 +50,7 @@ public class AdminController {
                 throw new BadCredentialsException("Error: phone number is already in use!");
             }
             User savedUser = adminService.registerUser(userRequest);
-            return ResponseEntity.ok(new UserInfo(savedUser));
+            return ResponseEntity.ok(new UserInfo(savedUser, null, false));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

@@ -1,13 +1,14 @@
 package com.izzy.service;
 
+import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
+import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
 import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.UserInfo;
-import com.izzy.payload.response.UserShortInfo;
 import com.izzy.repository.UserRepository;
 import com.izzy.repository.ZoneRepository;
 import com.izzy.security.custom.service.CustomService;
@@ -15,14 +16,15 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,7 +56,7 @@ public class UserService {
      */
     public User getUserFromUserRequest(@Nullable Long id, @NonNull UserRequest userRequest) {
         boolean createUser = (id == null);
-        User user = (id == null) ? new User() : userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User", "id", id));
+        User user = (id == null) ? new User() : userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         String tmp = userRequest.getFirstName();
         if (tmp != null && !tmp.isBlank()) user.setFirstName(tmp);
         tmp = userRequest.getLastName();
@@ -93,63 +95,62 @@ public class UserService {
         } else if (ts != null) {
             user.setCreatedAt(ts);
         }
-        aLong = userRequest.getHeadForUser();
+        aLong = userRequest.getUserManager();
         if (aLong != null) {
-            if (userRepository.findById(aLong).isPresent()) user.setHeadForUser(aLong);
-            else throw new IllegalArgumentException(String.format("Error: Head-user with ID '%s' not found.", aLong));
+            if (userRepository.findById(aLong).isPresent()) user.setUserManager(aLong);
+            else throw new IllegalArgumentException(String.format("Error: userManager with ID '%s' not found.", aLong));
+        } else if (createUser){
+            throw new BadRequestException("Error: User Manager should be defined.");
         }
-        Set<String> rawRole = userRequest.getRole();
+        List<String> rawRole = userRequest.getRole();
         if (rawRole != null && !rawRole.isEmpty()) {
-            List<Role> roles = new ArrayList<>();
-            rawRole.forEach(r -> {
-                Role existingRole = roleService.getRoleByName(r);
-                if (existingRole != null) roles.add(existingRole);
-            });
-            user.setRoles(roles);
+            List<Role> roles = rawRole.stream().map(roleService::getRoleByName).filter(Objects::nonNull).collect(Collectors.toList());
             if (roles.isEmpty()) {
                 throw new BadRequestException("Error: User roles are not being recognized.");
             }
+            user.setRoles(roles);
         }
         return user;
     }
 
     /**
-     * Converts User structure to shortInfo
+     * Converts User structure to UserInfo
      *
-     * @param user whole user entity
-     * @return UserShortInfo data
+     * @param user user entity {@link User}
+     * @return UserInfo structured data {@link UserInfo}
      */
-    public UserShortInfo convertUserToShort(User user) {
-        return new UserShortInfo(user);
-    }
-
-    public UserInfo connvertUserToUserInfo(User user) {
-        return new UserInfo(user);
+    public UserInfo connvertUserToUserInfo(@NonNull User user, boolean shortView) {
+        User headOfUser = (user.getUserManager() == null) ? null : userRepository.findById(user.getUserManager()).orElse(null);
+        return new UserInfo(user, headOfUser, shortView);
     }
 
     /**
      * Returns filtered or all users list
      *
-     * @param firstName   filtering parameter
-     * @param lastName    filtering parameter
-     * @param phoneNumber filtering parameter
-     * @param gender      filtering parameter
-     * @param zone        filtering parameter
-     * @param shift       filtering parameter
-     * @param roles       filtering parameter (for detail see {@link  RoleService#getRolesFromParam getRolesFromParam} method definitions
+     * @param viewType    optional parameter to get 'simple', 'short' and 'detailed' user data view (default is 'simple')
+     * @param firstName   optional filtering parameter
+     * @param lastName    optional filtering parameter
+     * @param phoneNumber optional filtering parameter
+     * @param gender      optional filtering parameter
+     * @param shift       optional filtering parameter
+     * @param zone        optional filtering parameter
+     * @param roles       optional filtering parameter (for detail see {@link  RoleService#getRolesFromParam getRolesFromParam} method definitions
      * @return list of users
      */
     public List<?> getUsers(
-            boolean shortView,
+            String viewType,
             String firstName,
             String lastName,
             String phoneNumber,
             String gender,
-            String zone,
             String shift,
+            String zone,
             String roles) {
-        List<User> users = new ArrayList<>();
+        List<User> users;
+        List<String> availableRoles = customService.getCurrenUserAvailableRoles();
         if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
+            users = userRepository.findAll();
+/*
             users = userRepository.findUsersByFilters(null,
                     null,
                     null,
@@ -157,15 +158,33 @@ public class UserService {
                     null,
                     null,
                     customService.getCurrenUserAvailableRoles());
+*/
         } else {
-            // Detect current user available roles
-            // Combine the specified role filters with the current user's available roles.
+            // Detect current user available roles and combine the specified role filters with the current user's available roles.
             if (roles != null && !roles.isBlank()) {
-                List<String> availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), customService.getCurrenUserAvailableRoles());
-                users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
+                availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), availableRoles);
+//                users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
+            }
+            users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, shift);
+        }
+        List<User> usersList = new ArrayList<>();
+        for (User u : users) {
+            if (availableRoles.containsAll(u.getRolesName()) && (zone == null || (u.getZone() != null && zone.equalsIgnoreCase(u.getZone().getName())))) {
+                usersList.add(u);
             }
         }
-        return shortView ? users.stream().map(this::convertUserToShort).collect(Collectors.toList()) : users;
+        switch (viewType) {
+            case "simple" -> {
+                return usersList;
+            }
+            case "short" -> {
+                return usersList.stream().map(user -> connvertUserToUserInfo(user, true)).collect(Collectors.toList());
+            }
+            case "detailed" -> {
+                return usersList.stream().map(user -> connvertUserToUserInfo(user, false)).collect(Collectors.toList());
+            }
+            default -> throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
+        }
     }
 
     /**
@@ -173,9 +192,15 @@ public class UserService {
      *
      * @param id user id
      * @return user {@link User} on success
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     * @throws ResourceNotFoundException if the user with defined id is not found.
      */
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public User getUserById(@NonNull Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("user", "id", id));
+        if (customService.checkAllowability(user, true)) {
+            return user;
+        } else
+            throw new AccessDeniedException("not allowed to request user with above your role");
     }
 
     /**
@@ -184,8 +209,12 @@ public class UserService {
      * @param user given user data
      * @return saved user data on success
      */
-    public User saveUser(User user) {
-        return userRepository.save(user);
+    @Transactional
+    public User saveUser(@NonNull User user) {
+        if (customService.checkAllowability(user))
+            return userRepository.save(user);
+        else
+            throw new AccessDeniedException("not allowed to create user with above your role");
     }
 
     /**
@@ -195,28 +224,35 @@ public class UserService {
      * @param user user data
      * @return saved user data on success
      */
+    @Transactional
     public User updateUser(@NonNull Long id, @NonNull User user) {
-        if (!user.getId().equals(id)) {
-            throw new IllegalArgumentException("The parameters for the updateUser method are incorrect.");
-        }
-        return userRepository.save(user);
+        if (customService.checkAllowability(user, true)) {
+            if (user.getId().equals(id)) {
+                return userRepository.save(user);
+            } else
+                throw new IllegalArgumentException("User ID mismatch between the updating and the requesting.");
+        } else
+            throw new AccessDeniedException("not allowed to update user with above your role");
     }
 
-    public boolean existsUser(Long id) {
+    public boolean existsUser(@NonNull Long id) {
         return userRepository.existsById(id);
     }
 
     /**
      * Removes user data from storage
      *
-     * @param id user id
-     * @return True on success
+     * @param id user id to be deleted
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     * @throws ResourceNotFoundException if the user with defined id is not found.
      */
-    public boolean deleteUser(Long id) {
-        return userRepository.findById(id).map(user -> {
-            userRepository.delete(user);
-            return true;
-        }).orElse(false);
+    @Transactional
+    public void deleteUser(@NonNull Long id) {
+        if (customService.checkAllowability(getUserById(id))) {
+            userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+            userRepository.deleteById(id);
+        } else
+            throw new AccessDeniedException("not allowed to delete user with above your role");
     }
 
 }

@@ -61,6 +61,25 @@ public class ScooterController {
     }
 
     /**
+     * Retrieves a scooter by their ID.
+     *
+     * @param scooterName the identifier of the scooter to retrieve.
+     * @return a ResponseEntity containing the scooter.
+     * @throws ResourceNotFoundException if the scooter is not found.
+     * @throws AccessDeniedException     if operation is not permitted for current user
+     */
+    @GetMapping("/{scooterName}")
+    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+    public ResponseEntity<Scooter> getScooterByName(@PathVariable String scooterName) {
+        try{
+            Scooter scooter = scooterService.getScooterByIdentifier(scooterName);
+            return ResponseEntity.ok(scooter);
+        } catch (Exception ex){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
+    }
+
+    /**
      * Creates a new scooter.
      *
      * @param scooterRequestString the request payload containing scooter details.

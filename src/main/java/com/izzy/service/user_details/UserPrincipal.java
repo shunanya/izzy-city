@@ -19,19 +19,21 @@ public class UserPrincipal implements UserDetails {
     private final Long id;
     @JsonIgnore
     private final String password;
+    private final String firstName;
     private final String phoneNumber;
     private final Long headForUserId;
     private final Collection<? extends GrantedAuthority> authorities;
 
 
-    private UserPrincipal(Long id, String first_name, String last_name, String password, String phone_number,
-                          String gender, LocalDate date_of_birth, String zone, String shift,
-                          Long created_by, Timestamp created_at,
-                          Long head_for_user, Collection<? extends GrantedAuthority> authorities) {
+    private UserPrincipal(Long id, String firstName, String lastName, String password, String phoneNumber,
+                          String gender, LocalDate dateOfBirth, String zone, String shift,
+                          Long createdBy, Timestamp createdAt,
+                          Long userManager, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.password = password;
-        this.phoneNumber = phone_number;
-        this.headForUserId = head_for_user;
+        this.firstName = firstName;
+        this.phoneNumber = phoneNumber;
+        this.headForUserId = userManager;
         this.authorities = authorities;
     }
 
@@ -45,7 +47,7 @@ public class UserPrincipal implements UserDetails {
                 user.getFirstName(), user.getLastName(), user.getPassword(), user.getPhoneNumber(),
                 user.getGender(), user.getDateOfBirth(), user.getZone() == null ? null : user.getZone().getName(),
                 user.getShift(), user.getCreatedBy(), user.getCreatedAt(),
-                user.getHeadForUser(), authorities);
+                user.getUserManager(), authorities);
     }
 
     @Override

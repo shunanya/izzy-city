@@ -2,8 +2,8 @@ package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.AccessDeniedException;
-import com.izzy.exception.ApiException;
 import com.izzy.exception.ResourceNotFoundException;
+import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.User;
 import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.MessageResponse;
@@ -45,7 +45,7 @@ public class UserController {
     /**
      * Retrieves a list of users with filtering.
      *
-     * @param shortView   optional parameter to get minimal user data if True (default is False)
+     * @param viewType    optional parameter that defined a presenting style for user data ("simple","short","detailed")
      * @param firstName   optional filtering parameter
      * @param lastName    optional filtering parameter
      * @param phoneNumber optional filtering parameter
@@ -58,7 +58,7 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<?> getUsers(
-            @RequestParam(name = "short", required = false, defaultValue = "false") boolean shortView,
+            @RequestParam(name = "view", required = false, defaultValue = "simple") String viewType,
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String phoneNumber,
@@ -67,7 +67,7 @@ public class UserController {
             @RequestParam(required = false) String shift,
             @RequestParam(required = false) String roles) {
         try {
-            return userService.getUsers(shortView, firstName, lastName, phoneNumber, gender, zone, shift, roles);
+            return userService.getUsers(viewType, firstName, lastName, phoneNumber, gender, shift, zone, roles);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -76,25 +76,31 @@ public class UserController {
     /**
      * Retrieves a user by their ID.
      *
-     * @param id        the ID of the user to retrieve.
-     * @param shortView optional parameter to get minimal user data if True (default is False)
-     * @return a ResponseEntity containing the user.
-     * @throws ResourceNotFoundException if the user is not found.
-     * @throws AccessDeniedException     if operation is not permitted for current user
+     * @param id       the ID of the user to retrieve.
+     * @param viewType optional parameter that defined a presenting style for user data ("simple","short","detailed")
+     * @return a ResponseEntity containing the user data.
+     * @throws UnrecognizedPropertyException if property is not recognized.
+     * @throws AccessDeniedException         if operation is not permitted for current user
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<?> getUserById(@P("id") @PathVariable Long id,
-                                         @RequestParam(name = "short", required = false, defaultValue = "false") boolean shortView) {
+                                         @RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
         try {
             User user = userService.getUserById(id);
-            if (user != null) {
-                if (customService.checkAllowability(user))
-                    return ResponseEntity.ok(shortView ? userService.convertUserToShort(user) : user);
-                else
-                    throw new AccessDeniedException("not allowed to request user with above your role");
+            switch (viewType) {
+                case "simple" -> {
+                    return ResponseEntity.ok(user);
+                }
+                case "short" -> {
+                    return ResponseEntity.ok(userService.connvertUserToUserInfo(user, true));
+                }
+                case "detailed" -> {
+                    return ResponseEntity.ok(userService.connvertUserToUserInfo(user, false));
+                }
+                default ->
+                        throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
             }
-            return ResponseEntity.notFound().build();
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -114,12 +120,7 @@ public class UserController {
             // Validate request body
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // processing
-            User user = userService.getUserFromUserRequest(null, userRequest);
-            if (customService.checkAllowability(user))
-                user = userService.saveUser(user);
-            else
-                throw new AccessDeniedException("not allowed to create user with above your role");
-
+            User user = userService.saveUser(userService.getUserFromUserRequest(null, userRequest));
             return ResponseEntity.ok(user);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
@@ -136,21 +137,14 @@ public class UserController {
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
+//    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody String userRequestString) {
         try {
             // Validate request body
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // processing
-            User user = userService.getUserFromUserRequest(id, userRequest);
-            if (customService.checkAllowability(user, true))
-                user = userService.updateUser(id, user);
-            else
-                throw new AccessDeniedException("not allowed to update user with above your role");
-            if (user != null) {
-                return ResponseEntity.ok(user);
-            }
-            return ResponseEntity.notFound().build();
+            User user = userService.updateUser(id, userService.getUserFromUserRequest(id, userRequest));
+            return (user != null) ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -161,24 +155,13 @@ public class UserController {
      *
      * @param id the ID of the user to delete.
      * @return ResponseEntity containing a success message.
-     * @throws ResourceNotFoundException if the user is not found.
-     * @throws AccessDeniedException     if operation is not permitted for current user
-     * @throws ApiException              if operation cannot be fulfilled by unknown reason
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
-            if (userService.existsUser(id)) {
-                if (customService.checkAllowability(userService.getUserById(id))) {
-                    if (userService.deleteUser(id)) {
-                        return ResponseEntity.ok(new MessageResponse("User deleted"));
-                    } else
-                        throw new ApiException("Couldn't delete user with id=" + id);
-                } else
-                    throw new AccessDeniedException("not allowed to delete user with above your role");
-            } else
-                throw new ResourceNotFoundException("User", "id", id);
+            userService.deleteUser(id);
+            return ResponseEntity.ok(new MessageResponse("User deleted"));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

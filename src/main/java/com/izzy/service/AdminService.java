@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AdminService {
@@ -53,8 +55,10 @@ public class AdminService {
         if (tmp != null && !tmp.isBlank()) user.setLastName(tmp);
         tmp = userRequest.getPhoneNumber();
         if (tmp != null && !tmp.isBlank()) user.setPhoneNumber(tmp);
+        else throw new BadRequestException("phone number must be defined.");
         tmp = userRequest.getPassword();
-        if (tmp != null && !tmp.isBlank()) user.setPassword(passwordEncoder.encode(tmp));
+        if (tmp == null || tmp.isBlank()) tmp = user.getPhoneNumber().substring(2);
+        user.setPassword(passwordEncoder.encode(tmp));
         tmp = userRequest.getGender();
         if (tmp != null && !tmp.isBlank()) user.setGender(tmp);
         LocalDate ld = userRequest.getDateOfBirth();
@@ -69,22 +73,31 @@ public class AdminService {
         if (tmp != null && !tmp.isEmpty()) user.setShift(tmp);
         user.setCreatedBy(customService.currentUserId());
         user.setCreatedAt(Timestamp.from(Instant.now()));
-        Long aLong = userRequest.getHeadForUser();
-        if (aLong != null) {
-            if (userRepository.findById(aLong).isPresent()) user.setHeadForUser(aLong);
-            else throw new IllegalArgumentException(String.format("Error: Head-user with ID '%s' not found.", aLong));
-        }
-        Set<String> rawRole = userRequest.getRole();
+        List<String> rawRole = userRequest.getRole();
         if (rawRole != null && !rawRole.isEmpty()) {
             List<Role> roles = new ArrayList<>();
-            rawRole.forEach(r -> {
-                Optional<Role> existingRole = roleRepository.findByName(r);
-                existingRole.ifPresent(roles::add);
-            });
+            rawRole.forEach(r -> roleRepository.findByName(r).ifPresent(roles::add));
             user.setRoles(roles);
             if (roles.isEmpty()) {
                 throw new BadRequestException("Error: User roles are not being recognized.");
             }
+        }
+        List<String> listRoles = List.of("Scout", "Charger");
+        boolean isScoutOrCharger = false;
+        for (Role role : user.getRoles()) {
+            isScoutOrCharger = isScoutOrCharger || listRoles.contains(role.getName());
+        }
+        Long aLong = userRequest.getUserManager();
+        if (aLong != null) {
+            if (isScoutOrCharger) {
+                if (userRepository.findById(aLong).isPresent()) user.setUserManager(aLong);
+                else
+                    throw new IllegalArgumentException(String.format("Error: Head-user with ID '%s' not found.", aLong));
+            } else {
+                throw new BadRequestException("Error: Only Scout or Charger roles can have a user manager.");
+            }
+        } else if (isScoutOrCharger) {
+            throw new BadRequestException("Error: The user manager must be assigned for Scout or Charger roles.");
         }
         return userRepository.save(user);
     }

@@ -89,9 +89,8 @@ public class OrderController {
             // Validate request body
             OrderRequest orderRequest = (new ObjectMapper()).readValue(orderRequestString, OrderRequest.class);
             // processing
-            Order order = orderService.getOrderFromOrderRequest(orderRequest, null);
-            Order createdOrder = orderService.createOrder(order);
-            return ResponseEntity.ok(createdOrder);
+            Order createdOrder = orderService.createOrder(orderService.getOrderFromOrderRequest(orderRequest, null));
+            return ResponseEntity.ok(orderService.getOrderById(createdOrder.getId()));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

@@ -12,17 +12,7 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    @Override
-    Optional<Order> findById(Long id);
-
-    @Override
-    boolean existsById(Long id);
-
-    @Override
-    void deleteById(Long id);
-
-    @Override
-    void delete(Order entity);
+    Optional<Order> findOrderByName(String orderName);
 
     @Query("SELECT o FROM Order o WHERE " +
             "(:action IS NULL OR o.action ILIKE %:action%) AND " +

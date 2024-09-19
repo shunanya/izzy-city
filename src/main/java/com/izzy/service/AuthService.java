@@ -46,4 +46,8 @@ public class AuthService {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(UserPrincipal::build).orElse(null);
     }
+
+    public User getUserById(Long userId){
+        return (userId == null)?null:userRepository.findById(userId).orElse(null);
+    }
 }

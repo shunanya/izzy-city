@@ -3,12 +3,14 @@ package com.izzy.service;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
-import com.izzy.model.*;
-import com.izzy.model.misk.Task;
+import com.izzy.model.Order;
+import com.izzy.model.Task;
+import com.izzy.model.TaskDTO;
+import com.izzy.model.User;
 import com.izzy.payload.request.OrderRequest;
 import com.izzy.repository.OrderRepository;
-import com.izzy.repository.OrderScooterRepository;
 import com.izzy.repository.ScooterRepository;
+import com.izzy.repository.TaskRepository;
 import com.izzy.repository.UserRepository;
 import com.izzy.security.custom.service.CustomService;
 import com.izzy.security.utils.Utils;
@@ -21,7 +23,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -29,18 +30,18 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ScooterRepository scooterRepository;
-    private final OrderScooterRepository orderScooterRepository;
+    private final TaskRepository taskRepository;
     private final CustomService customService;
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
                         ScooterRepository scooterRepository,
-                        OrderScooterRepository orderScooterRepository,
+                        TaskRepository taskRepository,
                         CustomService customService) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.scooterRepository = scooterRepository;
-        this.orderScooterRepository = orderScooterRepository;
+        this.taskRepository = taskRepository;
         this.customService = customService;
     }
 
@@ -78,9 +79,7 @@ public class OrderService {
         boolean creation = (orderId == null);
         Order order = new Order();
         if (!creation) { //update
-            Optional<Order> orderOptional = orderRepository.findById(orderId);
-            if (orderOptional.isPresent()) order = orderOptional.get();
-            else throw new ResourceNotFoundException("Order", "id", orderId);
+            order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         }
         String tmp = orderRequest.getName();
         if (tmp != null && !tmp.isBlank()) order.setName(tmp);
@@ -103,37 +102,70 @@ public class OrderService {
         }
         Long id = orderRequest.getAssignedTo();
         if (id != null) {
-            Optional<User> existingUser = userRepository.findById(id);
-            if (existingUser.isPresent()) {
-                if (customService.checkAllowability(existingUser.get())) {
-                    order.setAssignedTo(existingUser.get().getId());
-                } else throw new AccessDeniedException("not allowed to assign order to user with above your role");
-            }
+            User existingUser = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User.assignedTo", "id", id));
+            if (customService.checkAllowability(existingUser)) {
+                order.setAssignedTo(existingUser.getId());
+                order.setStatus(OrderRequest.Status.ASSIGNED.toString());
+            } else
+                throw new AccessDeniedException("not allowed to assign order to user with above your role");
         }
         tmp = orderRequest.getStatus();
         if (tmp != null && !tmp.isBlank()) {
-            if (OrderRequest.Status.checkByValue(tmp)) order.setStatus(tmp);
-            else
+            if (OrderRequest.Status.checkByValue(tmp)) {
+                order.setStatus(tmp);
+            } else
                 throw new IllegalArgumentException(String.format("status field contains illegal value '%s'", tmp));
-        } else if (creation) order.setStatus(OrderRequest.Status.CREATED.getValue());
+        } else if (creation && order.getStatus() == null) {
+            order.setStatus(OrderRequest.Status.CREATED.getValue());
+        }
         Timestamp ts = orderRequest.getTakenAt();
         if (ts != null && !creation) order.setTakenAt(ts); // Only in the update request.
         ts = orderRequest.getDoneAt();
         if (ts != null && !creation) order.setDoneAt(ts); // Only in the update request.
 
 
-        List<Task> tasks = orderRequest.getTasks();
-        if (tasks != null && !tasks.isEmpty()) {
-            tasks = Utils.rearrangeTasksPriorities(tasks);
-            order.setTasks(tasks);
+        List<TaskDTO> tasksDTO = orderRequest.getTasks();
+        if (tasksDTO != null && !tasksDTO.isEmpty()) {
+            tasksDTO = Utils.rearrangeTasksDTOPriorities(tasksDTO);
             // Database generates orderId upon saving, keeping the order in virtual state until then.
-            // Thus, tasks will be converted to OrderScooters later after saving.
-            if (!creation) // Only in the update request.
-                order.setOrderScooters(convertTasksToOrderScooters(tasks, order));
+            // Thus, tasks will be converted to Tasks later after saving.
+            if (creation) {
+                order.setRawTasks(tasksDTO);
+            } else {// Only in the update request.
+                order.setTasks(completeTasks(tasksDTO, order));
+            }
         } else if (creation)
             throw new BadRequestException("Order must include at least one task.");
 
         return order;
+    }
+
+    /**
+     * Completes the List of raw tasks {@link Task}
+     *
+     * @param rawTasks List of raw Task to be validated
+     * @param order    existing Order that has to own of these tasks
+     * @return the List of completed Tasks
+     */
+    public List<Task> completeTasks(@NonNull List<TaskDTO> rawTasks, @NonNull Order order) {
+        List<Task> tasks = new ArrayList<>();
+        if (order.isValid()) {
+            for (TaskDTO taskDTO : rawTasks) {
+                tasks.add(completeTask(taskDTO, order));
+            }
+        } else {
+            throw new IllegalArgumentException("Task or Order has not valid structure.");
+        }
+        return tasks;
+    }
+
+    public Task completeTask(@NonNull TaskDTO rawTask, @NonNull Order order) {
+        rawTask.setOrderId(order.getId());
+        if (rawTask.isValid()) {
+            return new Task(rawTask);
+        } else {
+            throw new IllegalArgumentException("Task or Order has not valid structure.");
+        }
     }
 
     /**
@@ -176,48 +208,16 @@ public class OrderService {
      * @throws AccessDeniedException if operation is not permitted for current user
      */
     public Order getOrderById(Long id) {
-        Optional<Order> orderOptional = orderRepository.findById(id);
-        if (orderOptional.isPresent()) {
-            if (customService.checkAllowability(orderOptional.get())) {
-                return orderOptional.get();
-            } else {
-                throw new AccessDeniedException("not allowed to get order created with user above your role");
-            }
+        Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
+        if (customService.checkAllowability(order)) {
+            return order;
         } else {
-            throw new ResourceNotFoundException("Order", "id", id);
+            throw new AccessDeniedException("not allowed to get order created with user above your role");
         }
     }
 
-    /**
-     * Converts List of Task {@link Task} to List of OrderScooter {@link OrderScooter}
-     *
-     * @param tasks List of Task to be converted
-     * @param order existing Order that has to own of these tasks
-     * @return the List of OrderScooter
-     */
-    public List<OrderScooter> convertTasksToOrderScooters(@NonNull List<Task> tasks, @NonNull Order order) {
-        List<OrderScooter> orderScooters = new ArrayList<>();
-        for (Task task : tasks) {
-            orderScooters.add(convertTaskToOrderScooter(task, order));
-        }
-        return orderScooters;
-    }
-
-    private OrderScooter convertTaskToOrderScooter(@NonNull Task task, @NonNull Order order) {
-        task.setOrderId(order.getId());
-        if (task.isValid() && order.isValid()) {
-            OrderScooter orderScooter = new OrderScooter();
-            orderScooter.setId(new OrderScooterId(task.getOrderId(), task.getScooterId()));
-            orderScooter.setOrder(order);
-            Scooter scooter = scooterRepository.findById(task.getScooterId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Scooter", "id", task.getScooterId()));
-            orderScooter.setScooter(scooter);
-            orderScooter.setPriority(task.getPriority());
-            orderScooter.setComment(task.getComment());
-            return orderScooter;
-        } else {
-            throw new IllegalArgumentException("Task or Order has not valid structure.");
-        }
+    public Order getOrderByName(@NonNull String orderName) {
+        return orderRepository.findOrderByName(orderName).orElseThrow(() -> new ResourceNotFoundException("Order", "name", orderName));
     }
 
     /**
@@ -230,10 +230,10 @@ public class OrderService {
     @Transactional
     public Order createOrder(Order order) {
         Order savedOrder = orderRepository.save(order);
-        List<Task> tasks = order.getTasks();
-        if (tasks != null && !tasks.isEmpty()) { // new tasks are given
-            //orderScooterRepository.deleteByOrderId(savedOrder.getId()); // remove old tasks
-            orderScooterRepository.saveAll(convertTasksToOrderScooters(tasks, savedOrder)); // add new tasks
+        List<TaskDTO> rawTasks = order.getRawTasks();
+        if (rawTasks != null && !rawTasks.isEmpty()) { // new tasks are given
+            //taskRepository.deleteByOrderId(savedOrder.getId()); // remove old tasks
+            taskRepository.saveAll(completeTasks(rawTasks, savedOrder)); // add new tasks
         }
         return savedOrder;
     }
@@ -261,6 +261,7 @@ public class OrderService {
      * @throws ResourceNotFoundException if the order is not found in database.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
+    @Transactional
     public void deleteOrder(@NonNull Long orderId) {
         if (!customService.checkAllowability(orderId))
             throw new AccessDeniedException("not allowed to delete order created with user above your role");

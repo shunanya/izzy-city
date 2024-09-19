@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 public class UserRequest {
     @NotBlank
@@ -23,8 +23,8 @@ public class UserRequest {
     private String shift;
     private Long createdBy;
     private Timestamp createdAt;
-    private Long headForUser;
-    private Set<String> role;
+    private Long userManager;
+    private List<String> role;
 
     public String getFirstName() {
         return firstName;
@@ -94,7 +94,7 @@ public class UserRequest {
         return createdBy;
     }
 
-    public void setCreated_by(Long createdBy) {
+    public void setCreatedBy(Long createdBy) {
         this.createdBy = createdBy;
     }
 
@@ -102,23 +102,23 @@ public class UserRequest {
         return createdAt;
     }
 
-    public void setCreated_at(Timestamp createdAt) {
+    public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Long getHeadForUser() {
-        return headForUser;
+    public Long getUserManager() {
+        return userManager;
     }
 
-    public void setHead_for_user(Long headForUser) {
-        this.headForUser = headForUser;
+    public void setUserManager(Long userManager) {
+        this.userManager = userManager;
     }
 
-    public Set<String> getRole() {
+    public List<String> getRole() {
         return role;
     }
 
-    public void setRole(Set<String> role) {
+    public void setRole(List<String> role) {
         this.role = role;
     }
 }

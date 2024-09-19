@@ -22,9 +22,6 @@ class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private ZoneRepository zoneRepository;
-
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -38,7 +35,7 @@ class UserRepositoryTest {
 
     @Test
     public void testFindUsersByFiltersWithZone() throws JsonProcessingException {
-        List<User> users = userRepository.findUsersByFilters(null, null, null, null, "z02", "day", null);
+        List<User> users = userRepository.findUsersByFilters(null, null, null, null, "day");
         assertNotNull(users);
         assertFalse(users.isEmpty());
 
@@ -55,7 +52,7 @@ class UserRepositoryTest {
 
     @Test
     public void testFindUsersByFiltersWithoutZone() throws JsonProcessingException {
-        List<User> users = userRepository.findUsersByFilters(null, null, null, null, null, "day", null);
+        List<User> users = userRepository.findUsersByFilters(null, null, null, null, "day");
 
         assertNotNull(users);
         assertFalse(users.isEmpty());
