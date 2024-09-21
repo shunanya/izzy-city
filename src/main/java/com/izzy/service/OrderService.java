@@ -126,14 +126,9 @@ public class OrderService {
 
         List<TaskDTO> tasksDTO = orderRequest.getTasks();
         if (tasksDTO != null && !tasksDTO.isEmpty()) {
-            tasksDTO = Utils.rearrangeTasksDTOPriorities(tasksDTO);
             // Database generates orderId upon saving, keeping the order in virtual state until then.
             // Thus, tasks will be converted to Tasks later after saving.
-            if (creation) {
-                order.setRawTasks(tasksDTO);
-            } else {// Only in the update request.
-                order.setTasks(completeTasks(tasksDTO, order));
-            }
+            order.setRawTasks(Utils.rearrangeTasksDTOPriorities(tasksDTO));
         } else if (creation)
             throw new BadRequestException("Order must include at least one task.");
 
@@ -251,6 +246,11 @@ public class OrderService {
             throw new AccessDeniedException("not allowed to update order created with user above your role");
 
         Order savedOrder = orderRepository.save(order);
+        List<TaskDTO> rawTasks = order.getRawTasks();
+        if (rawTasks != null && !rawTasks.isEmpty()) { // new tasks are given
+            //taskRepository.deleteByOrderId(savedOrder.getId()); // remove old tasks
+            taskRepository.saveAll(completeTasks(rawTasks, savedOrder)); // add new tasks
+        }
         return savedOrder.getId();
     }
 

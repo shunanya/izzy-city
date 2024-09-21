@@ -7,8 +7,6 @@ import com.izzy.service.user_details.UserPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 public class AuthService {
     private final UserRepository userRepository;
@@ -28,11 +26,8 @@ public class AuthService {
      * @throws ResourceNotFoundException if user cannot be found in storage
      */
     public User login(String phoneNumber, String rawPassword) {
-        Optional<User> userOptional = userRepository.findByPhoneNumber(phoneNumber);
-        if (userOptional.isEmpty()) {
-            throw new ResourceNotFoundException("User", "phoneNumber", phoneNumber);
-        }
-        User user = userOptional.get();
+        User user = userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(()-> new ResourceNotFoundException("User", "phoneNumber", phoneNumber));
         return passwordEncoder.matches(rawPassword, user.getPassword()) ? user : null;
     }
 
@@ -43,8 +38,10 @@ public class AuthService {
      * @return user details {@link UserPrincipal}
      */
     public UserPrincipal getUserByUserIdentifier(String phoneNumber) {
-        Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
-        return user.map(UserPrincipal::build).orElse(null);
+        User user = userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(()->new ResourceNotFoundException("User", "phoneNumber", phoneNumber));
+        return UserPrincipal.build(user);
+
     }
 
     public User getUserById(Long userId){

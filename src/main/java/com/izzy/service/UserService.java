@@ -65,7 +65,7 @@ public class UserService {
         if (tmp != null && !tmp.isBlank()) user.setPhoneNumber(tmp);
         tmp = userRequest.getPassword();
         if (tmp != null && !tmp.isBlank()) user.setPassword(passwordEncoder.encode(tmp));
-        else {// Create temporary password (last 6 digits of phone number)
+        else if (createUser) {// Create temporary password (last 6 digits of phone number)
             tmp = user.getPhoneNumber();
             user.setPassword(passwordEncoder.encode(tmp.substring(tmp.length() - 6)));
         }
@@ -85,15 +85,13 @@ public class UserService {
         if (createUser) {
             user.setCreatedBy(customService.currentUserId());
         } else if (aLong != null) {
-            if (userRepository.findById(aLong).isPresent()) user.setCreatedBy(aLong);
-            else
-                throw new IllegalArgumentException(String.format("Error: Creator-user with ID '%s' not found.", aLong));
+                throw new IllegalArgumentException("Error: not allow to change Creator in already existing user data.");
         }
         Timestamp ts = userRequest.getCreatedAt();
         if (createUser) {
             user.setCreatedAt(Timestamp.from(Instant.now()));
         } else if (ts != null) {
-            user.setCreatedAt(ts);
+            throw new IllegalArgumentException("Error: not allow to change creation date in already existing user data.");
         }
         aLong = userRequest.getUserManager();
         if (aLong != null) {
@@ -150,15 +148,6 @@ public class UserService {
         List<String> availableRoles = customService.getCurrenUserAvailableRoles();
         if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
             users = userRepository.findAll();
-/*
-            users = userRepository.findUsersByFilters(null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    customService.getCurrenUserAvailableRoles());
-*/
         } else {
             // Detect current user available roles and combine the specified role filters with the current user's available roles.
             if (roles != null && !roles.isBlank()) {

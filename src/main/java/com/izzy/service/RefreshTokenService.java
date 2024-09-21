@@ -6,7 +6,10 @@ import com.izzy.model.RefreshToken;
 import com.izzy.model.User;
 import com.izzy.repository.RefreshTokenRepository;
 import com.izzy.repository.UserRepository;
+import com.izzy.security.jwt.JwtUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +19,14 @@ import java.util.UUID;
 
 @Service
 public class RefreshTokenService {
+    private final JwtUtils jwtUtils;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     @Value("${izzy.app.jwtRefreshExpirationMs}")
     private Long refreshTokenDurationMs;
 
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
+    public RefreshTokenService(JwtUtils jwtUtils, RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
+        this.jwtUtils = jwtUtils;
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
     }
@@ -36,6 +41,15 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(refreshToken);
     }
 
+    public ResponseCookie refreshAccessTokenCookie(String refreshToken){
+        return findByToken(refreshToken)
+                .map(this::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(jwtUtils::generateJwtCookie)
+                .orElseThrow(() -> new TokenRefreshException(refreshToken,
+                        "Refresh token cannot be found or expired!"));
+    }
+
     /**
      * Creates new refresh token for user
      *
@@ -45,25 +59,13 @@ public class RefreshTokenService {
      */
     @Transactional
     public RefreshToken createRefreshToken(Long userId) {
-        RefreshToken refreshToken = new RefreshToken();
+        User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User", "id", userId));
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(userId).orElse(new RefreshToken());
 
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new ResourceNotFoundException("User", "id", userId);
-        }
-        User user = userOptional.get();
-        // Retrieve the existing refresh token by user ID
-        Optional<RefreshToken> existingRefreshTokenOptional = refreshTokenRepository.findByUserId(userId);
-
-        if (existingRefreshTokenOptional.isPresent()) {
-            refreshToken = existingRefreshTokenOptional.get();
-        } else {
-            refreshToken.setUser(user);
-        }
+        refreshToken.setUser(user);
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setCurrentToken(UUID.randomUUID().toString());
-        refreshToken = refreshTokenRepository.save(refreshToken);
-        return refreshToken;
+        return refreshTokenRepository.save(refreshToken);
     }
 
     /**
@@ -74,7 +76,7 @@ public class RefreshTokenService {
      * @throws TokenRefreshException if refresh token expired
      */
     @Transactional
-    public RefreshToken verifyExpiration(RefreshToken token) {
+    public RefreshToken verifyExpiration(@NonNull RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
             throw new TokenRefreshException(token.getCurrentToken(), "Refresh token was expired. Please make a new signin request");

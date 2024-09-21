@@ -1,7 +1,6 @@
 package com.izzy.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.izzy.exception.TokenRefreshException;
 import com.izzy.model.RefreshToken;
 import com.izzy.model.User;
 import com.izzy.payload.request.LoginRequest;
@@ -18,7 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -77,12 +79,9 @@ public class AuthController {
     public ResponseEntity<?> logoutUser(HttpServletRequest request) {
         try {
             String token = jwtUtils.getJwtFromCookies(request);
-            if (token == null || token.isBlank()) {
-                throw new SecurityException("Error: Seems user already signed-out or tokens expired");
-            }
             String ident = jwtUtils.getUserIdentifierFromJwtToken(token);
-            UserPrincipal principle = authService.getUserByUserIdentifier(ident);
-            if (principle != null) {
+            if (ident != null && !ident.isBlank()) {
+                UserPrincipal principle = authService.getUserByUserIdentifier(ident);
                 refreshTokenService.deleteByUserId(principle.getId());
                 ResponseCookie jwtCookie = jwtUtils.getCleanJwtCookie();
                 ResponseCookie jwtRefreshCookie = jwtUtils.getCleanJwtRefreshCookie();
@@ -108,21 +107,10 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) {
         try {
-            String refreshToken = jwtUtils.getJwtRefreshFromCookies(request);
-            if (refreshToken == null || refreshToken.isBlank()) {
-                throw new SecurityException("Error: Refresh tokens expired");
-            }
-            return refreshTokenService.findByToken(refreshToken)
-                    .map(refreshTokenService::verifyExpiration)
-                    .map(RefreshToken::getUser)
-                    .map(user -> {
-                        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(user);
-                        return ResponseEntity.ok()
-                                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                                .body(new MessageResponse("Token is refreshed successfully!"));
-                    })
-                    .orElseThrow(() -> new TokenRefreshException(refreshToken,
-                            "Refresh token cannot be found or expired!"));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE,
+                            refreshTokenService.refreshAccessTokenCookie(jwtUtils.getJwtRefreshFromCookies(request)).toString())
+                    .body(new MessageResponse("Token is refreshed successfully!"));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

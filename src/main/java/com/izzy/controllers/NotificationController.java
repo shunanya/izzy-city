@@ -4,13 +4,9 @@ import com.izzy.exception.BadRequestException;
 import com.izzy.model.Notification;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.NotificationService;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import reactor.core.publisher.Flux;
-
-import java.time.Duration;
 import java.util.List;
 
 @RestController

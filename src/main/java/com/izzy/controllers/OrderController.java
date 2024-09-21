@@ -114,7 +114,7 @@ public class OrderController {
             // processing
             Order order = orderService.getOrderFromOrderRequest(orderRequest, id);
             if (id.equals(orderService.updateOrder(order))) {
-                return ResponseEntity.ok(order);
+                return ResponseEntity.ok(orderService.getOrderById(id));
             }
             return ResponseEntity.notFound().build();
         } catch (Exception ex) {
