@@ -190,7 +190,7 @@ class RoleServiceTest {
 
         Set<Role> roles = roleService.convertToRoles(list);
 
-        assert roles.size() > 0 : "Error: blank set is received";
+        assert !roles.isEmpty() : "Error: blank set is received";
 
         String rolesStringify = objectMapper.writeValueAsString(roles);
         System.out.printf("%s => %s", list, rolesStringify);

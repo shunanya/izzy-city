@@ -68,7 +68,7 @@ public class TaskServiceTest {
         List<Task> tasks = taskService.appendTask(orderId, new TaskDTO(task));
 
         assertNotNull(tasks);
-        assertTrue(tasks.size() > 0);
+        assertFalse(tasks.isEmpty());
         assertEquals(1, tasks.get(0).getPriority());
     }
 

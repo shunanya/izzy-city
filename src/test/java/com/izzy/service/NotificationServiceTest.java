@@ -80,7 +80,7 @@ public class NotificationServiceTest {
 
         notifications = notificationRepository.findNotificationsByFilters(testUser.getId(), null, null);
         assertNotNull(notifications);
-        if (notifications.size() == 0) {
+        if (notifications.isEmpty()) {
             Notification notification1 = new Notification(null, testUser.getId(), orderId, scooterId1);
             notification1.setUserAction(Notification.Action.APPROVED.getValue());
             notification1.setTask(task1);

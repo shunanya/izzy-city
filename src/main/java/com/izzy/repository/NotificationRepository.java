@@ -45,7 +45,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @param action optional user action
      * @param priority optional task priority.
      * <p>
-     *   Note: priority can be obtained via task status: <code>priority = Task.Status.getStatusByString(taskStatus).getValue()</code>
+     *   Note: priority can be obtained via task status: {@code priority = Task.Status.getStatusByString(taskStatus).getValue()}
      * </p>
      * @return List notifications
      */

@@ -43,9 +43,9 @@ class ScooterServiceTest {
 
         when(scooterRepository.findScooterByIdentifier(anyString())).thenReturn(Optional.of(scooter));
 
-        Scooter ret_scooter = scooterService.getScooterByIdentifier(identifier);
+        Scooter retScooter = scooterService.getScooterByIdentifier(identifier);
 
-        assertNotNull(ret_scooter);
+        assertNotNull(retScooter);
     }
 
     @Test

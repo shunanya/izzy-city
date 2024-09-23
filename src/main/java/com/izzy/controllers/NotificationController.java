@@ -125,7 +125,7 @@ public class NotificationController {
      * Update notification
      *
      * @param notificationId the id for updated notification
-     * @param userAction     Available values are one of <code>"rejected"</code> or <code>"approved"</code>
+     * @param userAction     Available values are one of {@code "rejected"} or {@code "approved"}
      * @return the updated notification
      */
     @PutMapping("{notificationId}")

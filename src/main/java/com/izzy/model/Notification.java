@@ -20,7 +20,7 @@ public class Notification {
     @Column(name = "created_at")
     private Timestamp createdAt = Timestamp.from(Instant.now());
     @Column(name = "user_action")
-    private String userAction;
+    private String userAction = null;
     @Column(name = "order_id")
     private Long orderId;
     @Column(name = "scooter_id")
@@ -31,7 +31,7 @@ public class Notification {
             @JoinColumn(name = "order_id", referencedColumnName = "order_id", insertable = false, updatable = false),
             @JoinColumn(name = "scooter_id", referencedColumnName = "scooter_id", insertable = false, updatable = false)
     })
-    private Task task;
+    private Task task = null;
 
 
     public Notification() {

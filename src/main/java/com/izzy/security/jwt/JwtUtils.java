@@ -2,6 +2,7 @@ package com.izzy.security.jwt;
 
 import com.izzy.model.User;
 import com.izzy.service.user_details.UserPrincipal;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
 
 import java.security.Key;
+import java.time.Instant;
 import java.util.Date;
 
 @Component
@@ -65,7 +67,7 @@ public class JwtUtils {
     }
 
     /**
-     * Create cpokie contain refresh token
+     * Create cookie contain refresh token
      *
      * @param refreshToken refresh token
      * @return Cookie that contains refresh token
@@ -79,7 +81,7 @@ public class JwtUtils {
      *
      * @param request Request object containing cookie
      * @return JWT access token on success
-     * @throws Exception in case not cookie or token expired
+     * @throws SecurityException in case not cookie or token expired
      */
     public String getJwtFromCookies(HttpServletRequest request) {
         String token = getCookieValueByName(request, jwtCookie);
@@ -94,7 +96,7 @@ public class JwtUtils {
      *
      * @param request Request object containing cookie
      * @return the refresh token
-     * @throws Exception in case not cookie or token expired
+     * @throws SecurityException in case not cookie or token expired
      */
     public String getJwtRefreshFromCookies(HttpServletRequest request) {
         String refreshToken = getCookieValueByName(request, jwtRefreshCookie);
@@ -130,25 +132,19 @@ public class JwtUtils {
      *
      * @param authToken JWT access token
      * @return true on success
-     * @throws Exception while token invalid
      */
     public boolean validateJwtToken(String authToken) {
-//        try {
-        Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
-        return true;
-//        } catch (MalformedJwtException e) {
-//            logger.error("Invalid JWT token: {}", e.getMessage());
-//        } catch (ExpiredJwtException e) {
-//            logger.error("JWT token is expired: {}", e.getMessage());
-//        } catch (UnsupportedJwtException e) {
-//            logger.error("JWT token is unsupported: {}", e.getMessage());
-//        } catch (IllegalArgumentException e) {
-//            logger.error("JWT claims string is empty: {}", e.getMessage());
-//        }
-//
-//        return false;
+        try {
+            Jwts.parser()
+                    .setSigningKey(key())  // Set the key used for verification
+                    .build()
+                    .parseClaimsJws(authToken);  // If token is invalid, this will throw an exception
+            return true;
+        } catch (JwtException e) {
+            // Token is invalid, could be expired or tampered with
+            return false;
+        }
     }
-
     /**
      * Parse JWT access token and return user identifier
      *
@@ -156,11 +152,15 @@ public class JwtUtils {
      * @return the user unique identifier
      */
     public String getUserIdentifierFromJwtToken(String token) {
-        return validateJwtToken(token) ? Jwts.parserBuilder().setSigningKey(key()).build()
-                .parseClaimsJws(token).getBody().getSubject()
+        return validateJwtToken(token) ?
+                Jwts.parser()
+                        .setSigningKey(key())  // Set the key used for signing the token
+                        .build()
+                        .parseClaimsJws(token)  // Parse the token to extract the claims
+                        .getBody()
+                        .getSubject()  // Extract the subject (userIdentifier)
                 : null;
     }
-
     /**
      * Create Access Token by using user identifier
      *
@@ -168,11 +168,14 @@ public class JwtUtils {
      * @return JWT access token
      */
     public String generateTokenFromUserIdentifier(String userIdentifier) {
+        Instant now = Instant.now();  // Current timestamp using Instant
+        Instant expiration = now.plusMillis(jwtExpirationMs);  // Calculate expiration time
+
         return Jwts.builder()
                 .setSubject(userIdentifier)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(key(), SignatureAlgorithm.HS256)
+                .setIssuedAt(Date.from(now))  // Use Instant for current timestamp
+                .setExpiration(Date.from(expiration))  // Set expiration using Instant
+                .signWith(key(), SignatureAlgorithm.HS256)  // Sign with key and algorithm
                 .compact();
     }
 }

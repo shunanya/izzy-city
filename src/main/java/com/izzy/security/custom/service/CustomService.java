@@ -58,9 +58,9 @@ public class CustomService {
 
     public boolean checkAllowability(@NonNull User requestedUser, boolean canActOnHimself) {
         // Detects requesting role
-        UserPrincipal requestingUserDetails = UserPrincipal.build(requestedUser);
-        Long requestedUserId = requestingUserDetails.getId();
-        List<String> auths = requestingUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        UserPrincipal userPrincipal = UserPrincipal.build(requestedUser);
+        Long requestedUserId = userPrincipal.getId();
+        List<String> auths = userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         int requestingRole = 1;
         for (String auth : auths) {
             if (auth != null) {

@@ -144,7 +144,7 @@ class NotificationRepositoryTest {
     void updateUserAction_ShouldReturnNotificationsWithSpecificUserAction() {
         List<Notification> notifications = notificationRepository.findNotificationsByFilters(null, userAction, null);
         assertNotNull(notifications);
-        assert (notifications.size() > 0);
+        assert (!notifications.isEmpty());
 
         userAction = Notification.Action.APPROVED.getValue();
         Notification notification = notifications.get(0);

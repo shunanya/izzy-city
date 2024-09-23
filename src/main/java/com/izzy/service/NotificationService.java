@@ -104,9 +104,9 @@ public class NotificationService {
      * Retrieve notifications for the signed-in user (manger or executor).
      *
      * @param taskStatus optional parameter specifying which notifications with the given status should be returned.
-     *                   Allowed statuses are: <code>completed</code>, <code>canceled</code> or <code>active</code>.
+     *                   Allowed statuses are: {@code completed}, {@code canceled} or {@code active}.
      *                   If this parameter is not defined, the complete existing list of notifications
-     *                   for the current user will be returned. (<code>NULL</code>)
+     *                   for the current user will be returned. ({@code NULL})
      * @return List of notifications
      * @throws BadRequestException when specified status is not recognized
      */
@@ -122,8 +122,8 @@ public class NotificationService {
         return notificationRepository.findAllByUserId(customService.currentUserId());
     }
 
-    public Notification getNotificationByID(@NonNull Long Id) {
-        return notificationRepository.findById(Id).orElseThrow(() -> new ResourceNotFoundException("Notification", "Id", Id));
+    public Notification getNotificationByID(@NonNull Long id) {
+        return notificationRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Notification", "Id", id));
     }
 
     /**
@@ -155,7 +155,7 @@ public class NotificationService {
      * Update Notification by provided user action
      *
      * @param notificationId the id for notification that has to be updated
-     * @param userAction     Available values are one of <code>"rejected"</code> or <code>"approved"</code>
+     * @param userAction     Available values are one of {@code "rejected"} or {@code "approved"}
      * @return updated {@link Notification}
      */
     @Transactional

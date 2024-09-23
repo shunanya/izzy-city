@@ -158,7 +158,7 @@ public class TaskController {
      * @throws ResourceNotFoundException if the order is not found.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
-    @PatchMapping("/complete/{orderId}")
+    @PatchMapping("/{orderId}/complete")
     public ResponseEntity<?> markTaskAsCompleted(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
             // Validate request body
@@ -182,7 +182,7 @@ public class TaskController {
      * @throws ResourceNotFoundException if the order is not found.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
-    @PatchMapping("/cancel/{orderId}")
+    @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<?> markTaskAsCanceled(@PathVariable Long orderId, @RequestBody String taskRequestString) {
         try {
             // Validate request body

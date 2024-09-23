@@ -112,7 +112,7 @@ public class Utils {
     }
 
     public static List<Task> rearrangeTasksPriorities(@NonNull List<Task> tasks) {
-        if (tasks.size() > 0) {
+        if (!tasks.isEmpty()) {
             tasks.sort(Comparator.comparingInt(Task::getPriority));
             int i = 1;
             for (Task task : tasks) {
@@ -123,7 +123,7 @@ public class Utils {
     }
 
     public static List<TaskDTO> rearrangeTasksDTOPriorities(@NonNull List<TaskDTO> tasksDTO) {
-        if (tasksDTO.size() > 0) {
+        if (!tasksDTO.isEmpty()) {
             tasksDTO.sort(Comparator.comparingInt(TaskDTO::getPriority));
             int i = 1;
             for (TaskDTO taskDTO : tasksDTO) {

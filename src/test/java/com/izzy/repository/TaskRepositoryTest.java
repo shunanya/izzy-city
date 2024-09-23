@@ -62,7 +62,6 @@ class TaskRepositoryTest {
 
         assertNotNull(taskList);
         assertFalse(taskList.isEmpty());
-        assertTrue(taskList.size() > 0);
     }
 
     @Test
@@ -72,7 +71,6 @@ class TaskRepositoryTest {
 
         assertNotNull(taskList);
         assertFalse(taskList.isEmpty());
-        assertTrue(taskList.size() > 0);
     }
 
     @Test
