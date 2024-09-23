@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #notifications {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 300px;
+        }
+
+        .notification {
+            padding: 8px;
+            margin-bottom: 8px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>User Notification System</h1>
+    <div id="notifications">
+        <h2>Notifications</h2>
+        <div id="notification-list">
+            <!-- Notifications will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        function fetchNotifications() {
+            fetch('izzy/notifications') 
+                .then(response => response.json())
+                .then(notifications => {
+                    if (notifications.length > 0) {
+                        displayNotifications(notifications);
+                    }
+                })
+                .catch(error => console.error('Error fetching notifications:', error));
+        }
+
+        function displayNotifications(notifications) {
+            const notificationList = document.getElementById('notification-list');
+            notificationList.innerHTML = ''; // Clear existing notifications
+
+            notifications.forEach(notification => {
+                const notificationElement = document.createElement('div');
+                notificationElement.className = 'notification';
+                notificationElement.innerText = notification.message;
+                
+                // Optionally add a button to mark as read
+                const markAsReadButton = document.createElement('button');
+                markAsReadButton.innerText = 'Mark as Read';
+                markAsReadButton.onclick = () => markNotificationAsRead(notification.id, notificationElement);
+                
+                notificationElement.appendChild(markAsReadButton);
+                notificationList.appendChild(notificationElement);
+            });
+        }
+
+        function markNotificationAsRead(notificationId, notificationElement) {
+            fetch('/izzy/notifications/{notificationId}', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([notificationId])
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Remove the notification from the UI
+                    notificationElement.remove();
+                }
+            })
+            .catch(error => console.error('Error marking notification as read:', error));
+        }
+
+        // Polling interval (e.g., every 30 seconds)
+        setInterval(fetchNotifications, 30000);
+
+        // Initial fetch when the page loads
+        fetchNotifications();
+    </script>
+    
+</body>
+</html>
