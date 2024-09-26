@@ -12,6 +12,7 @@ import com.izzy.payload.response.UserInfo;
 import com.izzy.repository.UserRepository;
 import com.izzy.repository.ZoneRepository;
 import com.izzy.security.custom.service.CustomService;
+import com.izzy.security.utils.Utils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,7 +60,10 @@ public class UserService {
         tmp = userRequest.getLastName();
         if (tmp != null && !tmp.isBlank()) user.setLastName(tmp);
         tmp = userRequest.getPhoneNumber();
-        if (tmp != null && !tmp.isBlank()) user.setPhoneNumber(tmp);
+        if (tmp != null && !tmp.isBlank()) {
+            if (Utils.isCorrectPhoneNumber(tmp)) user.setPhoneNumber(tmp);
+            else throw new BadRequestException("Invalid phone number");
+        }
         tmp = userRequest.getPassword();
         if (tmp != null && !tmp.isBlank()) user.setPassword(passwordEncoder.encode(tmp));
         else if (createUser) {// Create temporary password (last 6 digits of phone number)
@@ -145,7 +146,7 @@ public class UserService {
             String zone,
             String roles) {
         List<User> users;
-        List<String> availableRoles = customService.getCurrenUserAvailableRoles();
+        Set<String> availableRoles = customService.getCurrenUserAvailableRoles();
         if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
             users = userRepository.findAll();
         } else {

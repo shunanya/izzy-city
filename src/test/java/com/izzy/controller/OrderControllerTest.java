@@ -33,8 +33,8 @@ public class OrderControllerTest {
     
         List<Order> orders = orderController.getOrders(null, null, null, null);
     
-        assertNotNull(orders);
-        assertEquals(2, orders.size());
+        assertNotNull(orders, "Order should exist.");
+        assertEquals(2, orders.size(), "Exact 2 Orders should exist.");
     }
 
     // Handle null or malformed order data
@@ -44,7 +44,7 @@ public class OrderControllerTest {
     
         List<Order> orders = orderController.getOrders(null, null, null, null);
     
-        assertNull(orders);
+        assertNull(orders, "Order should exist.");
     }
 
 }

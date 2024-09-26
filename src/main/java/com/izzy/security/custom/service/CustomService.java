@@ -17,10 +17,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomService {
@@ -60,7 +58,7 @@ public class CustomService {
         // Detects requesting role
         UserPrincipal userPrincipal = UserPrincipal.build(requestedUser);
         Long requestedUserId = userPrincipal.getId();
-        List<String> auths = userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        Set<String> auths = userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
         int requestingRole = 1;
         for (String auth : auths) {
             if (auth != null) {
@@ -75,7 +73,7 @@ public class CustomService {
             // Get the UserDetails object
             UserPrincipal currentUserDetails = (UserPrincipal) currenUserAuth.getPrincipal();
             currentUserId = currentUserDetails.getId();
-            auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
         }
         int currentRole = 1;
         for (String auth : auths) {
@@ -106,16 +104,16 @@ public class CustomService {
      *
      * @return the list of roles
      */
-    public List<Role> getCurrenUserRoles() {
-        List<String> auths = new ArrayList<>();
+    public Set<Role> getCurrenUserRoles() {
+        Set<String> auths = new HashSet<>();
         // Obtains current user role
         Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
         if (currenUserAuth != null && currenUserAuth.isAuthenticated()) {
             // Get the UserDetails object
             UserPrincipal currentUserDetails = (UserPrincipal) currenUserAuth.getPrincipal();
-            auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
         }
-        List<Role> roleSet = new ArrayList<>();
+        Set<Role> roleSet = new HashSet<>();//new ArrayList<>();
         for (String auth : auths) {
             if (auth != null) roleRepository.findByName(auth.replace("ROLE_", "")).ifPresent(roleSet::add);
         }
@@ -131,13 +129,13 @@ public class CustomService {
      * @return {@link Role}
      */
     public Role getCurrenUserMaxRole() {
-        List<String> auths = new ArrayList<>();
+        Set<String> auths = new HashSet<>();
         // Detects current user role
         Authentication currenUserAuth = SecurityContextHolder.getContext().getAuthentication();
         if (currenUserAuth != null && currenUserAuth.isAuthenticated()) {
             // Get the UserDetails object
             UserPrincipal currentUserDetails = (UserPrincipal) currenUserAuth.getPrincipal();
-            auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            auths = currentUserDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
         }
         String currentRoleName = "ROLE_Scout";
         int currentRoleWeight = roles.get(currentRoleName);
@@ -158,7 +156,7 @@ public class CustomService {
      *
      * @return the list of roles name
      */
-    public List<String> getCurrenUserAvailableRoles() {
+    public Set<String> getCurrenUserAvailableRoles() {
         // Detect current user available roles
         Role currentUserMaxRole = getCurrenUserMaxRole();
         return roleService.getRolesFromParam("<" + currentUserMaxRole.getName());

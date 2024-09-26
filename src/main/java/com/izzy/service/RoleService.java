@@ -70,15 +70,15 @@ public class RoleService {
      * @param roles the list of existing roles name
      * @return the references list of Role {@link Role} id
      */
-    public List<Long> convertToRef(@NonNull List<String> roles) {
-        List<Long> roleRef = new ArrayList<>();
+    public Set<Long> convertToRef(@NonNull Set<String> roles) {
+        Set<Long> roleRef = new HashSet<>();
         roles.stream().map(roleRepository::findByName).forEach(role -> role.ifPresentOrElse(value -> roleRef.add(value.getId()), () -> {
             throw new ResourceNotFoundException("Role", "name", role);
         }));
         return roleRef;
     }
 
-    public Set<Role> convertToRoles(@NonNull List<String> roles) {
+    public Set<Role> convertToRoles(@NonNull Set<String> roles) {
         Set<Role> roleSet = new HashSet<>();
         roles.forEach(r -> roleRepository.findByName(r).ifPresent(role -> {
             if (!role.getUsers().isEmpty()) roleSet.add(role);
@@ -112,7 +112,7 @@ public class RoleService {
      *                                       <p>returned list contains ["Admin", "scout"] <br>
      *                                       'Creator' role excluded due to not recognized</p>
      */
-    public List<String> getRolesFromParam(@NonNull String roleParam) {
+    public Set<String> getRolesFromParam(@NonNull String roleParam) {
         String tmp = roleParam.replaceAll("\\s", "");
         String[] sp = tmp.split("(<=|>=|<|>)");
         if (sp.length > 1) {
@@ -120,7 +120,7 @@ public class RoleService {
             if (!roles.containsKey(sp[1])) {
                 throw new UnrecognizedPropertyException("role", sp[1]);
             } else {
-                List<String> role = new ArrayList<>();
+                HashSet<String> role = new HashSet<>();
                 int lim = roles.get(sp[1]);
                 switch (sp[0]) {
                     case "<" -> // Request: not higher than sp[1]
@@ -152,10 +152,10 @@ public class RoleService {
                 }
             }
         }
-        return new ArrayList<>(Arrays.asList(sp));
+        return new HashSet<>(List.of(sp));
     }
 
-    List<String> combineRoles(@NonNull List<String> requiredList, @NonNull List<String> currentList) {
+    Set<String> combineRoles(@NonNull Set<String> requiredList, @NonNull Set<String> currentList) {
         requiredList.retainAll(currentList);
         return requiredList;
     }

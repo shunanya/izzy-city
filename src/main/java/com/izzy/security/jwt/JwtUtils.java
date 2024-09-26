@@ -107,11 +107,11 @@ public class JwtUtils {
     }
 
     public ResponseCookie getCleanJwtCookie() {
-        return ResponseCookie.from(jwtCookie, null).path("/izzy").build();
+        return ResponseCookie.from(jwtCookie, null).path("/izzy").maxAge(0).build();
     }
 
     public ResponseCookie getCleanJwtRefreshCookie() {
-        return ResponseCookie.from(jwtRefreshCookie, null).path("/izzy/auth/refresh").build();
+        return ResponseCookie.from(jwtRefreshCookie, null).path("/izzy/auth/refresh").maxAge(0).build();
     }
 
     private ResponseCookie generateCookie(String name, String value, String path) {

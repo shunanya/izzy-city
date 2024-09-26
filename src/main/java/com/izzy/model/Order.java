@@ -63,6 +63,13 @@ public class Order {
     public Order() {
     }
 
+    public Order(Long id, String name, String action, String status) {
+        this.id = id;
+        this.name = name;
+        this.action = action;
+        this.status = status;
+    }
+
     public Long getId() {
         return id;
     }

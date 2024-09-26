@@ -27,6 +27,11 @@ public class Role {
     }
 
     public Role(String name, List<Long> userIds){
+        this(null, name, userIds);
+    }
+
+    public Role(Long id, String name, List<Long> userIds) {
+        this.id = id;
         this.name = name;
         this.userIds = userIds;
     }

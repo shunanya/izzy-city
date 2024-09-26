@@ -15,8 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,7 +51,7 @@ class RoleServiceTest {
     void getRolesFromParam_WithCorrectCondition() {
         String param = "<Manager";
 
-        List<String> roles = roleService.getRolesFromParam(param);
+        Set<String> roles = roleService.getRolesFromParam(param);
         assert !roles.isEmpty() : "Error: result is empty";
         System.out.printf("'%s' => %s", param, roles);
     }
@@ -68,7 +67,7 @@ class RoleServiceTest {
     void getRolesFromParam_WithCorrectEnumeration() {
         String param = "Manager, Scout";
 
-        List<String> roles = roleService.getRolesFromParam(param);
+        Set<String> roles = roleService.getRolesFromParam(param);
         assert !roles.isEmpty() : "Error: result is empty";
         assert roles.size() == 2 : "List of roles size should be 2";
         System.out.printf("'%s' => %s", param, roles);
@@ -84,24 +83,24 @@ class RoleServiceTest {
 
     @Test
     void convertToRef_WithExistingRoles() {
-        List<String> roleNames = new ArrayList<>() {{
+        Set<String> roleNames = new HashSet<>() {{
             add("Admin");
             add("Scout");
         }};
-        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role("Admin")));
-        when(roleRepository.findByName("Scout")).thenReturn(Optional.of(new Role("Scout")));
+        when(roleRepository.findByName("Admin")).thenReturn(Optional.of(new Role(1L,"Admin", null)));
+        when(roleRepository.findByName("Scout")).thenReturn(Optional.of(new Role(5L,"Scout", null)));
 
-        List<Long> roleRefs = roleService.convertToRef(roleNames);
+        Set<Long> roleRefs = roleService.convertToRef(roleNames);
 
-        if (roleRefs.isEmpty()) throw new AssertionError();
-        assert roleRefs.size() == roleNames.size();
+        assertNotNull(roleRefs);
+        assertEquals(roleRefs.size(), roleNames.size());
 
         System.out.println(roleNames + " => " + roleRefs);
     }
 
     @Test
     void convertToRef_WithoutExistingRoles() {
-        List<String> roleNames = new ArrayList<>() {{
+        Set<String> roleNames = new HashSet<>() {{
             add("Creator");
         }};
         when(roleRepository.findByName("Creator")).thenReturn(Optional.empty());
@@ -111,7 +110,7 @@ class RoleServiceTest {
 
     @Test
     void convertToRef_WithPartlyFilledByExistingRoles() {
-        List<String> roleNames = new ArrayList<>() {{
+        Set<String> roleNames = new HashSet<>() {{
             add("Admin");
             add("Creator");
         }};
@@ -125,7 +124,7 @@ class RoleServiceTest {
     void convertToRoles_WithCorrectCondition() throws JsonProcessingException {
         String param = "<Manager";
 
-        List<String> roles = roleService.getRolesFromParam(param);
+        Set<String> roles = roleService.getRolesFromParam(param);
         assert !roles.isEmpty() : "Error: result list is empty";
 
         Role role = new Role("", new ArrayList<>(Arrays.asList(1L, 2L)));
@@ -139,20 +138,20 @@ class RoleServiceTest {
 
     @Test
     void combineRoles_WithNonBlankCollections() {
-        List<String> requiredList = new ArrayList<>() {{
+        Set<String> requiredList = new HashSet<>() {{
             add("Manager");
             add("Supervisor");
             add("Charger");
             add("Scout");
         }};
-        List<String> currentList = new ArrayList<>() {{
+        Set<String> currentList = new HashSet<>() {{
             add("Supervisor");
             add("Charger");
             add("Scout");
         }};
 
-        List<String> original = new ArrayList<>(requiredList);
-        List<String> resultList = roleService.combineRoles(requiredList, currentList);
+        Set<String> original = new HashSet<>(requiredList);
+        Set<String> resultList = roleService.combineRoles(requiredList, currentList);
         assert resultList != null && !resultList.isEmpty() : "Error: result List is empty";
         assert resultList.size() == 3 : "Error: result list size should be 3";
 
@@ -161,21 +160,21 @@ class RoleServiceTest {
 
     @Test
     void combineRoles_WithSupperCollections() {
-        List<String> requiredList = new ArrayList<>() {{
+        Set<String> requiredList = new HashSet<>() {{
             add("Admin");
             add("Manager");
             add("Supervisor");
             add("Charger");
             add("Scout");
         }};
-        List<String> currentList = new ArrayList<>() {{
+        Set<String> currentList = new HashSet<>() {{
             add("Supervisor");
             add("Charger");
             add("Scout");
         }};
 
-        List<String> original = new ArrayList<>(requiredList);
-        List<String> resultList = roleService.combineRoles(requiredList, currentList);
+        Set<String> original = new HashSet<>(requiredList);
+        Set<String> resultList = roleService.combineRoles(requiredList, currentList);
         assert resultList != null && !resultList.isEmpty() : "Error: result List is empty";
         assert resultList.size() == 3 : "Error: result list size should be 3";
 
@@ -184,7 +183,7 @@ class RoleServiceTest {
 
     @Test
     void convertToRoles_WithPartlyUserAttached() throws JsonProcessingException {
-        List<String> list = new ArrayList<>(){{add("Admin"); add("Manager"); add("Supervisor");}};
+        Set<String> list = new HashSet<>(){{add("Admin"); add("Manager"); add("Supervisor");}};
 
         when(roleRepository.findByName(anyString())).thenReturn(Optional.of(new Role("", new ArrayList<>(Arrays.asList(1L, 2L)))));
 

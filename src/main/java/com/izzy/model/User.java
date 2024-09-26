@@ -78,6 +78,12 @@ public class User implements Serializable {
     public User() {
     }
 
+    public User(Long id, String firstName, String phoneNumber) {
+        this.id = id;
+        this.firstName = firstName;
+        this.phoneNumber = phoneNumber;
+    }
+
     @PostLoad
     @PostPersist
     @PostUpdate

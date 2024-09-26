@@ -7,7 +7,6 @@ import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.User;
 import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.MessageResponse;
-import com.izzy.security.custom.service.CustomService;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.UserService;
 import jakarta.validation.Valid;
@@ -28,18 +27,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/izzy/users")
 public class UserController {
+
     private final UserService userService;
-    private final CustomService customService;
 
     /**
      * Constructor for UserController.
      *
      * @param userService   the service to manage user operations.
-     * @param customService the service to handle custom operations.
      */
-    public UserController(UserService userService, CustomService customService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.customService = customService;
     }
 
     /**

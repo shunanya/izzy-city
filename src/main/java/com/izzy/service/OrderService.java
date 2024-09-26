@@ -29,18 +29,15 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
-    private final ScooterRepository scooterRepository;
     private final TaskRepository taskRepository;
     private final CustomService customService;
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
-                        ScooterRepository scooterRepository,
                         TaskRepository taskRepository,
                         CustomService customService) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
-        this.scooterRepository = scooterRepository;
         this.taskRepository = taskRepository;
         this.customService = customService;
     }

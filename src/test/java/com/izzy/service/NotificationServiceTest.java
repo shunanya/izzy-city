@@ -1,13 +1,11 @@
 package com.izzy.service;
 
 import com.izzy.exception.ResourceNotFoundException;
-import com.izzy.model.Notification;
-import com.izzy.model.Role;
-import com.izzy.model.Task;
-import com.izzy.model.User;
+import com.izzy.model.*;
 import com.izzy.repository.*;
 import com.izzy.security.custom.service.CustomService;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +20,9 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Transactional
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class NotificationServiceTest {
 
-    private final Long orderId = 53L;
+    private Long orderId = 1L;
     private final Long scooterId1 = 1L;
     private final Long scooterId2 = 2L;
     private final String phoneNumber = "11111111";
@@ -43,63 +40,68 @@ public class NotificationServiceTest {
     private NotificationRepository notificationRepository;
 
     private User testUser;
+    private Order order;
     private List<Notification> notifications;
     private List<Task> tasks;
 
 
-    @BeforeEach
-    void setUp() {
+    private void createUser(){
         // Create test user
-        testUser = userRepository.findByPhoneNumber(phoneNumber).orElse(new User());
-        if (testUser.getId() == null) {
-            testUser.setPhoneNumber(phoneNumber);
-            testUser.setFirstName("Notification Service TestStatus");
+        testUser = new User(null, "test-user", phoneNumber);
+        Role adminRole = roleRepository.findByName("Admin").orElseThrow(() ->
+                new ResourceNotFoundException("Role", "name", "Admin"));
+        testUser.setRoles(new ArrayList<>() {{
+            add(adminRole);
+        }});
+        testUser = userRepository.save(testUser);
+    }
 
-            Role adminRole = roleRepository.findByName("Admin").orElseThrow(() ->
-                    new ResourceNotFoundException("Role", "name", "Admin"));
-            testUser.setRoles(new ArrayList<>() {{
-                add(adminRole);
-            }});
-            testUser = userRepository.save(testUser);
-        }
+    private void createOrder(){
+        order = new Order(null, "test-order", "Move", "Created");
+        order = orderRepository.save(order);
+        orderId = order.getId();
+    }
 
-        Task task1 = taskRepository.findByIdOrderIdAndIdScooterId(orderId, scooterId1).
-                orElse(new Task(orderId, scooterId1, Task.Status.CANCELED.getValue()));
+    private void createTasks(){
+        tasks = new ArrayList<>();
+        Task task1 = new Task(orderId, scooterId1, Task.Status.CANCELED.getValue());
         task1.setStatus(Task.Status.CANCELED.toString());
-        taskRepository.save(task1);
+        tasks.add(taskRepository.save(task1));
+        assertEquals(orderId, tasks.get(0).getOrderId());
 
-        Task task2 = taskRepository.findByIdOrderIdAndIdScooterId(orderId, scooterId2).
-                orElse(new Task(orderId, scooterId2, Task.Status.COMPLETED.getValue()));
+        Task task2 = new Task(orderId, scooterId2, Task.Status.COMPLETED.getValue());
         task2.setStatus(Task.Status.COMPLETED.toString());
-        taskRepository.save(task2);
+        tasks.add(taskRepository.save(task2));
+        assertEquals(orderId, tasks.get(1).getOrderId());
+    }
 
-        tasks = new ArrayList<>() {{
-            add(task1);
-            add(task2);
-        }};
+    private void createNotifications(){
+        notifications = new ArrayList<>();
 
-        notifications = notificationRepository.findNotificationsByFilters(testUser.getId(), null, null);
-        assertNotNull(notifications);
-        if (notifications.isEmpty()) {
-            Notification notification1 = new Notification(null, testUser.getId(), orderId, scooterId1);
+        Notification notification1 = new Notification(null, testUser.getId(), orderId, scooterId1);
             notification1.setUserAction(Notification.Action.APPROVED.getValue());
-            notification1.setTask(task1);
-            notification1 = notificationRepository.save(notification1);
+            notification1.setTask(tasks.get(0));
+        notifications.add(notificationRepository.save(notification1));
 
 
             Notification notification2 = new Notification(null, testUser.getId(), orderId, scooterId2);
             notification2.setUserAction(Notification.Action.REJECTED.getValue());
-            notification2.setTask(task2);
-            notification2 = notificationRepository.save(notification2);
+            notification2.setTask(tasks.get(1));
+            notifications.add(notificationRepository.save(notification2));
+    }
 
-            notifications = new ArrayList<>();
-            notifications.add(notification1);
-            notifications.add(notification2);
-        }
+    @BeforeEach
+    void setUp() {
+        createUser();
+        createOrder();
+        createTasks();
+        order.setTasks(tasks);
+        order = orderRepository.save(order);
+        orderId = order.getId();
+        createNotifications();
     }
 
     @Test
-    @Order(1)
     public void test_retrieve_notifications_for_current_user() {
         // Arrange
         CustomService customService = mock(CustomService.class);
@@ -117,7 +119,6 @@ public class NotificationServiceTest {
     }
 
     @Test
-    @Order(2)
     public void test_retrieve_notifications_for_current_user_and_check_embedded_task() {
         TaskRepository taskRepository = mock(TaskRepository.class);
         CustomService customService = mock(CustomService.class);
@@ -141,7 +142,6 @@ public class NotificationServiceTest {
 
     // Notification is created when task status is COMPLETED
     @Test
-    @Order(3)
     public void test_create_notification_when_task_status_completed() {
         // Arrange
         TaskRepository taskRepository = mock(TaskRepository.class);
@@ -172,7 +172,6 @@ public class NotificationServiceTest {
 
     // Task status is neither COMPLETED nor CANCELED
     @Test
-    @Order(4)
     public void test_create_notification_when_task_status_not_completed_or_canceled() {
         // Arrange
         TaskRepository taskRepository = mock(TaskRepository.class);
@@ -193,7 +192,6 @@ public class NotificationServiceTest {
     }
 
     @Test
-    @Order(5)
     public void test_update_notification_success() {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
@@ -226,7 +224,6 @@ public class NotificationServiceTest {
     }
 
     @Test
-    @Order(6)
     public void test_update_notification_invalid_notification_id() {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
@@ -242,7 +239,6 @@ public class NotificationServiceTest {
     }
 
     @Test
-    @Order(7)
     public void test_actionHandling_With_Valid_Notification_Id(){
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
@@ -260,7 +256,6 @@ public class NotificationServiceTest {
     }
 
     @Test
-    @Order(8)
     public void test_actionHandling_With_Invalid_Notification_Id(){
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
@@ -277,7 +272,6 @@ public class NotificationServiceTest {
     }
 
     @Test
-    @Order(9)
     public void test_delete_notification_by_valid_id() {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
@@ -288,7 +282,7 @@ public class NotificationServiceTest {
 
         doNothing().when(notificationRepository).deleteById(validNotificationId);
 
-        notificationService.deleteNotification(validNotificationId);
+        notificationService.deleteNotificationById(validNotificationId);
 
         verify(notificationRepository, times(1)).deleteById(validNotificationId);
     }

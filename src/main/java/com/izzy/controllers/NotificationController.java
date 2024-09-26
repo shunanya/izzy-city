@@ -19,77 +19,8 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
-//    /**
-//     * Retrieve Tasks for userManager that currently signed-in
-//     *
-//     * @param doneTasksOnly optional boolean parameter that define to get only Complete and Canceled tasks
-//     * @param viewType      optional parameter to get 'simple', 'short' and 'detailed' user data view (default is 'simple')
-//     * @return List of tasks {@link com.izzy.model.Task}
-//     */
-//    @GetMapping("tasks")
-//    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-//    public List<?> getAllNotificationsForCurrentUser(
-//            @RequestParam(name = "doneTasksOnly", required = false, defaultValue = "true") Boolean doneTasksOnly,
-//            @RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
-//        try {
-//            switch (viewType) {
-//                case "simple" -> {
-//                    return notificationService.getAllNotificationsForCurrentUserManager(doneTasksOnly, null);
-//                }
-//                case "short" -> {
-//                    return notificationService.getAllNotificationsForCurrentUserManager(doneTasksOnly, true);
-//                }
-//                case "detailed" -> {
-//                    return notificationService.getAllNotificationsForCurrentUserManager(doneTasksOnly, false);
-//                }
-//                default ->
-//                        throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
-//            }
-//        } catch (Exception ex) {
-//            throw new BadRequestException(Utils.substringErrorFromException(ex));
-//        }
-//    }
-//
-//    /**
-//     * Retrieve tasks assigned to currently signed-in user
-//     * <p>
-//     * The notification can be assigned for user manager or executor.
-//     *     <ul>
-//     *     <li>User Manager receive notification when executor set task as CANCELED or COMPLETED
-//     *     <li>Executor receive notification when User Manager set soma action (APPROVED or REJECTED)
-//     *     </ul>
-//     * </p>
-//     *
-//     * @param status   optional statuses that should be retrieved
-//     * @param viewType optional parameter to get 'simple', 'short' and 'detailed' user data view (default is 'simple')
-//     * @return List of requesting task {@link com.izzy.model.Task}
-//     */
-//    @GetMapping("tasks/assigned")
-//    public List<?> GetTaskNotificationsForCurrentUser(
-//            @RequestParam(required = false) List<String> status,
-//            @RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
-//        try {
-//            switch (viewType) {
-//                case "simple" -> {
-//                    return notificationService.getFilteredTaskNotificationsForCurrentUser(status, null);
-//                }
-//                case "short" -> {
-//                    return notificationService.getFilteredTaskNotificationsForCurrentUser(status, true);
-//                }
-//                case "detailed" -> {
-//                    return notificationService.getFilteredTaskNotificationsForCurrentUser(status, false);
-//                }
-//                default ->
-//                        throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
-//            }
-////            return new ArrayList<>();
-//        } catch (Exception ex) {
-//            throw new BadRequestException(Utils.substringErrorFromException(ex));
-//        }
-//    }
-
     /**
-     * Retrieve Notifications for userManager that currently signed-in
+     * Retrieve Notifications for userManager that currently signed in
      *
      * @param userAction optional user-manager action
      * @param status optional Task status that should be retrieved
@@ -140,6 +71,12 @@ public class NotificationController {
 
     /**
      * Handle the situation in case the executor is already familiar with the manager reaction.
+     * <p>Ths request marks Notification As Read and does the following actions
+     * <ul>
+     *     <li>remove Task and Notification if manager approved executor action
+     *     <li>reassign Task to executor and remove Notification if manager canceled executor action
+     * </ul>
+     * </p>
      *
      * @param notificationId the id of looked through notification
      */
@@ -157,7 +94,7 @@ public class NotificationController {
     @PreAuthorize("hasRole('Admin')")
     public void deleteNotification(@PathVariable Long notificationId){
         try{
-            notificationService.deleteNotification(notificationId);
+            notificationService.deleteNotificationById(notificationId);
         }catch (Exception ex) {
             throw new BadRequestException(Utils.substringErrorFromException(ex));
         }

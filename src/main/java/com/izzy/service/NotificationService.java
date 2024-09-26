@@ -26,79 +26,15 @@ public class NotificationService {
     private final TaskRepository taskRepository;
     private final CustomService customService;
 
-    public NotificationService(NotificationRepository notificationRepository, OrderRepository orderRepository, TaskRepository taskRepository, CustomService customService) {
+    public NotificationService(NotificationRepository notificationRepository,
+                               OrderRepository orderRepository,
+                               TaskRepository taskRepository,
+                               CustomService customService) {
         this.notificationRepository = notificationRepository;
         this.orderRepository = orderRepository;
         this.taskRepository = taskRepository;
         this.customService = customService;
     }
-
-//    /**
-//     * Retrieve all notifications (aka tasks) for the managing user.
-//     *
-//     * @param doneTasksOnly optional parameter defining when non-active tasks (Completed, Canceled) should be returned only
-//     * @param shortView     Optional parameter to specify returning either 'short' or 'detailed' user data view.
-//     *                      The pure tasks will be returned if defined as <code>NULL</code> .
-//     * @return List of tasks (notifications)
-//     */
-//    public List<?> getAllNotificationsForCurrentUserManager(@Nullable Boolean doneTasksOnly, @Nullable Boolean shortView) {
-//
-//        List<Task> tasks = (doneTasksOnly != null && doneTasksOnly) ? taskRepository.findNonActiveTasksByUserManagerId(customService.currentUserId())
-//                : taskRepository.findTasksByUserManagerId(customService.currentUserId());
-//        if (shortView == null) {
-//            return tasks;
-//        } else {// convert to short or detailed view
-//            if (!tasks.isEmpty())
-//                return tasks.stream().map(task ->
-//                                new TaskInfo(getOrderByOrderId(task.getOrderId()), getScooterByScooterId(task.getScooterId()),
-//                                        task,
-//                                        shortView)).
-//                        collect(Collectors.toList());
-//        }
-//        return new ArrayList<>();
-//    }
-//
-//
-//    /**
-//     * Retrieve filtered notifications (tasks) for the assigned user
-//     *
-//     * @param taskStatuses optional parameter specifying which tasks with the given status should be returned
-//     * @param shortView    Optional parameter to specify returning either 'short' or 'detailed' user data view.
-//     *                     The pure tasks will be returned if defined as <code>NULL</code> .
-//     * @return List of tasks (notifications)
-//     * @throws BadRequestException when specified status is not recognized
-//     */
-//    public List<?> getFilteredTaskNotificationsForCurrentUser(@Nullable List<String> taskStatuses, Boolean shortView) {
-//        if (taskStatuses != null) {
-//            taskStatuses.forEach(s -> {
-//                if (Task.Status.getStatusByString(s) == null) {
-//                    throw new BadRequestException(String.format("Unknown specified status: %s", s));
-//                }
-//            });
-//        }
-//        List<Integer> priorities = taskStatuses == null ? null
-//                : taskStatuses.stream().map(Task.Status::getStatusByString).filter(Objects::nonNull).map(Task.Status::getValue).collect(Collectors.toList());
-//        List<Task> tasks = taskRepository.findFilteredTasksByAssignedUserId(customService.currentUserId(), priorities);
-//        if (shortView == null) {
-//            return tasks;
-//        } else {// convert to short or detailed view
-//            if (!tasks.isEmpty())
-//                return tasks.stream().map(task ->
-//                                new TaskInfo(getOrderByOrderId(task.getOrderId()), getScooterByScooterId(task.getScooterId()),
-//                                        task,
-//                                        shortView)).
-//                        collect(Collectors.toList());
-//        }
-//        return new ArrayList<>();
-//    }
-//
-//    private Order getOrderByOrderId(Long orderId) {
-//        return orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
-//    }
-//
-//    private Scooter getScooterByScooterId(Long scooterId) {
-//        return scooterRepository.findById(scooterId).orElseThrow(() -> new ResourceNotFoundException("Scooter", "id", scooterId));
-//    }
 
     /**
      * Retrieve notifications for the signed-in user (manger or executor).
@@ -122,6 +58,12 @@ public class NotificationService {
         return notificationRepository.findAllByUserId(customService.currentUserId());
     }
 
+    /**
+     * Retriev notification by id
+     *
+     * @param id the notification id
+     * @return {@link Notification}
+     */
     public Notification getNotificationByID(@NonNull Long id) {
         return notificationRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Notification", "Id", id));
     }
@@ -165,8 +107,8 @@ public class NotificationService {
         if (userAction == null || userAction.isBlank() || Notification.Action.getActionByValue(userAction) == Notification.Action.UNDEFINED) {// userAction is wrong
             throw new NotAcceptableStatusException("Notifications can only be updated if the User action is either 'approved' or 'rejected'.");
         }
-        if (!customService.currentUserId().equals(notification.getUserId())){
-           throw new AccessDeniedException("Not allowed to update notifications that do not belong to you.");
+        if (!customService.currentUserId().equals(notification.getUserId())) {
+            throw new AccessDeniedException("Not allowed to update notifications that do not belong to you.");
         }
         Long orderId = notification.getOrderId();
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
@@ -179,7 +121,7 @@ public class NotificationService {
         String managerComment = String.format("Manager %s your decision.", userAction);
         String comment = notification.getTask().getComment();
         if (comment != null) {
-            managerComment = String.format("%s%n%s",comment, managerComment);
+            managerComment = String.format("%s%n%s", comment, managerComment);
         }
         notification.getTask().setComment(managerComment);
         return notificationRepository.save(notification);
@@ -187,6 +129,12 @@ public class NotificationService {
 
     /**
      * Handle the situation in case the executor is already familiar with the manager's reaction.
+     * <p>This method does the following actions
+     * <ul>
+     *     <li>remove Task and Notification if manager approved executor action
+     *     <li>reassign Task to executor and remove Notification if manager canceled executor action
+     * </ul>
+     * </p>
      *
      * @param notificationId the id of looked through notification
      */
@@ -208,12 +156,12 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(@NonNull Long notificationId) {
+    public void deleteNotificationById(@NonNull Long notificationId) {
         notificationRepository.deleteById(notificationId);
     }
 
     @Transactional
-    public void deleteNotification(@NonNull Notification notification){
+    public void deleteNotification(@NonNull Notification notification) {
         notificationRepository.delete(notification);
     }
 }

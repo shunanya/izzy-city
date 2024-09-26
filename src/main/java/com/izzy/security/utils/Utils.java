@@ -132,4 +132,10 @@ public class Utils {
         }
         return tasksDTO;
     }
+
+    private static final String phoneRegEx = "^\\+?\\d{0,3}?[-.\\s]?\\(?\\d{1,4}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$";
+
+    public static boolean isCorrectPhoneNumber(String phoneNumber) {
+        return Pattern.matches(phoneRegEx, phoneNumber);
+    }
 }
