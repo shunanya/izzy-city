@@ -24,6 +24,11 @@ public class ApiResponse implements Serializable {
         this.message = message;
     }
 
+    public ApiResponse(HttpStatus status, String message) {
+        this.status = status.value();
+        this.message = message;
+    }
+
     public int getStatus() {
         return status;
     }

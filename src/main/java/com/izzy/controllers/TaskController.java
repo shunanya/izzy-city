@@ -143,7 +143,7 @@ public class TaskController {
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
             taskService.removeTask(orderId, taskDTO);
-            return ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task deleted {orderId: %s, scooterId: %s}", orderId, taskDTO.getScooterId())));
+            return ResponseEntity.ok( new ApiResponse(HttpStatus.OK, String.format("Task deleted {orderId: %s, scooterId: %s}", orderId, taskDTO.getScooterId())));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -166,8 +166,8 @@ public class TaskController {
             // Processing
             List<Task> tasks = taskService.markTaskAsCompleted(orderId, taskDTO);
             return tasks.isEmpty()?
-                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong.")):
-                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
+                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")):
+                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK, String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -190,8 +190,8 @@ public class TaskController {
             // Processing
             List<Task> tasks = taskService.markTaskAsCanceled(orderId, taskDTO);
             return tasks.isEmpty()?
-                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong.")):
-                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK.value(), String.format("Task '%s' marked as canceled.", taskRequestString.replaceAll("\\s", ""))));
+                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")):
+                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK, String.format("Task '%s' marked as canceled.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

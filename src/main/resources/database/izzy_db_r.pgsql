@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 12.19 (Ubuntu 12.19-0ubuntu0.20.04.1)
--- Dumped by pg_dump version 12.19 (Ubuntu 12.19-0ubuntu0.20.04.1)
+-- Dumped from database version 12.20 (Ubuntu 12.20-0ubuntu0.20.04.1)
+-- Dumped by pg_dump version 12.20 (Ubuntu 12.20-0ubuntu0.20.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -16,57 +16,113 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_zones_fk;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_users_fk;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS user_head_fk;
+ALTER TABLE IF EXISTS ONLY public.scooters DROP CONSTRAINT IF EXISTS scooters_zones_fk;
+ALTER TABLE IF EXISTS ONLY public.orders DROP CONSTRAINT IF EXISTS orders_updated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.orders DROP CONSTRAINT IF EXISTS orders_created_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.orders DROP CONSTRAINT IF EXISTS orders_assigned_to_fkey;
+ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_users_fk;
+ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_tasks_fk;
+ALTER TABLE IF EXISTS ONLY public.refreshtoken DROP CONSTRAINT IF EXISTS "FK_refreshtoken_user_id";
+ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS "FK_UserRole_User_Id";
+ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS "FK_UserRole_Role_Id";
+ALTER TABLE IF EXISTS ONLY public.tasks DROP CONSTRAINT IF EXISTS "FK_Task_Scooter_Id";
+ALTER TABLE IF EXISTS ONLY public.tasks DROP CONSTRAINT IF EXISTS "FK_Task_Order_Id";
+ALTER TABLE IF EXISTS ONLY public.zones DROP CONSTRAINT IF EXISTS zones_pkey;
+ALTER TABLE IF EXISTS ONLY public.zones DROP CONSTRAINT IF EXISTS "zones_name unique";
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_phone_number_key;
+ALTER TABLE IF EXISTS ONLY public.scooters DROP CONSTRAINT IF EXISTS scooters_pkey;
+ALTER TABLE IF EXISTS ONLY public.scooters DROP CONSTRAINT IF EXISTS scooters_identifier_unique;
+ALTER TABLE IF EXISTS ONLY public.roles DROP CONSTRAINT IF EXISTS roles_name_unique;
+ALTER TABLE IF EXISTS ONLY public.refreshtoken DROP CONSTRAINT IF EXISTS refresh_unique_user_id;
+ALTER TABLE IF EXISTS ONLY public.refreshtoken DROP CONSTRAINT IF EXISTS refresh_unique_token;
+ALTER TABLE IF EXISTS ONLY public.refreshtoken DROP CONSTRAINT IF EXISTS refresh_pk;
+ALTER TABLE IF EXISTS ONLY public.orders DROP CONSTRAINT IF EXISTS orders_pkey;
+ALTER TABLE IF EXISTS ONLY public.orders DROP CONSTRAINT IF EXISTS orders_name_unique;
+ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_unique;
+ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_pk;
+ALTER TABLE IF EXISTS ONLY public.roles DROP CONSTRAINT IF EXISTS "PK_roles";
+ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS "PK_UserRole";
+ALTER TABLE IF EXISTS ONLY public.tasks DROP CONSTRAINT IF EXISTS "PK_Task";
+ALTER TABLE IF EXISTS public.zones ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.users ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.scooters ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.roles ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.orders ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.notifications ALTER COLUMN id DROP DEFAULT;
+DROP SEQUENCE IF EXISTS public.zones_id_seq;
+DROP TABLE IF EXISTS public.zones;
+DROP SEQUENCE IF EXISTS public.users_id_seq;
+DROP TABLE IF EXISTS public.users;
+DROP TABLE IF EXISTS public.user_roles;
+DROP TABLE IF EXISTS public.tasks;
+DROP SEQUENCE IF EXISTS public.scooters_id_seq;
+DROP TABLE IF EXISTS public.scooters;
+DROP SEQUENCE IF EXISTS public.roles_id_seq;
+DROP TABLE IF EXISTS public.roles;
+DROP TABLE IF EXISTS public.refreshtoken;
+DROP SEQUENCE IF EXISTS public.refreshtoken_id_seq;
+DROP SEQUENCE IF EXISTS public.orders_id_seq;
+DROP TABLE IF EXISTS public.orders;
+DROP SEQUENCE IF EXISTS public.notifications_id_seq;
+DROP TABLE IF EXISTS public.notifications;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: order_scooter; Type: TABLE; Schema: public; Owner: root
+-- Name: notifications; Type: TABLE; Schema: public; Owner: root
 --
 
-CREATE TABLE public.order_scooter (
+CREATE TABLE public.notifications (
+    user_id bigint NOT NULL,
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP(0) NOT NULL,
     order_id bigint NOT NULL,
     scooter_id bigint NOT NULL,
-    priority integer,
-    comment character varying(255)
+    user_action character varying,
+    CONSTRAINT notifications_action_check CHECK (((user_action)::text = ANY (ARRAY['approved'::text, 'rejected'::text])))
 );
 
 
-ALTER TABLE public.order_scooter OWNER TO root;
+ALTER TABLE public.notifications OWNER TO root;
 
 --
--- Name: TABLE order_scooter; Type: COMMENT; Schema: public; Owner: root
+-- Name: COLUMN notifications.user_id; Type: COMMENT; Schema: public; Owner: root
 --
 
-COMMENT ON TABLE public.order_scooter IS 'Intermediate table holding records linking Orders and Scooters';
-
-
---
--- Name: COLUMN order_scooter.order_id; Type: COMMENT; Schema: public; Owner: root
---
-
-COMMENT ON COLUMN public.order_scooter.order_id IS 'link to orders';
+COMMENT ON COLUMN public.notifications.user_id IS 'responsible/reactable user';
 
 
 --
--- Name: COLUMN order_scooter.scooter_id; Type: COMMENT; Schema: public; Owner: root
+-- Name: COLUMN notifications.created_at; Type: COMMENT; Schema: public; Owner: root
 --
 
-COMMENT ON COLUMN public.order_scooter.scooter_id IS 'link to scooters';
-
-
---
--- Name: COLUMN order_scooter.priority; Type: COMMENT; Schema: public; Owner: root
---
-
-COMMENT ON COLUMN public.order_scooter.priority IS '1 - highest priority';
+COMMENT ON COLUMN public.notifications.created_at IS 'notification creation time';
 
 
 --
--- Name: COLUMN order_scooter.comment; Type: COMMENT; Schema: public; Owner: root
+-- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: root
 --
 
-COMMENT ON COLUMN public.order_scooter.comment IS 'Description for completed or canceled task';
+CREATE SEQUENCE public.notifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.notifications_id_seq OWNER TO root;
+
+--
+-- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root
+--
+
+ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
 
 
 --
@@ -87,7 +143,7 @@ CREATE TABLE public.orders (
     taken_at timestamp with time zone,
     done_at timestamp with time zone,
     CONSTRAINT orders_action_check CHECK (((action)::text = ANY (ARRAY[('Move'::character varying)::text, ('Charge'::character varying)::text, ('Repair'::character varying)::text]))),
-    CONSTRAINT orders_status_check CHECK (((status)::text = ANY (ARRAY[('Created'::character varying)::text, ('Assigned'::character varying)::text, ('In_Progress'::character varying)::text, ('Fulfilled'::character varying)::text, ('Canceled'::character varying)::text])))
+    CONSTRAINT users_status_check CHECK (((status)::text = ANY (ARRAY['Created'::text, 'Assigned'::text, 'In_Progress'::text, 'Completed'::text, 'Canceled'::text])))
 );
 
 
@@ -98,7 +154,6 @@ ALTER TABLE public.orders OWNER TO root;
 --
 
 CREATE SEQUENCE public.orders_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -182,7 +237,6 @@ ALTER TABLE public.roles OWNER TO root;
 --
 
 CREATE SEQUENCE public.roles_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -235,7 +289,6 @@ COMMENT ON COLUMN public.scooters.zone IS 'Location of the scooter';
 --
 
 CREATE SEQUENCE public.scooters_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -250,6 +303,55 @@ ALTER TABLE public.scooters_id_seq OWNER TO root;
 --
 
 ALTER SEQUENCE public.scooters_id_seq OWNED BY public.scooters.id;
+
+
+--
+-- Name: tasks; Type: TABLE; Schema: public; Owner: root
+--
+
+CREATE TABLE public.tasks (
+    order_id bigint NOT NULL,
+    scooter_id bigint NOT NULL,
+    priority integer NOT NULL,
+    comment character varying(255)
+);
+
+
+ALTER TABLE public.tasks OWNER TO root;
+
+--
+-- Name: TABLE tasks; Type: COMMENT; Schema: public; Owner: root
+--
+
+COMMENT ON TABLE public.tasks IS 'Intermediate table holding records linking Orders and Scooters';
+
+
+--
+-- Name: COLUMN tasks.order_id; Type: COMMENT; Schema: public; Owner: root
+--
+
+COMMENT ON COLUMN public.tasks.order_id IS 'link to orders';
+
+
+--
+-- Name: COLUMN tasks.scooter_id; Type: COMMENT; Schema: public; Owner: root
+--
+
+COMMENT ON COLUMN public.tasks.scooter_id IS 'link to scooters';
+
+
+--
+-- Name: COLUMN tasks.priority; Type: COMMENT; Schema: public; Owner: root
+--
+
+COMMENT ON COLUMN public.tasks.priority IS '1 - highest priority';
+
+
+--
+-- Name: COLUMN tasks.comment; Type: COMMENT; Schema: public; Owner: root
+--
+
+COMMENT ON COLUMN public.tasks.comment IS 'Description for completed or canceled task';
 
 
 --
@@ -287,9 +389,9 @@ CREATE TABLE public.users (
     shift character varying(50),
     created_by bigint,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    head_for_user bigint,
-    CONSTRAINT users_gender_check CHECK (((gender)::text = ANY (ARRAY[('Male'::character varying)::text, ('Female'::character varying)::text, ('Not specified'::character varying)::text]))),
-    CONSTRAINT users_shift_check CHECK (((shift)::text = ANY (ARRAY[('day shift'::character varying)::text, ('night shift'::character varying)::text])))
+    user_manager bigint,
+    CONSTRAINT users_gender_check CHECK (((gender)::text = ANY (ARRAY['Male'::text, 'Female'::text]))),
+    CONSTRAINT users_shift_check CHECK (((shift)::text = ANY (ARRAY['day'::text, 'night'::text])))
 );
 
 
@@ -350,10 +452,10 @@ COMMENT ON COLUMN public.users.created_at IS 'Date of record creation';
 
 
 --
--- Name: COLUMN users.head_for_user; Type: COMMENT; Schema: public; Owner: root
+-- Name: COLUMN users.user_manager; Type: COMMENT; Schema: public; Owner: root
 --
 
-COMMENT ON COLUMN public.users.head_for_user IS 'Manager of this user';
+COMMENT ON COLUMN public.users.user_manager IS 'Manager of this user';
 
 
 --
@@ -361,7 +463,6 @@ COMMENT ON COLUMN public.users.head_for_user IS 'Manager of this user';
 --
 
 CREATE SEQUENCE public.users_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -402,7 +503,6 @@ COMMENT ON COLUMN public.zones.name IS 'Predefined zone';
 --
 
 CREATE SEQUENCE public.zones_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -417,6 +517,13 @@ ALTER TABLE public.zones_id_seq OWNER TO root;
 --
 
 ALTER SEQUENCE public.zones_id_seq OWNED BY public.zones.id;
+
+
+--
+-- Name: notifications id; Type: DEFAULT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
 
 
 --
@@ -455,25 +562,21 @@ ALTER TABLE ONLY public.zones ALTER COLUMN id SET DEFAULT nextval('public.zones_
 
 
 --
--- Data for Name: order_scooter; Type: TABLE DATA; Schema: public; Owner: root
+-- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.order_scooter VALUES (19, 1, 2, NULL);
-INSERT INTO public.order_scooter VALUES (19, 3, 1, NULL);
-INSERT INTO public.order_scooter VALUES (19, 2, 3, NULL);
-INSERT INTO public.order_scooter VALUES (41, 1, 1, NULL);
-INSERT INTO public.order_scooter VALUES (41, 3, -1, 'CANCELED');
-INSERT INTO public.order_scooter VALUES (41, 5, 2, NULL);
-INSERT INTO public.order_scooter VALUES (41, 4, 0, 'COMPLETED');
+INSERT INTO public.notifications VALUES (6, 314, '2024-09-19 16:28:08.084071+04', 49, 1, 'approved');
 
 
 --
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: root
 --
 
+INSERT INTO public.orders VALUES (49, 'Move', 'order12', NULL, 3, '2024-09-01 15:38:38.306416+04', 3, '2024-09-01 15:46:24.682307+04', 6, 'Assigned', NULL, NULL);
+INSERT INTO public.orders VALUES (51, 'Move', 'order13', NULL, 3, '2024-09-01 19:11:47.500381+04', NULL, NULL, 6, 'Assigned', NULL, NULL);
+INSERT INTO public.orders VALUES (52, 'Move', 'order15', NULL, 3, '2024-09-01 19:17:24.501949+04', NULL, NULL, 6, 'Assigned', NULL, NULL);
 INSERT INTO public.orders VALUES (19, 'Charge', 'order1', 'test-order', 3, '2024-07-26 16:23:47.872315+04', NULL, NULL, 6, 'Created', NULL, NULL);
-INSERT INTO public.orders VALUES (41, 'Move', 'order11', NULL, 3, '2024-08-15 13:12:58.359906+04', 3, '2024-08-15 18:35:33.250483+04', 6, 'Created', NULL, NULL);
-INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:38:03.509133+04', NULL, NULL, 28, 'Created', NULL, NULL);
+INSERT INTO public.orders VALUES (54, 'Move', 'order26', 'test-order', 3, '2024-09-01 19:39:01.645554+04', 3, '2024-09-20 21:21:49.845288+04', 6, 'Assigned', NULL, NULL);
 
 
 --
@@ -481,11 +584,11 @@ INSERT INTO public.orders VALUES (15, 'Move', 'order2', NULL, 6, '2024-07-22 15:
 --
 
 INSERT INTO public.refreshtoken VALUES (17, '2024-08-17 22:22:06.535785+04', '0dc2645d-ac93-4433-a0a8-38e12b488a31', 25);
-INSERT INTO public.refreshtoken VALUES (9, '2024-08-18 12:04:45.488856+04', '9eb088e5-60ef-42b2-b47f-e82646d09294', 6);
-INSERT INTO public.refreshtoken VALUES (11, '2024-08-18 20:48:35.148349+04', '9d0c7729-d312-49a4-ac9f-184ac0f15f71', 26);
-INSERT INTO public.refreshtoken VALUES (14, '2024-08-18 20:49:44.25124+04', '5f46564a-58e3-4f50-a190-c6d912c91c16', 3);
+INSERT INTO public.refreshtoken VALUES (11, '2024-09-17 20:08:05.278574+04', '86b14380-be34-4a37-8dfc-20b4f611e811', 26);
 INSERT INTO public.refreshtoken VALUES (12, '2024-08-01 17:38:23.737976+04', '074e54ba-374b-483a-b69b-e205a8f67952', 29);
-INSERT INTO public.refreshtoken VALUES (16, '2024-08-17 14:55:32.173243+04', '0084c24f-d075-419c-8f91-65b6f3df65e2', 39);
+INSERT INTO public.refreshtoken VALUES (16, '2024-08-21 11:13:39.575383+04', '9afde03e-eaf8-422f-a6a8-967744581ef9', 39);
+INSERT INTO public.refreshtoken VALUES (9, '2024-09-24 11:27:00.996156+04', 'adac2024-d44a-49da-9052-5b0322584719', 6);
+INSERT INTO public.refreshtoken VALUES (22, '2024-09-15 17:41:09.893009+04', '2b625703-ec45-405b-8590-a3f7a4eb7fbb', 533);
 
 
 --
@@ -509,6 +612,25 @@ INSERT INTO public.scooters VALUES (2, '3367', 'Active', 80, 2, 45);
 INSERT INTO public.scooters VALUES (4, '4466', 'Active', 40, 3, 100);
 INSERT INTO public.scooters VALUES (5, '4444', 'Active', 40, 1, 50);
 INSERT INTO public.scooters VALUES (6, '4455', 'Active', 40, 2, 50);
+INSERT INTO public.scooters VALUES (7, NULL, NULL, NULL, NULL, NULL);
+
+
+--
+-- Data for Name: tasks; Type: TABLE DATA; Schema: public; Owner: root
+--
+
+INSERT INTO public.tasks VALUES (49, 3, 1, NULL);
+INSERT INTO public.tasks VALUES (49, 1, -1, 'Scooter not found in place
+Manager approved your decision.');
+INSERT INTO public.tasks VALUES (19, 3, 1, NULL);
+INSERT INTO public.tasks VALUES (51, 1, 1, NULL);
+INSERT INTO public.tasks VALUES (51, 2, 2, NULL);
+INSERT INTO public.tasks VALUES (52, 1, 1, NULL);
+INSERT INTO public.tasks VALUES (52, 2, 2, NULL);
+INSERT INTO public.tasks VALUES (54, 2, 2, NULL);
+INSERT INTO public.tasks VALUES (54, 3, 1, NULL);
+INSERT INTO public.tasks VALUES (19, 1, 2, NULL);
+INSERT INTO public.tasks VALUES (54, 1, 2, NULL);
 
 
 --
@@ -517,12 +639,11 @@ INSERT INTO public.scooters VALUES (6, '4455', 'Active', 40, 2, 50);
 
 INSERT INTO public.user_roles VALUES (3, 1);
 INSERT INTO public.user_roles VALUES (6, 5);
+INSERT INTO public.user_roles VALUES (533, 4);
 INSERT INTO public.user_roles VALUES (25, 4);
 INSERT INTO public.user_roles VALUES (25, 5);
 INSERT INTO public.user_roles VALUES (26, 2);
 INSERT INTO public.user_roles VALUES (27, 1);
-INSERT INTO public.user_roles VALUES (28, 5);
-INSERT INTO public.user_roles VALUES (28, 4);
 INSERT INTO public.user_roles VALUES (29, 4);
 INSERT INTO public.user_roles VALUES (29, 5);
 INSERT INTO public.user_roles VALUES (39, 3);
@@ -533,14 +654,14 @@ INSERT INTO public.user_roles VALUES (39, 4);
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: root
 --
 
+INSERT INTO public.users VALUES (6, 'Scout', 'Smith', '$2a$10$Rj4uSPNVaHiEf338Ft3xIe9jfOF5xqRYKPJaVAi3evpU1b/BHZP8e', '71001122', 'Female', NULL, 3, 'night', 3, '2024-07-17 20:51:43.468797+04', 3);
+INSERT INTO public.users VALUES (533, 'Charger', NULL, '$2a$10$fkTiCdFaHU51ullnuHNpW.UCdW9t9FomYXJEJH7FIbOBIPI1zdjbG', '33001122', 'Male', NULL, NULL, NULL, 3, '2024-09-14 17:35:52.3373+04', 26);
+INSERT INTO public.users VALUES (29, 'user_scout', NULL, '$2a$10$Ziiq1DJCCNk3yYqEAUZTPuAxkigvWeWKo/oBnZPKYSLc1bWAc0nrq', '95001122', NULL, NULL, NULL, NULL, NULL, NULL, 3);
+INSERT INTO public.users VALUES (3, 'duty_admin', 'Blinken', '$2a$10$Ep0QyL0tmsYQpQ02gZcfgOVmDxUxnybNiloAmgnNcG5iQ2T38hIsS', '55001122', 'Female', '2024-07-16', 2, 'day', 6, '2024-07-16 21:49:22.325+04', NULL);
+INSERT INTO public.users VALUES (25, 'user_scout', NULL, '$2a$10$Hj6VjoSlmyYD/Gqjjb.nhupngoGqZR2I4NmPn1KQ2HBHHN8Clwe/2', '94001122', 'Male', NULL, 1, NULL, 3, '2024-07-27 14:47:43.379171+04', 3);
 INSERT INTO public.users VALUES (26, 'manager', NULL, '$2a$10$0xDTxLnPWk972eEX9UJfJObssahQMNrFYjXmlPy6ojYPGWoRyE1h.', '77553311', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.users VALUES (27, 'admin', NULL, '$2a$10$WZXVlLM/q7jKNwZNy8gSIesnCZEI.SUgSk34IDQFvEVdKfAB95RwK', '56001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.users VALUES (28, 'user_scout', NULL, '$2a$10$v9iqzXU/RqobG.zTP2kk3ustMFM3N11N9l14d904cWRtGa/sbTMRi', '99001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.users VALUES (29, 'user_scout', NULL, '$2a$10$Ziiq1DJCCNk3yYqEAUZTPuAxkigvWeWKo/oBnZPKYSLc1bWAc0nrq', '95001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO public.users VALUES (3, 'duty_admin', NULL, '$2a$10$KDr0088bx1wGYDXuRT.YL.5Xz5spiagqCiuFPiE.o0TZst7b3nudK', '55001122', 'Female', '2024-07-16', 2, 'day shift', 6, '2024-07-16 21:49:22.325+04', NULL);
-INSERT INTO public.users VALUES (6, 'Scout', 'Smith', '$2a$10$Vu1UO5EpZptJJSCY2qQOMe9won4/A07UnT74EHgIdxUhrcN2lc8Z.', '71001122', 'Female', NULL, 3, 'night shift', 3, '2024-07-17 20:51:43.468797+04', NULL);
 INSERT INTO public.users VALUES (39, 'Supervisor', NULL, '$2a$10$atYUerVtgumF/tL9Zy7iR.X0ExqfLaLIhRAfzhdgF.gf2alEXr11G', '73001122', 'Male', NULL, 1, NULL, 3, '2024-08-02 20:34:58.935859+04', NULL);
-INSERT INTO public.users VALUES (25, 'user_scout', NULL, '$2a$10$Hj6VjoSlmyYD/Gqjjb.nhupngoGqZR2I4NmPn1KQ2HBHHN8Clwe/2', '94001122', 'Male', NULL, 1, NULL, 3, '2024-07-27 14:47:43.379171+04', NULL);
+INSERT INTO public.users VALUES (27, 'admin', NULL, '$2a$10$WZXVlLM/q7jKNwZNy8gSIesnCZEI.SUgSk34IDQFvEVdKfAB95RwK', '56001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 
 --
@@ -553,17 +674,24 @@ INSERT INTO public.zones VALUES (3, 'z03');
 
 
 --
+-- Name: notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
+--
+
+SELECT pg_catalog.setval('public.notifications_id_seq', 486, true);
+
+
+--
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 41, true);
+SELECT pg_catalog.setval('public.orders_id_seq', 232, true);
 
 
 --
 -- Name: refreshtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.refreshtoken_id_seq', 17, true);
+SELECT pg_catalog.setval('public.refreshtoken_id_seq', 26, true);
 
 
 --
@@ -577,14 +705,14 @@ SELECT pg_catalog.setval('public.roles_id_seq', 5, true);
 -- Name: scooters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.scooters_id_seq', 6, true);
+SELECT pg_catalog.setval('public.scooters_id_seq', 7, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 39, true);
+SELECT pg_catalog.setval('public.users_id_seq', 803, true);
 
 
 --
@@ -595,11 +723,11 @@ SELECT pg_catalog.setval('public.zones_id_seq', 1, false);
 
 
 --
--- Name: order_scooter PK_OrderScooter; Type: CONSTRAINT; Schema: public; Owner: root
+-- Name: tasks PK_Task; Type: CONSTRAINT; Schema: public; Owner: root
 --
 
-ALTER TABLE ONLY public.order_scooter
-    ADD CONSTRAINT "PK_OrderScooter" PRIMARY KEY (order_id, scooter_id);
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT "PK_Task" PRIMARY KEY (order_id, scooter_id);
 
 
 --
@@ -619,19 +747,35 @@ ALTER TABLE ONLY public.roles
 
 
 --
+-- Name: notifications notifications_pk; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pk PRIMARY KEY (id);
+
+
+--
+-- Name: notifications notifications_unique; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_unique UNIQUE (order_id, scooter_id);
+
+
+--
+-- Name: orders orders_name_unique; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_name_unique UNIQUE (name);
+
+
+--
 -- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: root
 --
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
-
-
---
--- Name: orders orders_unique; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT orders_unique UNIQUE (name);
 
 
 --
@@ -715,19 +859,19 @@ ALTER TABLE ONLY public.zones
 
 
 --
--- Name: order_scooter FK_OrderScooter_Order_Id; Type: FK CONSTRAINT; Schema: public; Owner: root
+-- Name: tasks FK_Task_Order_Id; Type: FK CONSTRAINT; Schema: public; Owner: root
 --
 
-ALTER TABLE ONLY public.order_scooter
-    ADD CONSTRAINT "FK_OrderScooter_Order_Id" FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT "FK_Task_Order_Id" FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
 
 
 --
--- Name: order_scooter FK_OrderScooter_Scooter_Id; Type: FK CONSTRAINT; Schema: public; Owner: root
+-- Name: tasks FK_Task_Scooter_Id; Type: FK CONSTRAINT; Schema: public; Owner: root
 --
 
-ALTER TABLE ONLY public.order_scooter
-    ADD CONSTRAINT "FK_OrderScooter_Scooter_Id" FOREIGN KEY (scooter_id) REFERENCES public.scooters(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT "FK_Task_Scooter_Id" FOREIGN KEY (scooter_id) REFERENCES public.scooters(id) ON DELETE CASCADE;
 
 
 --
@@ -752,6 +896,22 @@ ALTER TABLE ONLY public.user_roles
 
 ALTER TABLE ONLY public.refreshtoken
     ADD CONSTRAINT "FK_refreshtoken_user_id" FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: notifications notifications_tasks_fk; Type: FK CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_tasks_fk FOREIGN KEY (order_id, scooter_id) REFERENCES public.tasks(order_id, scooter_id) ON DELETE CASCADE;
+
+
+--
+-- Name: notifications notifications_users_fk; Type: FK CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_users_fk FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -791,7 +951,7 @@ ALTER TABLE ONLY public.scooters
 --
 
 ALTER TABLE ONLY public.users
-    ADD CONSTRAINT user_head_fk FOREIGN KEY (head_for_user) REFERENCES public.users(id) ON DELETE SET DEFAULT;
+    ADD CONSTRAINT user_head_fk FOREIGN KEY (user_manager) REFERENCES public.users(id) ON DELETE SET DEFAULT;
 
 
 --

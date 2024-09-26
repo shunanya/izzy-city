@@ -19,25 +19,25 @@ public class RestControllerExceptionHandler extends ResponseEntityExceptionHandl
     public ResponseEntity<?> handleAllExceptions(Exception ex) {
         ApiResponse response;
         if (ex instanceof AuthorizationDeniedException) {
-            response = new ApiResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.FORBIDDEN, ex.getMessage());
         } else if (ex instanceof AuthenticationException) {
-            response = new ApiResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.FORBIDDEN, ex.getMessage());
         } else if (ex instanceof ResourceAccessException) {
-            response = new ApiResponse(HttpStatus.NOT_ACCEPTABLE.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.NOT_ACCEPTABLE, ex.getMessage());
         } else if (ex instanceof UnauthorizedException) {
-            response = new ApiResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
         } else if (ex instanceof ResourceNotFoundException) {
-            response = new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.NOT_FOUND, ex.getMessage());
         } else if (ex instanceof AccessDeniedException) {
-            response = new ApiResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.FORBIDDEN, ex.getMessage());
         } else if (ex instanceof BadRequestException) {
-            response = new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
         } else if (ex instanceof JsonProcessingException) {
-            response = new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
         } else if (ex instanceof NoHandlerFoundException) {
-            response = new ApiResponse(HttpStatus.NOT_FOUND.value(), "404 Error: Resource Not Found");
+            response = new ApiResponse(HttpStatus.NOT_FOUND, "404 Error: Resource Not Found");
         } else {
-            response = new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+            response = new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
         return new ResponseEntity<>(response, response.getHttpStatus());
     }
@@ -45,7 +45,7 @@ public class RestControllerExceptionHandler extends ResponseEntityExceptionHandl
     @ExceptionHandler(CustomException.class)
     @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ApiResponse> handleCustomException(CustomException ex) {
-        ApiResponse apiResponse = new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
     }
 /*
