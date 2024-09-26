@@ -95,7 +95,7 @@ public class CustomService {
 
     public boolean checkAllowability(@NonNull Order order) {
         Long createdUserId = order.getCreatedBy();
-        User user = userRepository.findById(createdUserId).orElseThrow(() -> new CustomException(500, "Error: Order with erroneous 'createdBy' field: " + createdUserId));
+        User user = userRepository.findById(createdUserId).orElseThrow(() -> new CustomException(500, "Order with erroneous 'createdBy' field: " + createdUserId));
         return checkAllowability(user);
     }
 

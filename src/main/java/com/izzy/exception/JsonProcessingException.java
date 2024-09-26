@@ -2,6 +2,6 @@ package com.izzy.exception;
 
 public class JsonProcessingException extends RuntimeException {
     public JsonProcessingException(String message) {
-        super(message);
+        super(String.format("Error: %s",message));
     }
 }

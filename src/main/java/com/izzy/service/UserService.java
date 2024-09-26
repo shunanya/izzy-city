@@ -99,13 +99,13 @@ public class UserService {
             if (userRepository.findById(aLong).isPresent()) user.setUserManager(aLong);
             else throw new IllegalArgumentException(String.format("Error: userManager with ID '%s' not found.", aLong));
         } else if (createUser){
-            throw new BadRequestException("Error: User Manager should be defined.");
+            throw new BadRequestException("User Manager should be defined.");
         }
         List<String> rawRole = userRequest.getRole();
         if (rawRole != null && !rawRole.isEmpty()) {
             List<Role> roles = rawRole.stream().map(roleService::getRoleByName).filter(Objects::nonNull).collect(Collectors.toList());
             if (roles.isEmpty()) {
-                throw new BadRequestException("Error: User roles are not being recognized.");
+                throw new BadRequestException("User roles are not being recognized.");
             }
             user.setRoles(roles);
         }

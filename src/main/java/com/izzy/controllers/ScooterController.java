@@ -122,7 +122,7 @@ public class ScooterController {
             if (updatedScooter != null) {
                 return ResponseEntity.ok(updatedScooter);
             }
-            throw new BadRequestException("Error: cannot update.");
+            throw new BadRequestException("cannot update.");
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

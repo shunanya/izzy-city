@@ -79,7 +79,7 @@ public class AdminService {
             rawRole.forEach(r -> roleRepository.findByName(r).ifPresent(roles::add));
             user.setRoles(roles);
             if (roles.isEmpty()) {
-                throw new BadRequestException("Error: User roles are not being recognized.");
+                throw new BadRequestException("User roles are not being recognized.");
             }
         }
         List<String> listRoles = List.of("Scout", "Charger");
@@ -94,10 +94,10 @@ public class AdminService {
                 else
                     throw new IllegalArgumentException(String.format("Error: Head-user with ID '%s' not found.", aLong));
             } else {
-                throw new BadRequestException("Error: Only Scout or Charger roles can have a user manager.");
+                throw new BadRequestException("Only Scout or Charger roles can have a user manager.");
             }
         } else if (isScoutOrCharger) {
-            throw new BadRequestException("Error: The user manager must be assigned for Scout or Charger roles.");
+            throw new BadRequestException("The user manager must be assigned for Scout or Charger roles.");
         }
         return userRepository.save(user);
     }
