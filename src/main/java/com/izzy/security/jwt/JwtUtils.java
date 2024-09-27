@@ -34,6 +34,9 @@ public class JwtUtils {
     @Value(value = "${izzy.app.jwtRefreshCookieName}")
     private String jwtRefreshCookie;
 
+    @Value(value = "${izzy.app.jwtRefreshExpirationMs}")
+    private Long jwtRefreshExpirationMs;
+
     /**
      * Create cookie that contain JWT access token
      *
@@ -115,7 +118,7 @@ public class JwtUtils {
     }
 
     private ResponseCookie generateCookie(String name, String value, String path) {
-        return ResponseCookie.from(name, value).path(path).maxAge(24 * 60 * 60).httpOnly(true).build();
+        return ResponseCookie.from(name, value).path(path).maxAge(jwtRefreshExpirationMs/1000L).httpOnly(true).sameSite("None").secure(true).build();
     }
 
     private String getCookieValueByName(HttpServletRequest request, String name) {

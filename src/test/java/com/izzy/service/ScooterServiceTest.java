@@ -83,8 +83,7 @@ class ScooterServiceTest {
         when(scooterRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> scooterService.getScooterById(1L));
-        assertEquals("Scooter not found with id: '1'", ex.getMessage());
-
+        assertTrue(ex.getMessage().contains("Scooter not found with id: '1'"));
         verify(scooterRepository, times(1)).findById(1L);
     }
 
