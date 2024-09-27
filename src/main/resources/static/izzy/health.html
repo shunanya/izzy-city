@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS API Request Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            background-color: yellow;
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: darkblue;
+        }
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background-color: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IZZY-city REST API is Coming Soon</h1>
+        <p>We're working hard to finish the development of this API.
+            The preliminary draft version is deployed onto AWS.
+        </p>
+        <p>To evaluate its health status, please enter your phone number and pressing 'Check Health' button.</p>
+        <form id="apiForm">
+            <input type="text" name="phoneNumber" placeholder="Phone number">
+            <button type="submit">Check Health</button>
+        </form>
+        <div class="response"></div>
+    </div>
+
+    <script>
+        document.getElementById('apiForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const params = Object.fromEntries(formData.entries());
+
+
+            // Check if required parameters are defined
+            if (!params.phoneNumber) {
+                showErrorMessage('Please fill your phone number.');
+                return;
+            }
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            if (!validatePhoneNumber(params.phoneNumber)) {
+                showErrorMessage('Please enter a valid phone number.');
+                return;
+            }
+
+            fetch('https://izzy-env.eba-5xbi8wcx.eu-central-1.elasticbeanstalk.com:8443/health', {
+                method: 'GET',
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseDiv = document.querySelector('.response');
+                responseDiv.innerHTML = `<p>Response:</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const responseDiv = document.querySelector('.response');
+                responseDiv.innerHTML = '<p>Error occurred. Please try again.</p>';
+            });
+        });
+
+        function showErrorMessage(message) {
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = message;
+            document.body.appendChild(errorMessage);
+
+            setTimeout(() => {
+                errorMessage.remove();
+            }, 3000); // Remove after 3 seconds
+        }
+
+        function validatePhoneNumber(phoneNumber) {
+            const regex = /^\+?\d{0,3}?[-.\s]?\(?\d{1,4}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
+            return regex.test(phoneNumber);
+        }
+    </script>
+</body>
+</html>
