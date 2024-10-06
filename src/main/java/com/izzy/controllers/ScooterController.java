@@ -31,15 +31,30 @@ public class ScooterController {
     }
 
     /**
-     * Retrieve all scooters
+     * Retrieve scooters by filtering
      *
+     * @param identifier   optional filtering parameter
+     * @param batteryLevel optional filtering parameter
+     * @param speedLimit   optional filtering parameter
+     * @param status       optional filtering parameter
+     * @param zoneName     optional filtering parameter
      * @return list of scooters
      * @throws AccessDeniedException if operation is not permitted for current user
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public List<Scooter> getAllScooters() {
-        return scooterService.getAllScooters();
+    public List<Scooter> getScooters(
+            @RequestParam(required = false) String identifier,
+            @RequestParam(required = false) String batteryLevel,
+            @RequestParam(required = false) String speedLimit,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String zoneName
+    ) {
+        try {
+            return scooterService.getScootersByFiltering(identifier, batteryLevel, speedLimit, status, zoneName);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
+        }
     }
 
     /**
@@ -53,28 +68,13 @@ public class ScooterController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public ResponseEntity<Scooter> getScooterById(@PathVariable Long id) {
-        Scooter scooter = scooterService.getScooterById(id);
-        if (scooter != null) {
-            return ResponseEntity.ok(scooter);
-        }
-        return ResponseEntity.notFound().build();
-    }
-
-    /**
-     * Retrieves a scooter by their ID.
-     *
-     * @param scooterName the identifier of the scooter to retrieve.
-     * @return a ResponseEntity containing the scooter.
-     * @throws ResourceNotFoundException if the scooter is not found.
-     * @throws AccessDeniedException     if operation is not permitted for current user
-     */
-    @GetMapping("/{scooterName}")
-    @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<Scooter> getScooterByName(@PathVariable String scooterName) {
-        try{
-            Scooter scooter = scooterService.getScooterByIdentifier(scooterName);
-            return ResponseEntity.ok(scooter);
-        } catch (Exception ex){
+        try {
+            Scooter scooter = scooterService.getScooterById(id);
+            if (scooter != null) {
+                return ResponseEntity.ok(scooter);
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }

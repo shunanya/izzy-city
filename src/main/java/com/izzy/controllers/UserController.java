@@ -8,6 +8,7 @@ import com.izzy.model.User;
 import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.MessageResponse;
 import com.izzy.security.utils.Utils;
+import com.izzy.service.RoleService;
 import com.izzy.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -42,14 +43,16 @@ public class UserController {
     /**
      * Retrieves a list of users with filtering.
      *
-     * @param viewType    optional parameter that defined a presenting style for user data ("simple","short","detailed")
+     * @param viewType    optional parameter to get 'simple', 'short' and 'detailed' user data view (default is 'simple')
      * @param firstName   optional filtering parameter
      * @param lastName    optional filtering parameter
      * @param phoneNumber optional filtering parameter
      * @param gender      optional filtering parameter
-     * @param zone        optional filtering parameter
+     * @param dateOfBirth optional filtering parameter
      * @param shift       optional filtering parameter
-     * @param roles       optional filtering parameter
+     * @param createdAt   optional filtering parameter
+     * @param zoneName    optional filtering parameter
+     * @param roles       optional filtering parameter (for detail see {@link  RoleService#getRolesFromParam getRolesFromParam} method definitions
      * @return list of users.
      */
     @GetMapping
@@ -60,11 +63,13 @@ public class UserController {
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) String gender,
-            @RequestParam(required = false) String zone,
+            @RequestParam(required = false) String dateOfBirth,
             @RequestParam(required = false) String shift,
+            @RequestParam(required = false) String createdAt,
+            @RequestParam(required = false) String zoneName,
             @RequestParam(required = false) String roles) {
         try {
-            return userService.getUsers(viewType, firstName, lastName, phoneNumber, gender, shift, zone, roles);
+            return userService.getUsers(viewType, firstName, lastName, phoneNumber, gender, dateOfBirth, shift, createdAt, zoneName, roles);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
