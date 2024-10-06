@@ -116,9 +116,10 @@ public class UserService {
      * Converts User structure to UserInfo
      *
      * @param user user entity {@link User}
+     * @param shortView declare view the user data in one of 'simple', 'short', 'detailed' style
      * @return UserInfo structured data {@link UserInfo}
      */
-    public UserInfo connvertUserToUserInfo(@NonNull User user, boolean shortView) {
+    public UserInfo connvertUserToUserInfo(@NonNull User user, Boolean shortView) {
         User headOfUser = (user.getUserManager() == null) ? null : userRepository.findById(user.getUserManager()).orElse(null);
         return new UserInfo(user, headOfUser, shortView);
     }
@@ -131,23 +132,28 @@ public class UserService {
      * @param lastName    optional filtering parameter
      * @param phoneNumber optional filtering parameter
      * @param gender      optional filtering parameter
+     * @param dateOfBirth optional filtering parameter
      * @param shift       optional filtering parameter
-     * @param zone        optional filtering parameter
+     * @param createdAt   optional filtering parameter
+     * @param zoneName    optional filtering parameter
      * @param roles       optional filtering parameter (for detail see {@link  RoleService#getRolesFromParam getRolesFromParam} method definitions
      * @return list of users
      */
     public List<?> getUsers(
-            String viewType,
-            String firstName,
-            String lastName,
-            String phoneNumber,
-            String gender,
-            String shift,
-            String zone,
-            String roles) {
+            @Nullable String viewType,
+            @Nullable String firstName,
+            @Nullable String lastName,
+            @Nullable String phoneNumber,
+            @Nullable String gender,
+            @Nullable String dateOfBirth,
+            @Nullable String shift,
+            @Nullable String createdAt,
+            @Nullable String zoneName,
+            @Nullable String roles) {
         List<User> users;
         Set<String> availableRoles = customService.getCurrenUserAvailableRoles();
-        if (firstName == null && lastName == null && phoneNumber == null && gender == null && zone == null && shift == null && roles == null) {
+        if (firstName == null && lastName == null && phoneNumber == null && gender == null && dateOfBirth == null
+                && shift == null && createdAt == null && zoneName == null && roles == null) {
             users = userRepository.findAll();
         } else {
             // Detect current user available roles and combine the specified role filters with the current user's available roles.
@@ -155,14 +161,21 @@ public class UserService {
                 availableRoles = roleService.combineRoles(roleService.getRolesFromParam(roles), availableRoles);
 //                users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, zone, shift, availableRoles);
             }
-            users = userRepository.findUsersByFilters(firstName, lastName, phoneNumber, gender, shift);
+            List<LocalDate> dob = Utils.parseDateRangeToPairOfLocalDate(dateOfBirth);
+            List<Timestamp> cat = Utils.parseDateRangeToPairOfTimestamps(createdAt);
+            users = userRepository.findUsersByFiltering(firstName, lastName, phoneNumber, gender,
+                    dob.get(0), dob.get(1),
+                    shift,
+                    cat.get(0), cat.get(1),
+                    zoneName);
         }
         List<User> usersList = new ArrayList<>();
         for (User u : users) {
-            if (availableRoles.containsAll(u.getRolesName()) && (zone == null || (u.getZone() != null && zone.equalsIgnoreCase(u.getZone().getName())))) {
+            if (availableRoles.containsAll(u.getRolesName())/* && (zone == null || (u.getZone() != null && zone.equalsIgnoreCase(u.getZone().getName())))*/) {
                 usersList.add(u);
             }
         }
+        if (viewType == null || viewType.isBlank()) {viewType = "simple";}
         switch (viewType) {
             case "simple" -> {
                 return usersList;

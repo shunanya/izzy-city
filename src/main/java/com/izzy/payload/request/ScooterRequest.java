@@ -13,7 +13,7 @@ public class ScooterRequest {
     @Min(0) // Ensures the batteryLevel is at least 0
     @Max(100) // Ensures the batteryLevel does not exceed 100
     private Integer batteryLevel;
-    private String zone;
+    private String zoneName;
     @Min(10) // Ensures the speedLimit is at least 10
     @Max(100) // Ensures the speedLimit does not exceed 100
     private Integer speedLimit;
@@ -42,12 +42,12 @@ public class ScooterRequest {
         this.batteryLevel = batteryLevel;
     }
 
-    public String getZone() {
-        return zone;
+    public String getZoneName() {
+        return zoneName;
     }
 
-    public void setZone(String zone) {
-        this.zone = zone;
+    public void setZoneName(String zoneName) {
+        this.zoneName = zoneName;
     }
 
     public Integer getSpeedLimit() {
