@@ -42,7 +42,7 @@ public class SecurityConfig {
     public RoleHierarchy roleHierarchy() {
         return RoleHierarchyImpl.fromHierarchy("ROLE_Admin > ROLE_Manager > ROLE_Supervisor > ROLE_Charger > ROLE_Scout");
     }
-
+//TODO remove in production
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
