@@ -80,7 +80,9 @@
         <p>We're working hard to finish the development of this API.
             The preliminary draft version is deployed onto AWS.
         </p>
-        <p>To evaluate its health status, please enter your phone number and pressing 'Check Health' button.</p>
+        <p>To evaluate its health status, please enter your phone number and pressing 'Check Health' button.
+            This will send request to the API and shows respond.
+        </p>
         <form id="apiForm">
             <input type="text" name="phoneNumber" placeholder="Phone number">
             <button type="submit">Check Health</button>
@@ -97,12 +99,7 @@
 
 
             // Check if required parameters are defined
-            if (!params.phoneNumber) {
-                showErrorMessage('Please fill your phone number.');
-                return;
-            }
-            const phoneNumberInput = document.getElementById('phoneNumber');
-            if (!validatePhoneNumber(params.phoneNumber)) {
+            if (!params.phoneNumber || !validatePhoneNumber(params.phoneNumber)) {
                 showErrorMessage('Please enter a valid phone number.');
                 return;
             }
