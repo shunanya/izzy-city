@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
 
 import java.security.Key;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 
@@ -116,9 +117,15 @@ public class JwtUtils {
     public ResponseCookie getCleanJwtRefreshCookie() {
         return ResponseCookie.from(jwtRefreshCookie, null).path("/izzy/auth/refresh").maxAge(0).build();
     }
-
+//TODO replace to 'sameSite("Lax") in production
     private ResponseCookie generateCookie(String name, String value, String path) {
-        return ResponseCookie.from(name, value).path(path).maxAge(jwtRefreshExpirationMs/1000L).httpOnly(true).sameSite("None").secure(true).build();
+        return ResponseCookie.from(name, value)
+                .path(path)
+                .maxAge(Duration.ofMillis(jwtRefreshExpirationMs).toSeconds())
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
+                .build();
     }
 
     private String getCookieValueByName(HttpServletRequest request, String name) {
