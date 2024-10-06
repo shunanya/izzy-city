@@ -19,7 +19,11 @@ public class Zone {
         this.name = name;
     }
 
-    // getters and setters
+    public Zone(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+// getters and setters
 
     public Long getId() {
         return id;

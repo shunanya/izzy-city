@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,44 +34,36 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-    @Basic
     @Column(name = "first_name")
     private String firstName;
-    @Basic
     @Column(name = "last_name")
     private String lastName;
-    @Basic
     @Column(name = "password", length = 100)
     @JsonIgnore
     private String password;
-    @Basic
     @Column(name = "phone_number", nullable = false, length = 100, unique = true)
     private String phoneNumber;
-    @Basic
     @Column(name = "gender", length = 100)
     private String gender;
+    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "zone", referencedColumnName = "id")
     private Zone zone;
-    @Basic
     @Column(name = "shift", length = 100)
     private String shift;
-    @Basic
     @Column(name = "created_by", nullable = false)
     private Long createdBy;
-    @Basic
     @Column(name = "created_at", nullable = false)
-    private Timestamp createdAt;
-    @Basic
+    private Timestamp createdAt = Timestamp.from(Instant.now());
     @Column(name = "user_manager")
     private Long userManager;
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    @JsonIgnore
     private List<Role> roles;
     @Transient
     private List<String> rolesName;
@@ -79,9 +72,17 @@ public class User implements Serializable {
     }
 
     public User(Long id, String firstName, String phoneNumber) {
+        this(id, firstName, phoneNumber, null, null, null, null);
+    }
+
+    public User(Long id, String firstName, String phoneNumber, String gender, Zone zone, String shift, List<Role> roles) {
         this.id = id;
         this.firstName = firstName;
         this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.zone = zone;
+        this.shift = shift;
+        this.roles = roles;
     }
 
     @PostLoad

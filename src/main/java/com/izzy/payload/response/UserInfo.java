@@ -43,8 +43,8 @@ public class UserInfo implements Serializable {
     private List<String> roles;
 
     public UserInfo(){}
-    public UserInfo(@NonNull User user, @Nullable User userManager, boolean shortInfo) {
-        if (!shortInfo) {
+    public UserInfo(@NonNull User user, @Nullable User userManager, Boolean shortInfo) {
+        if (shortInfo != null && !shortInfo) {
             this.lastName = user.getLastName();
             this.gender = user.getGender();
             this.dateOfBirth = user.getDateOfBirth();

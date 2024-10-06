@@ -26,7 +26,16 @@ public class Scooter {
     public Scooter() {
     }
 
-    // getters and setters
+    public Scooter(Long id, String identifier, String status, Integer batteryLevel, Integer speedLimit, Zone zone) {
+        this.id = id;
+        this.identifier = identifier;
+        this.status = status;
+        this.batteryLevel = batteryLevel;
+        this.speedLimit = speedLimit;
+        this.zone = zone;
+    }
+
+// getters and setters
 /*
     public List<Task> getTasks() {
         return tasks;
