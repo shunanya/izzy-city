@@ -102,7 +102,7 @@ public class CustomService {
     /**
      * Retrieve all roles for currently signed-in user
      *
-     * @return the list of roles
+     * @return the Set of roles
      */
     public Set<Role> getCurrenUserRoles() {
         Set<String> auths = new HashSet<>();
@@ -154,7 +154,7 @@ public class CustomService {
     /**
      * Retrieve the user roles that the signed-in user can manage.
      *
-     * @return the list of roles name
+     * @return the Set of roles name
      */
     public Set<String> getCurrenUserAvailableRoles() {
         // Detect current user available roles

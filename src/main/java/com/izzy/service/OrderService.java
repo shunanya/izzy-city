@@ -9,7 +9,6 @@ import com.izzy.model.TaskDTO;
 import com.izzy.model.User;
 import com.izzy.payload.request.OrderRequest;
 import com.izzy.repository.OrderRepository;
-import com.izzy.repository.ScooterRepository;
 import com.izzy.repository.TaskRepository;
 import com.izzy.repository.UserRepository;
 import com.izzy.security.custom.service.CustomService;

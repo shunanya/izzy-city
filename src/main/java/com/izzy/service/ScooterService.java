@@ -3,6 +3,7 @@ package com.izzy.service;
 import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.model.Scooter;
 import com.izzy.model.Zone;
+import com.izzy.exception.BadRequestException;
 import com.izzy.payload.request.ScooterRequest;
 import com.izzy.repository.ScooterRepository;
 import com.izzy.repository.ZoneRepository;
@@ -99,6 +100,7 @@ public class ScooterService {
 
         String tmp = scooterRequest.getIdentifier();
         if (tmp != null && !tmp.isBlank()) scooter.setIdentifier(tmp);
+        else if (creation) throw new BadRequestException("Error: Scooter identifier should be defined");
         tmp = scooterRequest.getStatus();
         if (tmp != null && !tmp.isBlank()) {
             if (ScooterRequest.Status.checkByValue(tmp)) scooter.setStatus(tmp);

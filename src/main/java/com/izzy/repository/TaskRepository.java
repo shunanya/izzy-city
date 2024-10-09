@@ -75,4 +75,12 @@ public interface TaskRepository extends JpaRepository<Task, TaskId> {
     @Query("SELECT t.priority FROM Task t WHERE t.id.orderId = :orderId AND t.id.scooterId = :scooterId")
     Integer getPriorityByOrderIdAndScooterId(@Param("orderId") Long orderId, @Param("scooterId") Long scooterId);
 
+    @Query("SELECT t FROM Task t " +
+            "WHERE " +
+            "(:orderId IS NULL OR t.id.orderId = :orderId) AND " +
+            "(:scooterId IS NULL OR t.id.scooterId = :scooterId) AND " +
+            "(:minPriority IS NULL OR t.priority >= :minPriority) AND " +
+            "(:maxPriority IS NULL OR t.priority <= :maxPriority)")
+    List<Task> findTasksByFiltering(@Param("orderId") @Nullable Long orderId, @Param("scooterId") @Nullable Long scooterId,
+                                    @Param("minPriority") @Nullable Integer minPriority, @Param("maxPriority") @Nullable Integer maxPriority);
 }

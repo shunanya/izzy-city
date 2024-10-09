@@ -35,24 +35,24 @@ public class TaskController {
     /**
      * Retrieve all tasks included into order
      *
-     * @param orderId owner-order id of the tasks
-     * @param viewType optional parameter to get 'simple', 'short' and 'detailed' task data view (default is 'simple')
-     * @return list of tasks
+     * @param viewType   optional parameter to get 'simple'(aka origin), 'short' and 'detailed' task data view (default is 'simple')
+     * @param orderId    optional owner-order id of the tasks
+     * @param scooterId  optional scooter ID associated with the task
+     * @param priorities optional priorities of task (concrete data or range of data)
+     * @param status     optional status of task to be retrieving
+     * @return list of filtered tasks
      * @throws ResourceNotFoundException if the order is not found.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
-    @GetMapping("/{orderId}")
+    @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public List<?> getTasksByOrderId(@PathVariable Long orderId,
-                                     @RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
+    public List<?> getTasks(@RequestParam(name = "view", required = false, defaultValue = "simple") String viewType,
+                            @RequestParam(required = false) Long orderId,
+                            @RequestParam(required = false) Long scooterId,
+                            @RequestParam(required = false) String priorities,
+                            @RequestParam(required = false) String status) {
         try {
-            switch (viewType){
-                case "simple" -> {return taskService.getTasksByOrderId(orderId);}
-                case "short" -> {return taskService.getShortTaskInfosByOrderId(orderId);}
-                case "detailed" -> {return taskService.getDetailedTaskInfosByOrderId(orderId);}
-                default -> throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
-            }
-
+            return taskService.getTasksByFiltering(viewType, orderId, scooterId, priorities, status);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -63,17 +63,24 @@ public class TaskController {
      *
      * @param viewType optional parameter to get 'simple', 'short' and 'detailed' task data view (default is 'simple')
      * @return list of tasks
-     * @throws AccessDeniedException     if operation is not permitted for current user
+     * @throws AccessDeniedException if operation is not permitted for current user
      */
     @GetMapping("/assigned")
     @PreAuthorize("hasAnyRole('Charger','Scout')")
     public List<?> getTasksAssignedMe(@RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
         try {
-            switch (viewType){
-                case "simple" -> {return taskService.getTasksAssignedMe();}
-                case "short" -> {return taskService.getShortTaskInfosAssignedMe();}
-                case "detailed" -> {return taskService.getDetailedTaskInfosAssignedMe();}
-                default -> throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
+            switch (viewType) {
+                case "simple" -> {
+                    return taskService.getTasksAssignedMe();
+                }
+                case "short" -> {
+                    return taskService.getShortTaskInfosAssignedMe();
+                }
+                case "detailed" -> {
+                    return taskService.getDetailedTaskInfosAssignedMe();
+                }
+                default ->
+                        throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
             }
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
@@ -83,7 +90,7 @@ public class TaskController {
     /**
      * Retrieve all tasks assigned to user
      *
-     * @param userId user ID who assigned any task
+     * @param userId   user ID who assigned any task
      * @param viewType optional parameter to get 'simple', 'short' and 'detailed' task data view (default is 'simple')
      * @return list of tasks
      * @throws ResourceNotFoundException if the user is not found.
@@ -92,13 +99,20 @@ public class TaskController {
     @GetMapping("/assigned/{userId}")
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
     public List<?> getTasksByAssigned(@PathVariable Long userId,
-                                         @RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
+                                      @RequestParam(name = "view", required = false, defaultValue = "simple") String viewType) {
         try {
-            switch (viewType){
-                case "simple" -> {return taskService.getTasksByAssigned(userId);}
-                case "short" -> {return taskService.getShortTaskInfosByAssigned(userId);}
-                case "detailed" -> {return taskService.getDetailedTaskInfosByAssigned(userId);}
-                default -> throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
+            switch (viewType) {
+                case "simple" -> {
+                    return taskService.getTasksByAssigned(userId);
+                }
+                case "short" -> {
+                    return taskService.getShortTaskInfosByAssigned(userId);
+                }
+                case "detailed" -> {
+                    return taskService.getDetailedTaskInfosByAssigned(userId);
+                }
+                default ->
+                        throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
             }
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
@@ -108,7 +122,7 @@ public class TaskController {
     /**
      * Append a new task to the existing tasks
      *
-     * @param orderId owner-order id of the tasks
+     * @param orderId           owner-order id of the tasks
      * @param taskRequestString task details to be appended
      * @return updated list of tasks
      * @throws ResourceNotFoundException if the order is not found.
@@ -129,7 +143,7 @@ public class TaskController {
     /**
      * Remove task from existing order tasks
      *
-     * @param orderId owner-order id of the tasks
+     * @param orderId           owner-order id of the tasks
      * @param taskRequestString task details to be removed
      * @return nothing
      * @throws ResourceNotFoundException if the order is not found.
@@ -143,7 +157,7 @@ public class TaskController {
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
             taskService.removeTask(orderId, taskDTO);
-            return ResponseEntity.ok( new ApiResponse(HttpStatus.OK, String.format("Task deleted {orderId: %s, scooterId: %s}", orderId, taskDTO.getScooterId())));
+            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task deleted {orderId: %s, scooterId: %s}", orderId, taskDTO.getScooterId())));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -152,7 +166,7 @@ public class TaskController {
     /**
      * Change status of task to completed
      *
-     * @param orderId owner-order id of the tasks
+     * @param orderId           owner-order id of the tasks
      * @param taskRequestString task details to be updated
      * @return ResponseEntity containing a success message
      * @throws ResourceNotFoundException if the order is not found.
@@ -165,9 +179,9 @@ public class TaskController {
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
             List<Task> tasks = taskService.markTaskAsCompleted(orderId, taskDTO);
-            return tasks.isEmpty()?
-                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")):
-                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK, String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
+            return tasks.isEmpty() ?
+                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")) :
+                    ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -176,7 +190,7 @@ public class TaskController {
     /**
      * Change status of task to canceled
      *
-     * @param orderId owner-order id of the tasks
+     * @param orderId           owner-order id of the tasks
      * @param taskRequestString task details to be updated
      * @return ResponseEntity containing a success message
      * @throws ResourceNotFoundException if the order is not found.
@@ -189,9 +203,9 @@ public class TaskController {
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
             List<Task> tasks = taskService.markTaskAsCanceled(orderId, taskDTO);
-            return tasks.isEmpty()?
-                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")):
-                    ResponseEntity.ok( new ApiResponse(HttpStatus.OK, String.format("Task '%s' marked as canceled.", taskRequestString.replaceAll("\\s", ""))));
+            return tasks.isEmpty() ?
+                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")) :
+                    ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task '%s' marked as canceled.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

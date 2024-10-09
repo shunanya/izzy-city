@@ -116,7 +116,7 @@ public class Notification {
             return Arrays.stream(values()).filter(m -> m.getValue().equals(value)).findFirst().orElse(UNDEFINED);
         }
 
-        public static String actionByValue(String value) {
+        public static String stringActionByValue(String value) {
             return Arrays.stream(values()).filter(m -> m.getValue().equals(value)).findFirst().map(Action::getValue).orElse("UNDEFINED");
         }
 

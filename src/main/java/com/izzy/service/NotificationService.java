@@ -3,6 +3,7 @@ package com.izzy.service;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
+import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Notification;
 import com.izzy.model.Order;
 import com.izzy.model.Task;
@@ -40,26 +41,38 @@ public class NotificationService {
      * Retrieve notifications for the signed-in user (manger or executor).
      *
      * @param taskStatus optional parameter specifying which notifications with the given status should be returned.
+     *                   <p>
      *                   Allowed statuses are: {@code completed}, {@code canceled} or {@code active}.
      *                   If this parameter is not defined, the complete existing list of notifications
      *                   for the current user will be returned. ({@code NULL})
+     *                   </p>
+     * @param userAction optional parameter specifying manager action
+     *                   <p>
+     *                   Allowed action are {@code approved} and {@code rejected}
+     *                   </p>
      * @return List of notifications
-     * @throws BadRequestException when specified status is not recognized
+     * @throws UnrecognizedPropertyException when specified status or action is not recognized
      */
     public List<Notification> getNotificationsForCurrentUser(@Nullable String userAction, @Nullable String taskStatus) {
-        if (taskStatus != null) {
-            if (Task.Status.getStatusByString(taskStatus) == null) {
-                throw new BadRequestException(String.format("Unknown specified status: %s", taskStatus));
-            }
-
-            Integer priority = Task.Status.getStatusByString(taskStatus).getValue();
-            return notificationRepository.findNotificationsByFilters(customService.currentUserId(), userAction, priority);
+        if (taskStatus == null && userAction == null) {
+            return notificationRepository.findAllByUserId(customService.currentUserId());
         }
-        return notificationRepository.findAllByUserId(customService.currentUserId());
+        Integer priority = null;
+        if (taskStatus != null && !taskStatus.isBlank()) {
+            Task.Status status = Task.Status.getStatusByString(taskStatus);
+            if (status == null) {
+                throw new UnrecognizedPropertyException("Task status", taskStatus);
+            }
+            priority = status.getValue();
+        }
+        if (userAction != null && Notification.Action.UNDEFINED == Notification.Action.getActionByValue(userAction)) {
+            throw new UnrecognizedPropertyException("Manager action", userAction);
+        }
+        return notificationRepository.findNotificationsByFilters(customService.currentUserId(), userAction, priority);
     }
 
     /**
-     * Retriev notification by id
+     * Retrieve notification by id
      *
      * @param id the notification id
      * @return {@link Notification}

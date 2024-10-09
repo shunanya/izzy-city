@@ -43,6 +43,49 @@ public class TaskService {
     }
 
     /**
+     * Retrieve tasks by filtering
+     *
+     * @param viewType   optional parameter to get 'simple'(aka origin), 'short' or 'detailed' task data view (default is 'simple')
+     * @param orderId    optional order Id which is owner of task
+     * @param scooterId  optional scooter ID associated with the task
+     * @param priorities optional priorities of task (concrete data or range of data)
+     * @param status     optional status of task
+     * <p>
+     *   {@code status} is alternative for {@code priorities} so that one of them should be defined only.
+     * </p>
+     * @return List of filtered tasks
+     */
+    public List<?> getTasksByFiltering(String viewType,
+                                       Long orderId,
+                                       Long scooterId,
+                                       String priorities,
+                                       String status) {
+        List<Integer> priorityRange = new ArrayList<>(2);
+        if (status != null && !status.isBlank()) {
+            Task.Status st = Task.Status.getStatusByString(status);
+            if (st == null) throw new UnrecognizedPropertyException("status", status);
+            else if (st == Task.Status.ACTIVE) {
+                priorityRange.add(0, 1);
+                priorityRange.add(1, 100);
+            } else {
+                Integer priority = st.getValue();
+                priorityRange.add(priority);
+                priorityRange.add(priority);
+            }
+        } else {
+            priorityRange = Utils.parseDataRangeToPairOfInteger(priorities, -1, 100);
+        }
+        List<Task> tasks = taskRepository.findTasksByFiltering(orderId, scooterId, priorityRange.get(0), priorityRange.get(1));
+        return switch (viewType == null ? "simple" : viewType) {
+            case "short" ->
+                    tasks.stream().map(task -> new TaskInfo(getOrderByOrderId(task.getOrderId()), getScooterByScooterId(task.getScooterId()), task, true)).collect(Collectors.toList());
+            case "detailed" ->
+                    tasks.stream().map(task -> new TaskInfo(getOrderByOrderId(task.getOrderId()), getScooterByScooterId(task.getScooterId()), task, false)).collect(Collectors.toList());
+            default -> tasks;
+        };
+    }
+
+    /**
      * Appending a new task to the existing tasks
      *
      * @param orderId existing order id that contains tasks to be updated.
@@ -117,7 +160,8 @@ public class TaskService {
         if (task.getOrderId() != null && !task.getOrderId().equals(orderId))
             throw new BadRequestException("The provided task and order are mismatched.");
         Long userManager = customService.currentUserHeadId();
-        if (userManager == null) throw new AccessDeniedException("Only Executors having Scout or Charger roles can mark task.");
+        if (userManager == null)
+            throw new AccessDeniedException("Only Executors having Scout or Charger roles can mark task.");
         // get existing order
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         List<Task> tasks = order.getTasks();
@@ -130,10 +174,10 @@ public class TaskService {
                     switch (status) {
                         case COMPLETED -> {
                             t.setCompleted();
-                            t.setComment(task.getComment() == null || task.getComment().isBlank()?"Task is completed": task.getComment());
+                            t.setComment(task.getComment() == null || task.getComment().isBlank() ? "Task is completed" : task.getComment());
                         }
                         case CANCELED -> {
-                            if (task.getComment() == null || task.getComment().isBlank()){
+                            if (task.getComment() == null || task.getComment().isBlank()) {
                                 throw new BadRequestException("Comments should be given when a task is canceled.");
                             }
                             t.setCanceled();
@@ -229,7 +273,7 @@ public class TaskService {
         return getTaskInfosByOrder(getOrderByOrderId(orderId), false);
     }
 
-    public List<TaskInfo> getTaskInfosByOrder(Order order, boolean shortInfo) {
+    public List<TaskInfo> getTaskInfosByOrder(Order order, Boolean shortInfo) {
         List<Task> tasks = order.getTasks();
         return tasks.stream().map(task -> new TaskInfo(order, getScooterByScooterId(task.getScooterId()), task, shortInfo)).collect(Collectors.toList());
     }

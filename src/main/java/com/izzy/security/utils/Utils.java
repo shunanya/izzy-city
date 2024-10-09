@@ -1,5 +1,6 @@
 package com.izzy.security.utils;
 
+import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Task;
 import com.izzy.model.TaskDTO;
 import org.springframework.lang.NonNull;
@@ -43,16 +44,16 @@ public class Utils {
         if (range == null || range.isBlank()) {
             return new ArrayList<>(Collections.nCopies(2, null));
         }
-        return parseDataRangeToPairOfInteger(range, 0, 100);
+        return parseDataRangeToPairOfInteger(range, 1, 100);
     }
 
     /**
-     * Parse string range of Data (Integer) to the list of 2 Integers
+     * Parse string range of Data (positive Integer) to the list of 2 Integers
      *
      * @param range the string representing data range
-     *              <p>For example: '10..50'</p>
+     *              <p>For example: {@code '10..50'}</p>
      *              <p>
-     *              the range can have the following view (if min=0, max=100)
+     *              The range can have the following view (on min=0, max=100)
      *                           <ul>
      *                           <li>'2..3' normal range converts to [2,3]
      *                           <li>'3'    single number converts to [3,3]
@@ -68,6 +69,11 @@ public class Utils {
      *                           <li>'>'
      *                           <li>'..'
      *                           </ui>
+     *              </p>
+     *              <p>
+     *              Note: negative data cannot be defined in the data range due to the presence of the {@code '-'} separator.
+     *              If defining a range like {@code "-5..30"} is necessary, it can be simplified to {@code "..30"}.
+     *              This serves as an alternative solution, though not the absolute one.
      *              </p>
      * @param min   the default minimum number value
      * @param max   the default maximal number value
@@ -86,6 +92,9 @@ public class Utils {
         String test = range.trim();
         // Split the range by separator and compose Integers list.
         List<Integer> parts = Arrays.stream(test.split(regex)).map(p -> p.isBlank() ? min : Integer.parseInt(p.replaceAll("\\D", ""))).sorted().toList();
+        if (parts.size() > 2) { // data range can consist of a maximum of two positive integers
+            throw new UnrecognizedPropertyException("Wrong data range format", range);
+        }
         String sep = findSeparator(test, regex);
         // Handle different cases
         switch (parts.size()) {

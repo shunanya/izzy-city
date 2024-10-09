@@ -3,7 +3,6 @@ package com.izzy.service;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
-import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
@@ -175,19 +174,11 @@ public class UserService {
                 usersList.add(u);
             }
         }
-        if (viewType == null || viewType.isBlank()) {viewType = "simple";}
-        switch (viewType) {
-            case "simple" -> {
-                return usersList;
-            }
-            case "short" -> {
-                return usersList.stream().map(user -> connvertUserToUserInfo(user, true)).collect(Collectors.toList());
-            }
-            case "detailed" -> {
-                return usersList.stream().map(user -> connvertUserToUserInfo(user, false)).collect(Collectors.toList());
-            }
-            default -> throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
-        }
+        return switch (viewType==null?"simple":viewType) {
+            case "short" -> usersList.stream().map(user -> connvertUserToUserInfo(user, true)).collect(Collectors.toList());
+            case "detailed" -> usersList.stream().map(user -> connvertUserToUserInfo(user, false)).collect(Collectors.toList());
+            default -> usersList;
+        };
     }
 
     /**

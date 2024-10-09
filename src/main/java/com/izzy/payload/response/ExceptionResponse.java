@@ -2,7 +2,6 @@ package com.izzy.payload.response;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
