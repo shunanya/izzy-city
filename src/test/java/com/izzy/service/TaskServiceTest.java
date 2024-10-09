@@ -11,6 +11,7 @@ import com.izzy.security.custom.service.CustomService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
+@Transactional
 public class TaskServiceTest {
 
     private TaskService taskService;
@@ -40,6 +42,37 @@ public class TaskServiceTest {
         customService = mock(CustomService.class);
         notificationRepository = mock(NotificationRepository.class);
         taskService = new TaskService(customService, orderRepository, scooterRepository, taskRepository, notificationRepository);
+    }
+
+    @Test
+    public void test_getTasksByFiltering_with_valid_filtering_parameters() {
+
+        Long orderId = 1L;
+        Long scooterId = 1L;
+        String status = "Completed";
+        Task task = new Task(orderId, scooterId, 30);
+        task.setStatus(status);
+
+        Order order = new Order();
+        order.setId(orderId);
+        order.setCreatedBy(3L);
+
+        Scooter scooter = new Scooter();
+        scooter.setId(scooterId);
+
+        when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
+        when(scooterRepository.findById(anyLong())).thenReturn(Optional.of(scooter));
+        when(taskRepository.findTasksByFiltering(anyLong(), anyLong(), any(), any())).thenReturn(List.of(task));
+
+        List<?> tasks = taskService.getTasksByFiltering(null, orderId, scooterId, null, status);
+
+        assertNotNull(tasks, "tasks is null");
+        assertEquals(1, tasks.size(), "tasks size is incorrect");
+
+        tasks = taskService.getTasksByFiltering(null, orderId, scooterId, "..20", null);
+
+        assertNotNull(tasks, "tasks is null");
+        assertEquals(1, tasks.size(), "tasks size is incorrect");
     }
 
     // Append a valid task to an existing order

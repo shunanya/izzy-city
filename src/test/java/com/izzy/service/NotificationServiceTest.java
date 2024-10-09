@@ -109,10 +109,15 @@ public class NotificationServiceTest {
         NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService/*, scooterRepository*/);
 
         when(customService.currentUserId()).thenReturn(testUser.getId());
-        when(notificationRepository.findNotificationsByFilters(anyLong(), anyString(), anyInt())).thenReturn(notifications);
+        when(notificationRepository.findNotificationsByFilters(anyLong(), anyString(), any())).thenReturn(notifications);
         when(notificationRepository.findAllByUserId(anyLong())).thenReturn(notifications);
 
         List<?> actualNotifications = notificationService.getNotificationsForCurrentUser(null, null);
+
+        assertNotNull(actualNotifications);
+        assertEquals(2, actualNotifications.size());
+
+        actualNotifications = notificationService.getNotificationsForCurrentUser("approved", "completed");
 
         assertNotNull(actualNotifications);
         assertEquals(2, actualNotifications.size());

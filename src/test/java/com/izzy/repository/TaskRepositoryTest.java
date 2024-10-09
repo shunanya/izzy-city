@@ -159,4 +159,10 @@ class TaskRepositoryTest {
         assertNull(task1);
     }
 
+    @Test
+    public void testTaskByFiltering() {
+        List<Task> tasks = taskRepository.findTasksByFiltering(orderId, scooterId1, -1, null);
+        assertNotNull(tasks, "Cannot be null");
+        assertFalse(tasks.isEmpty(), "Cannot be empty");
+    }
 }
