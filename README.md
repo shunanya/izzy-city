@@ -1,6 +1,7 @@
 ## Izzy-city project ##
 
 This project representing Rest API implemented by using Spring Boot.
+It.s intended to managing (_rent, move. charge, etc._) of scooters in city.
 
 The Project Development Environment is the following:
 
