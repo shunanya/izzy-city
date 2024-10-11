@@ -85,7 +85,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(RegexRequestMatcher
-                                .regexMatcher("/izzy/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)")).permitAll()
+                                .regexMatcher("(/izzy)?/[\\S]+\\.(html|css|js|ico|jpg|png|gif|mp4)")).permitAll() // TODO thinking
                                 .requestMatchers("/health").permitAll()
                                 .requestMatchers("/izzy/admin").hasRole("Admin")
                                 .requestMatchers("/izzy/auth/**").permitAll()
