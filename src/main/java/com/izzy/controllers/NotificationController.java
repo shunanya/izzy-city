@@ -53,7 +53,7 @@ public class NotificationController {
     }
 
     /**
-     * Update notification
+     * Update notification by adding user-manager reaction
      *
      * @param notificationId the id for updated notification
      * @param userAction     Available values are one of {@code "rejected"} or {@code "approved"}
@@ -74,7 +74,7 @@ public class NotificationController {
      * <p>Ths request marks Notification As Read and does the following actions
      * <ul>
      *     <li>remove Task and Notification if manager approved executor action
-     *     <li>reassign Task to executor and remove Notification if manager canceled executor action
+     *     <li>reassign Task to executor and remove Notification if manager rejected executor action
      * </ul>
      * </p>
      *

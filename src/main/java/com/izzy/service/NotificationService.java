@@ -107,14 +107,14 @@ public class NotificationService {
     }
 
     /**
-     * Update Notification by provided user action
+     * Update Notification by provided user-manager action
      *
      * @param notificationId the id for notification that has to be updated
      * @param userAction     Available values are one of {@code "rejected"} or {@code "approved"}
      * @return updated {@link Notification}
      */
     @Transactional
-    public Notification updateNotification(@NonNull Long notificationId, @NonNull String userAction) {
+    public Notification updateNotification(@NonNull Long notificationId, String userAction) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification", "id", notificationId));
         if (userAction == null || userAction.isBlank() || Notification.Action.getActionByValue(userAction) == Notification.Action.UNDEFINED) {// userAction is wrong
