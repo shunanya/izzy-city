@@ -98,7 +98,7 @@ public class TaskServiceTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
 
-        List<Task> tasks = taskService.appendTask(orderId, new TaskDTO(task));
+        List<Task> tasks = taskService.appendTask(new TaskDTO(task));
 
         assertNotNull(tasks);
         assertFalse(tasks.isEmpty());
@@ -112,7 +112,7 @@ public class TaskServiceTest {
         Task task = new Task(nonExistentOrderId, 1L);
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
         when(taskRepository.findByIdOrderId(anyLong())).thenReturn(new ArrayList<>());
-        assertThrows(ResourceNotFoundException.class, () -> taskService.appendTask(nonExistentOrderId, new TaskDTO(task)));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.appendTask(new TaskDTO(task)));
     }
 
 
@@ -135,7 +135,7 @@ public class TaskServiceTest {
         when(taskRepository.findByOrderAndScooterIds(orderId, scooterId)).thenReturn(Optional.of(task));
         when(taskRepository.deleteByOrderAndScooterIds(anyLong(), anyLong())).thenReturn(1);
 
-        taskService.removeTask(orderId, new TaskDTO(task));
+        taskService.removeTask(new TaskDTO(task));
     }
 
     @Test
@@ -145,7 +145,7 @@ public class TaskServiceTest {
         Task task = new Task(nonExistentOrderId, scooterId);
         when(customService.checkAllowability(anyLong())).thenReturn(Boolean.TRUE);
         when(taskRepository.findByOrderAndScooterIds(anyLong(), anyLong())).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> taskService.removeTask(nonExistentOrderId, new TaskDTO(task)));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.removeTask(new TaskDTO(task)));
     }
 
     @Test

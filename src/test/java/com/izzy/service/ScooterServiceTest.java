@@ -121,7 +121,7 @@ class ScooterServiceTest {
         when(scooterRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> scooterService.updateScooter(1L, scooter));
-        assertEquals("Error: Scooter not found with id: '1'", ex.getMessage());
+        assertEquals("Scooter not found with id: '1'", ex.getMessage());
 
         verify(scooterRepository, times(1)).findById(1L);
     }
@@ -145,7 +145,7 @@ class ScooterServiceTest {
         when(scooterRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> scooterService.deleteScooter(1L));
-        assertEquals("Error: Scooter not found with id: '1'", ex.getMessage());
+        assertEquals("Scooter not found with id: '1'", ex.getMessage());
 
         verify(scooterRepository, times(1)).findById(1L);
     }

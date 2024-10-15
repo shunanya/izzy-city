@@ -6,9 +6,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class ExceptionResponse implements Serializable {
-    private List<String> messages;
-    private String error;
-    private Integer status;
+    private final List<String> messages;
+    private final String error;
+    private final Integer status;
     private final Instant timestamp;
 
     public ExceptionResponse(List<String> messages, String error, Integer status) {
