@@ -1,7 +1,7 @@
 ## Izzy-city project ##
 
 This project representing Rest API implemented by using Spring Boot.
-It.s intended to managing (_rent, move. charge, etc._) of scooters in city.
+It.s intended to manage (_rent, move. charge, etc._) of scooters in city.
 
 The Project Development Environment is the following:
 
@@ -23,7 +23,7 @@ The API support the following parts of management:
 
 The Authentication is based on the following principals
 
-- The Access token (JWT) and Refresh token stored on the client-side cookies. Them are generated during user login.
+- The Access token (JWT) and Refresh token stored on the client-side cookies. They are generated during user login.
 - The Refresh token is also stored on the server side with the purpose of verifying its validity and ownership by a specific user.
 - The Access token from the client's cookie should be sent in the HTTP header using the Cookie parameter for each request requiring authorization access to resources.
 - For security purposes, Access tokens are typically valid for a short period. Once they expire, the Refresh token must be used to renew/regenerate the access token.
