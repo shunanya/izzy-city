@@ -189,6 +189,11 @@ public class Task {
         return this.id.getScooterId() != null;
     }
 
+    @JsonIgnore
+    public boolean hasOrderId(){
+        return this.id.getOrderId() != null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

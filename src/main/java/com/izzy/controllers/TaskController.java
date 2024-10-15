@@ -120,21 +120,23 @@ public class TaskController {
     }
 
     /**
-     * Append a new task to the existing tasks
+     * Append a new task to the existing set of tasks
      *
-     * @param orderId           owner-order id of the tasks
      * @param taskRequestString task details to be appended
+     * <p>
+     *  the task should contain {@code orderId}, {@code scooterId} and optional {@code priority}
+     * </p>
      * @return updated list of tasks
      * @throws ResourceNotFoundException if the order is not found.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
-    @PutMapping("/{orderId}")
+    @PutMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public List<Task> appendTaskToOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
+    public List<Task> appendTaskToOrder(@RequestBody String taskRequestString) {
         try {
             // Validate request body
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
-            return taskService.appendTask(orderId, taskDTO);
+            return taskService.appendTask(taskDTO);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
@@ -143,69 +145,51 @@ public class TaskController {
     /**
      * Remove task from existing order tasks
      *
-     * @param orderId           owner-order id of the tasks
      * @param taskRequestString task details to be removed
+     *                          <p>
+     *                          task should contain {@code orderId} and {@code scooterId}
+     *                          </p>
      * @return nothing
      * @throws ResourceNotFoundException if the order is not found.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
-    @DeleteMapping("/{orderId}")
+    @DeleteMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<?> deleteTaskFromOrder(@PathVariable Long orderId, @RequestBody String taskRequestString) {
+    public ResponseEntity<?> deleteTaskFromOrder(@RequestBody String taskRequestString) {
         try {
             // Validate request body
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
-            taskService.removeTask(orderId, taskDTO);
-            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task deleted {orderId: %s, scooterId: %s}", orderId, taskDTO.getScooterId())));
+            taskService.removeTask(taskDTO);
+            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task deleted {orderId: %s, scooterId: %s}", taskDTO.getOrderId(), taskDTO.getScooterId())));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
 
     /**
-     * Change status of task to completed
+     * Change status of task to completed or canceled
      *
-     * @param orderId           owner-order id of the tasks
      * @param taskRequestString task details to be updated
+     *                          <p>
+     *                          The task must include {@code orderId}, {@code scooterId},
+     *                          {@code status} (with allowable values of 'completed' or 'canceled'),
+     *                          and {@code comment} to explain the status set.
+     *                          </p>
      * @return ResponseEntity containing a success message
      * @throws ResourceNotFoundException if the order is not found.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
-    @PatchMapping("/{orderId}/complete")
-    public ResponseEntity<?> markTaskAsCompleted(@PathVariable Long orderId, @RequestBody String taskRequestString) {
+    @PatchMapping
+    public ResponseEntity<?> markTaskAsCompletedOrCanceled(@RequestBody String taskRequestString) {
         try {
             // Validate request body
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             // Processing
-            List<Task> tasks = taskService.markTaskAsCompleted(orderId, taskDTO);
+            List<Task> tasks = taskService.markTaskAsCompletedOrCanceled(taskDTO);
             return tasks.isEmpty() ?
                     ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")) :
                     ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
-        }
-    }
-
-    /**
-     * Change status of task to canceled
-     *
-     * @param orderId           owner-order id of the tasks
-     * @param taskRequestString task details to be updated
-     * @return ResponseEntity containing a success message
-     * @throws ResourceNotFoundException if the order is not found.
-     * @throws AccessDeniedException     if operation is not permitted for current user
-     */
-    @PatchMapping("/{orderId}/cancel")
-    public ResponseEntity<?> markTaskAsCanceled(@PathVariable Long orderId, @RequestBody String taskRequestString) {
-        try {
-            // Validate request body
-            TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
-            // Processing
-            List<Task> tasks = taskService.markTaskAsCanceled(orderId, taskDTO);
-            return tasks.isEmpty() ?
-                    ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")) :
-                    ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task '%s' marked as canceled.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }

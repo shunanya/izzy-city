@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,13 +47,13 @@ public class TaskService {
      * Retrieve tasks by filtering
      *
      * @param viewType   optional parameter to get 'simple'(aka origin), 'short' or 'detailed' task data view (default is 'simple')
-     * @param orderId    optional order Id which is owner of task
-     * @param scooterId  optional scooter ID associated with the task
+     * @param orderId    optional orderId which is owner of task
+     * @param scooterId  optional scooterID associated with the task
      * @param priorities optional priorities of task (concrete data or range of data)
      * @param status     optional status of task
-     * <p>
-     *   {@code status} is alternative for {@code priorities} so that one of them should be defined only.
-     * </p>
+     *                   <p>
+     *                   {@code status} is alternative for {@code priorities} so that one of them should be defined only.
+     *                   </p>
      * @return List of filtered tasks
      */
     public List<?> getTasksByFiltering(String viewType,
@@ -88,7 +89,6 @@ public class TaskService {
     /**
      * Appending a new task to the existing tasks
      *
-     * @param orderId existing order id that contains tasks to be updated.
      * @param taskDTO a task to be appending
      * @return updated list of tasks
      * @throws AccessDeniedException    if operation is not permitted for current user
@@ -96,18 +96,14 @@ public class TaskService {
      * @throws BadRequestException      if provided task is already exists in the order tasks list
      */
     @Transactional
-    public List<Task> appendTask(@NonNull Long orderId, @NonNull TaskDTO taskDTO) {
-        if (!customService.checkAllowability(orderId))
-            throw new AccessDeniedException("not allowed to append task to order created with user above your role");
-        if (taskDTO.getScooterId() == null)
-            throw new IllegalArgumentException("Task lacks a scooter ID.");
-        if (taskDTO.getOrderId() != null && !orderId.equals(taskDTO.getOrderId())) {
-            throw new BadRequestException("The provided task and order are mismatched.");
+    public List<Task> appendTask(@NonNull TaskDTO taskDTO) {
+        if (!taskDTO.isValid()) {
+            throw new IllegalArgumentException("Task lacks orderId or scooterID.");
         }
+        if (!customService.checkAllowability(taskDTO.getOrderId()))
+            throw new AccessDeniedException("not allowed to append task to order created with user above your role");
 
-        taskDTO.setOrderId(orderId);
-
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+        Order order = orderRepository.findById(taskDTO.getOrderId()).orElseThrow(() -> new ResourceNotFoundException("Order", "id", taskDTO.getOrderId()));
         List<Task> tasks = order.getTasks();
         boolean updated = false;
         for (Task t : tasks)
@@ -129,41 +125,36 @@ public class TaskService {
     }
 
     /**
-     * Mark the task as complete
+     * Mark the task as completed or canceled
      *
-     * @param orderId existing order id that contains tasks to be updated.
-     * @param taskDTO a task to be marked as completed
+     * @param taskDTO a task to be marked as completed or canceled
      * @return updated list of tasks
      */
     @Transactional
-    public List<Task> markTaskAsCompleted(Long orderId, TaskDTO taskDTO) {
-        if (taskDTO.getOrderId() != null && !orderId.equals(taskDTO.getOrderId())) {
-            throw new BadRequestException("The provided task and order are mismatched.");
+    public List<Task> markTaskAsCompletedOrCanceled(@NonNull TaskDTO taskDTO) {
+        if (!taskDTO.isValid()) {
+            throw new BadRequestException("The provided task should consist at least orderId and ScooterId.");
         }
-        taskDTO.setOrderId(orderId);
-        return markTask(orderId, new Task(taskDTO), Task.Status.COMPLETED);
+        switch (taskDTO.getStatus()) {
+            case "completed" -> {
+                return markTask(new Task(taskDTO), Task.Status.COMPLETED);
+            }
+            case "canceled" -> {
+                return markTask(new Task(taskDTO), Task.Status.CANCELED);
+            }
+            default -> throw new UnrecognizedPropertyException("status", taskDTO.getStatus());
+        }
     }
 
-    @Transactional
-    public List<Task> markTaskAsCanceled(Long orderId, TaskDTO taskDTO) {
-        if (taskDTO.getOrderId() != null && !orderId.equals(taskDTO.getOrderId())) {
-            throw new BadRequestException("The provided task and order are mismatched.");
-        }
-        taskDTO.setOrderId(orderId);
-        return markTask(orderId, new Task(taskDTO), Task.Status.CANCELED);
-    }
-
-
-    private List<Task> markTask(@NonNull Long orderId, @NonNull Task task, Task.Status status) {
+    private List<Task> markTask(@NonNull Task task, Task.Status status) {
         // task must include at least the scooterId
-        if (!task.hasScooterId()) throw new IllegalArgumentException("Task lacks scooter ID.");
-        if (task.getOrderId() != null && !task.getOrderId().equals(orderId))
-            throw new BadRequestException("The provided task and order are mismatched.");
+        if (!task.hasScooterId() || !task.hasOrderId())
+            throw new IllegalArgumentException("Task lacks orderId or scooterID.");
         Long userManager = customService.currentUserHeadId();
         if (userManager == null)
             throw new AccessDeniedException("Only Executors having Scout or Charger roles can mark task.");
         // get existing order
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
+        Order order = orderRepository.findById(task.getOrderId()).orElseThrow(() -> new ResourceNotFoundException("Order", "id", task.getOrderId()));
         List<Task> tasks = order.getTasks();
         Task updatedTask = null;
         Long id = task.getScooterId();
@@ -183,23 +174,33 @@ public class TaskService {
                             t.setCanceled();
                             t.setComment(task.getComment());
                         }
-                        case ACTIVE -> t.setActive();
+                        case ACTIVE -> {
+                            t.setActive();
+                            t.setComment(null);
+                        }
                         default ->
                                 throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", status));
                     }
+                    Optional<Notification> existingNotification = notificationRepository.findNotificationByOrderIdAndScooterId(t.getOrderId(), t.getScooterId());
                     if (List.of(Task.Status.CANCELED, Task.Status.COMPLETED).contains(status)) {
-                        // create notification for user-manager about change the task status
-                        notificationRepository.save(new Notification(null, customService.currentUserHeadId(), t.getOrderId(), t.getScooterId()));
-                    } else {
-                        // remove unnecessary notification (if exist)
-                        notificationRepository.findNotificationByOrderIdAndScooterId(t.getOrderId(), t.getScooterId())
-                                .ifPresent(notificationRepository::delete);
+                        if (existingNotification.isPresent()) {
+                            Notification notification = existingNotification.get();
+                            notification.setUserId(customService.currentUserHeadId());
+
+                            // update notification for user-manager about change the task status
+                            notificationRepository.save(notification);
+                        } else { // create new notification for user-manager about change the task status
+                            notificationRepository.save(new Notification(null, customService.currentUserHeadId(), t.getOrderId(), t.getScooterId()));
+                        }
+                    } else { // If the status is neither 'completed' nor 'canceled,' remove an unnecessary notification (if exist).
+                        existingNotification.ifPresent(notificationRepository::delete);
                     }
                     updatedTask = t;
                     break;
-                } else throw new BadRequestException("Task already marked as " + status);
+                } else
+                    throw new BadRequestException("Task already marked as " + status);
         if (updatedTask == null)
-            throw new ResourceNotFoundException("Task", "", String.format("{orderId: %s, ScooterId: %s}", orderId, task.getScooterId()));
+            throw new ResourceNotFoundException("Task", "", String.format("{orderId: %s, ScooterId: %s}", task.getOrderId(), task.getScooterId()));
 
 //        taskRepository.deleteAllByIdOrderId(tasks.get(0).getOrderId()); // remove old tasks
 //        taskRepository.flush();
@@ -236,12 +237,12 @@ public class TaskService {
     }
 
     @Transactional
-    public void removeTask(@NonNull Long orderId, @NonNull TaskDTO taskDTO) {
-        if (!customService.checkAllowability(orderId))
+    public void removeTask(@NonNull TaskDTO taskDTO) {
+        if (taskDTO.getOrderId() == null || taskDTO.getScooterId() == null)
+            throw new BadRequestException("The provided task should contain at least orderId and scooterId.");
+        if (!customService.checkAllowability(taskDTO.getOrderId()))
             throw new AccessDeniedException("not allowed to remove task in order created with user above your role");
-        if (taskDTO.getOrderId() != null && !taskDTO.getOrderId().equals(orderId))
-            throw new BadRequestException("The provided task and order are mismatched.");
-        taskDTO.setOrderId(orderId);
+        Long orderId = taskDTO.getOrderId();
         Long scooterId = taskDTO.getScooterId();
         taskRepository.findByOrderAndScooterIds(orderId, scooterId).
                 ifPresentOrElse(t -> taskRepository.deleteByOrderAndScooterIds(orderId, scooterId),
@@ -265,15 +266,7 @@ public class TaskService {
         return getOrderByOrderId(orderId).getTasks();
     }
 
-    public List<TaskInfo> getShortTaskInfosByOrderId(Long orderId) {
-        return getTaskInfosByOrder(getOrderByOrderId(orderId), true);
-    }
-
-    public List<TaskInfo> getDetailedTaskInfosByOrderId(Long orderId) {
-        return getTaskInfosByOrder(getOrderByOrderId(orderId), false);
-    }
-
-    public List<TaskInfo> getTaskInfosByOrder(Order order, Boolean shortInfo) {
+     public List<TaskInfo> getTaskInfosByOrder(Order order, Boolean shortInfo) {
         List<Task> tasks = order.getTasks();
         return tasks.stream().map(task -> new TaskInfo(order, getScooterByScooterId(task.getScooterId()), task, shortInfo)).collect(Collectors.toList());
     }

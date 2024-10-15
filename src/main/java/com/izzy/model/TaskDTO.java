@@ -7,7 +7,7 @@ public class TaskDTO {
     private Long scooterId;
     private Integer priority = 100;
     private String comment;
-    private String status;
+    private String status; // can be 'canceled' or 'completed'
 
     public TaskDTO() {
     }
