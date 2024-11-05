@@ -10,6 +10,7 @@ import com.izzy.repository.*;
 import com.izzy.security.custom.service.CustomService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class TaskServiceTest {
     private UserRepository userRepository;
     private CustomService customService;
     private NotificationRepository notificationRepository;
+    private HistoryService historyService;
 
     @BeforeEach
     void setUp() {
@@ -41,7 +43,8 @@ public class TaskServiceTest {
         userRepository = mock(UserRepository.class);
         customService = mock(CustomService.class);
         notificationRepository = mock(NotificationRepository.class);
-        taskService = new TaskService(customService, orderRepository, scooterRepository, taskRepository, notificationRepository);
+        historyService = mock(HistoryService.class);
+        taskService = new TaskService(customService, historyService, orderRepository, scooterRepository, taskRepository, notificationRepository);
     }
 
     @Test

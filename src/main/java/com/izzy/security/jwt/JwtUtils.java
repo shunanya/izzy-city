@@ -14,6 +14,9 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.Key;
 import java.time.Duration;
 import java.time.Instant;
@@ -21,7 +24,7 @@ import java.util.Date;
 
 @Component
 public class JwtUtils {
-//    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     @Value(value = "${izzy.app.jwtSecret}")
     private String jwtSecret;
@@ -151,7 +154,7 @@ public class JwtUtils {
                     .parseClaimsJws(authToken);  // If token is invalid, this will throw an exception
             return true;
         } catch (JwtException e) {
-            // Token is invalid, could be expired or tampered with
+            logger.warn("Token is invalid, could be expired or tampered with");
             return false;
         }
     }

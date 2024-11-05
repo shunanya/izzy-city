@@ -7,6 +7,8 @@ import com.izzy.payload.request.UserRequest;
 import com.izzy.payload.response.UserInfo;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.AdminService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/izzy/admin")
 public class AdminController {
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     private final AdminService adminService;
 
@@ -52,6 +55,7 @@ public class AdminController {
             User savedUser = adminService.registerUser(userRequest);
             return ResponseEntity.ok(new UserInfo(savedUser, null, false));
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }

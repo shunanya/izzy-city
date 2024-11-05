@@ -2,7 +2,6 @@ package com.izzy.payload.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
 import org.springframework.lang.NonNull;
@@ -55,7 +54,7 @@ public class UserInfo implements Serializable {
         this.id = user.getId();
         this.firstName = user.getFirstName();
         this.phoneNumber = user.getPhoneNumber();
-        List<Role> roles = user.getRoles();
+//        List<Role> roles = user.getRoles();
 //        this.roles = (roles == null || roles.isEmpty())?null:roles.stream().map(Role::getName).collect(Collectors.toList());
         this.roles = user.getRolesName();
         Zone z = user.getZone();

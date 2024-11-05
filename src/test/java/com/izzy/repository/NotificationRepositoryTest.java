@@ -86,7 +86,7 @@ class NotificationRepositoryTest {
         assertNotNull(notifications);
         Notification testNotification;
         if (notifications.isEmpty()) {
-            testNotification = new Notification(null, testUser.getId(), task.getOrderId(), task.getScooterId());
+            testNotification = new Notification(testUser.getId(), task.getOrderId(), task.getScooterId());
         } else {
             testNotification = notifications.get(0);
         }

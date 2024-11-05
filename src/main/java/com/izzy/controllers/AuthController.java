@@ -23,6 +23,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/*
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+*/
+
 /**
  * Controller class responsible for handling authentication-related requests such as sign-in, sign-out, and token refresh.
  * It utilizes services like {@link AuthService}, {@link RefreshTokenService}, and {@link JwtUtils} to perform authentication operations.
@@ -30,6 +38,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/izzy/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final AuthService authService;
@@ -65,6 +75,7 @@ public class AuthController {
             }
             throw new CredentialsExpiredException("Error: Provided credentials are wrong.");
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -94,6 +105,7 @@ public class AuthController {
                 throw new SecurityException("Error: Seems user already signed-out or tokens expired");
             }
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -112,6 +124,7 @@ public class AuthController {
                             refreshTokenService.refreshAccessTokenCookie(jwtUtils.getJwtRefreshFromCookies(request)).toString())
                     .body(new MessageResponse("Token is refreshed successfully!"));
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }

@@ -8,6 +8,8 @@ import com.izzy.model.Scooter;
 import com.izzy.payload.request.ScooterRequest;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.ScooterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +26,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/izzy/scooters")
 public class ScooterController {
+    private static final Logger logger = LoggerFactory.getLogger(ScooterController.class);
+
     private final ScooterService scooterService;
 
     public ScooterController(ScooterService scooterService) {
@@ -53,6 +57,7 @@ public class ScooterController {
         try {
             return scooterService.getScootersByFiltering(identifier, batteryLevel, speedLimit, status, zoneName);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -75,6 +80,7 @@ public class ScooterController {
             }
             return ResponseEntity.notFound().build();
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -97,6 +103,7 @@ public class ScooterController {
             Scooter createdScooter = scooterService.createScooter(scooter);
             return ResponseEntity.ok(createdScooter);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -124,6 +131,7 @@ public class ScooterController {
             }
             throw new BadRequestException("cannot update.");
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -142,6 +150,7 @@ public class ScooterController {
         if (scooterService.deleteScooter(id)) {
             return ResponseEntity.noContent().build();
         }
+        logger.warn(String.format("scooter with id: %s not found", id));
         return ResponseEntity.notFound().build();
     }
 }

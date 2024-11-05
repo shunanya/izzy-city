@@ -7,6 +7,8 @@ import com.izzy.model.Order;
 import com.izzy.payload.request.OrderRequest;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.OrderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +25,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/izzy/orders")
 public class OrderController {
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+
     private final OrderService orderService;
 
     /**
@@ -71,6 +75,7 @@ public class OrderController {
             }
             return ResponseEntity.notFound().build();
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -89,9 +94,13 @@ public class OrderController {
             // Validate request body
             OrderRequest orderRequest = (new ObjectMapper()).readValue(orderRequestString, OrderRequest.class);
             // processing
-            Order createdOrder = orderService.createOrder(orderService.getOrderFromOrderRequest(orderRequest, null));
-            return ResponseEntity.ok(orderService.getOrderById(createdOrder.getId()));
+            Order order = orderService.createOrder(orderService.getOrderFromOrderRequest(orderRequest, null));
+            String description = Utils.appendKeyValuePairIntoJSONString(orderRequestString, "id", order.getId());
+            logger.info("Order created {}", description);
+            orderService.addOrderHistory("create", description);
+            return ResponseEntity.ok(orderService.getOrderById(order.getId()));
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -114,10 +123,14 @@ public class OrderController {
             // processing
             Order order = orderService.getOrderFromOrderRequest(orderRequest, id);
             if (id.equals(orderService.updateOrder(order))) {
+                String description = Utils.appendKeyValuePairIntoJSONString(orderRequestString, "id", order.getId());
+                logger.info("Order updated {}", description);
+                orderService.addOrderHistory("update", description);
                 return ResponseEntity.ok(orderService.getOrderById(id));
             }
             return ResponseEntity.notFound().build();
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -135,8 +148,12 @@ public class OrderController {
     public ResponseEntity<Void> deleteOrderById(@PathVariable Long id) {
         try {
             orderService.deleteOrder(id);
+            String description = Utils.appendKeyValuePairIntoJSONString(null, "id", id);
+            logger.info("Order deleted {}", description);
+            orderService.addOrderHistory("delete", description);
             return ResponseEntity.noContent().build();
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }

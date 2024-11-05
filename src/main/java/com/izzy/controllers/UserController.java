@@ -11,6 +11,8 @@ import com.izzy.security.utils.Utils;
 import com.izzy.service.RoleService;
 import com.izzy.service.UserService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +30,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/izzy/users")
 public class UserController {
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
 
@@ -71,6 +74,7 @@ public class UserController {
         try {
             return userService.getUsers(viewType, firstName, lastName, phoneNumber, gender, dateOfBirth, shift, createdAt, zoneName, roles);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -104,6 +108,7 @@ public class UserController {
                         throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
             }
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -123,8 +128,12 @@ public class UserController {
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // processing
             User user = userService.saveUser(userService.getUserFromUserRequest(null, userRequest));
+            String description = Utils.appendKeyValuePairIntoJSONString(userRequestString, "id", user.getId());
+            userService.addUserHistory("create", description);
+            logger.info("User created: {}", description);
             return ResponseEntity.ok(user);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -146,8 +155,15 @@ public class UserController {
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // processing
             User user = userService.updateUser(id, userService.getUserFromUserRequest(id, userRequest));
-            return (user != null) ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+            if (user != null) {
+                String description = Utils.appendKeyValuePairIntoJSONString(userRequestString, "id", id);
+                logger.info("User updated: {}", description);
+                userService.addUserHistory("update", description);
+                return ResponseEntity.ok(user);
+            }
+            return ResponseEntity.notFound().build();
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -163,8 +179,11 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
+            logger.info("User deleted: {}", id);
+            userService.addUserHistory("delete", Utils.appendKeyValuePairIntoJSONString(null, "id", id));
             return ResponseEntity.ok(new MessageResponse("User deleted"));
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }

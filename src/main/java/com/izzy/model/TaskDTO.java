@@ -1,6 +1,7 @@
 package com.izzy.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TaskDTO {
     private Long orderId;
@@ -63,5 +64,13 @@ public class TaskDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String toJSONString() {
+        try {
+            return ((new ObjectMapper()).writeValueAsString(this));
+        } catch (Exception ex) {
+            return null; //TODO ???
+        }
     }
 }

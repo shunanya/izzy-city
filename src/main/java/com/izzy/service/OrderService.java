@@ -3,10 +3,7 @@ package com.izzy.service;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
-import com.izzy.model.Order;
-import com.izzy.model.Task;
-import com.izzy.model.TaskDTO;
-import com.izzy.model.User;
+import com.izzy.model.*;
 import com.izzy.payload.request.OrderRequest;
 import com.izzy.repository.OrderRepository;
 import com.izzy.repository.TaskRepository;
@@ -30,15 +27,18 @@ public class OrderService {
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
     private final CustomService customService;
+    private final HistoryService historyService;
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
                         TaskRepository taskRepository,
-                        CustomService customService) {
+                        CustomService customService,
+                        HistoryService historyService) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.taskRepository = taskRepository;
         this.customService = customService;
+        this.historyService = historyService;
     }
 
     /**
@@ -253,14 +253,19 @@ public class OrderService {
     /**
      * Deletes an order by their ID.
      *
-     * @param orderId the ID of the order to delete.
+     * @param id the ID of the order to delete.
      * @throws ResourceNotFoundException if the order is not found in database.
      * @throws AccessDeniedException     if operation is not permitted for current user
      */
     @Transactional
-    public void deleteOrder(@NonNull Long orderId) {
-        if (!customService.checkAllowability(orderId))
+    public void deleteOrder(@NonNull Long id) {
+        if (!customService.checkAllowability(id))
             throw new AccessDeniedException("not allowed to delete order created with user above your role");
-        orderRepository.deleteById(orderId);
+        orderRepository.deleteById(id);
     }
+
+    public void addOrderHistory(@NonNull String action, @NonNull String description) {
+        historyService.insertHistory(History.Type.ORDER.getValue(), action, description);
+    }
+
 }

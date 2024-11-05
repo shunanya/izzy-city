@@ -1,5 +1,6 @@
 package com.izzy.service;
 
+import com.izzy.controllers.NotificationController;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
@@ -12,6 +13,8 @@ import com.izzy.repository.ScooterRepository;
 import com.izzy.repository.TaskRepository;
 import com.izzy.security.custom.service.CustomService;
 import com.izzy.security.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,14 +27,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
+    private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
 
     private final CustomService customService;
     private final OrderRepository orderRepository;
     private final ScooterRepository scooterRepository;
     private final TaskRepository taskRepository;
     private final NotificationRepository notificationRepository;
+    private final HistoryService historyService;
 
     public TaskService(CustomService customService,
+                       HistoryService historyService,
                        OrderRepository orderRepository,
                        ScooterRepository scooterRepository,
                        TaskRepository taskRepository,
@@ -41,6 +47,7 @@ public class TaskService {
         this.scooterRepository = scooterRepository;
         this.taskRepository = taskRepository;
         this.notificationRepository = notificationRepository;
+        this.historyService = historyService;
     }
 
     /**
@@ -116,7 +123,14 @@ public class TaskService {
                     break;
                 }
         // identical task not found - add a new one
-        if (!updated) tasks.add(new Task(taskDTO));
+        if (updated) {
+            logger.info("Task updated: {}", taskDTO);
+            addTaskHistory(History.Action.UPDATE.getValue(), taskDTO.toJSONString());
+        } else {
+            tasks.add(new Task(taskDTO));
+            logger.info("Task added: {}", taskDTO);
+            addTaskHistory(History.Action.CREATE.getValue(), taskDTO.toJSONString());
+        }
 
 //        taskRepository.deleteAllByIdOrderId(tasks.get(0).getOrderId()); // remove old tasks
 //        taskRepository.flush();
@@ -135,15 +149,21 @@ public class TaskService {
         if (!taskDTO.isValid()) {
             throw new BadRequestException("The provided task should consist at least orderId and ScooterId.");
         }
-        switch (taskDTO.getStatus()) {
+        List<Task> tasks;
+                switch (taskDTO.getStatus()) {
             case "completed" -> {
-                return markTask(new Task(taskDTO), Task.Status.COMPLETED);
+                tasks = markTask(new Task(taskDTO), Task.Status.COMPLETED);
+                logger.info("Task completed: {}", taskDTO);
+                addTaskHistory(History.Action.COMPLETE.getValue(), taskDTO.toJSONString());
             }
             case "canceled" -> {
-                return markTask(new Task(taskDTO), Task.Status.CANCELED);
+                tasks = markTask(new Task(taskDTO), Task.Status.CANCELED);
+                logger.info("Task canceled: {}", taskDTO);
+                addTaskHistory(History.Action.CANCEL.getValue(), taskDTO.toJSONString());
             }
             default -> throw new UnrecognizedPropertyException("status", taskDTO.getStatus());
         }
+        return tasks;
     }
 
     private List<Task> markTask(@NonNull Task task, Task.Status status) {
@@ -190,7 +210,7 @@ public class TaskService {
                             // update notification for user-manager about change the task status
                             notificationRepository.save(notification);
                         } else { // create new notification for user-manager about change the task status
-                            notificationRepository.save(new Notification(null, customService.currentUserHeadId(), t.getOrderId(), t.getScooterId()));
+                            notificationRepository.save(new Notification(customService.currentUserHeadId(), t.getOrderId(), t.getScooterId()));
                         }
                     } else { // If the status is neither 'completed' nor 'canceled,' remove an unnecessary notification (if exist).
                         existingNotification.ifPresent(notificationRepository::delete);
@@ -249,6 +269,8 @@ public class TaskService {
                         () -> {
                             throw new ResourceNotFoundException("Task", "", String.format("{orderId: %s, scooterId: %s}", orderId, scooterId));
                         });
+        logger.info("Task {} removed.", taskDTO);
+        addTaskHistory(History.Action.DELETE.getValue(), taskDTO.toJSONString());
     }
 
     private Order getOrderByOrderId(Long orderId) {
@@ -345,18 +367,7 @@ public class TaskService {
         return Utils.rearrangeTasksPriorities(getTasksByOrderId(orderId));
     }
 
-/*
-    @Transactional
-    public Task updatePriority(Long orderId, Long scooterId, Integer priority) {
-        Task task = taskRepository.deleteByOrderAndScooterIds(orderId, scooterId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task", "Priority", priority));
-        task.setPriority(priority);
-        return taskRepository.save(task);
+    public void addTaskHistory(@NonNull String action, @NonNull String description) {
+        historyService.insertHistory(History.Type.TASK.getValue(), action, description);
     }
-
-    public Integer getPriority(Long orderId, Long scooterId) {
-        return taskRepository.getPriorityByOrderIdAndScooterId(orderId, scooterId);
-    }
-*/
-
 }

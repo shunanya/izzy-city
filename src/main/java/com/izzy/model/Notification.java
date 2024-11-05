@@ -1,5 +1,6 @@
 package com.izzy.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Check;
 
@@ -37,8 +38,7 @@ public class Notification {
     public Notification() {
     }
 
-    public Notification(Long id, Long userId, Long orderId, Long scooterId) {
-        this.id = id;
+    public Notification(Long userId, Long orderId, Long scooterId) {
         this.userId = userId;
         this.orderId = orderId;
         this.scooterId = scooterId;
@@ -104,6 +104,14 @@ public class Notification {
         this.task = task;
     }
 
+    public String toJSONString() {
+        try {
+            return ((new ObjectMapper()).writeValueAsString(this));
+        } catch (Exception e) {
+            System.err.println(e.getMessage()); //TODO ???
+        }
+        return null;
+    }
     public enum Action {
         REJECTED("rejected"), APPROVED("approved"), UNDEFINED("undefined");
         private final String value;

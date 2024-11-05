@@ -4,6 +4,8 @@ import com.izzy.exception.BadRequestException;
 import com.izzy.model.Notification;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.NotificationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/izzy/notifications")
 public class NotificationController {
+    private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
 
     private final NotificationService notificationService;
 
@@ -33,6 +36,7 @@ public class NotificationController {
         try {
             return notificationService.getNotificationsForCurrentUser(userAction, status);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new BadRequestException(Utils.substringErrorFromException(ex));
         }
     }
@@ -48,6 +52,7 @@ public class NotificationController {
         try{
             return notificationService.getNotificationByID(notificationId);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new BadRequestException(Utils.substringErrorFromException(ex));
         }
     }
@@ -65,6 +70,7 @@ public class NotificationController {
         try {
             return notificationService.updateNotification(notificationId, userAction);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new BadRequestException(Utils.substringErrorFromException(ex));
         }
     }
@@ -86,6 +92,7 @@ public class NotificationController {
         try{
             notificationService.actionHandling(notificationId);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new BadRequestException(Utils.substringErrorFromException(ex));
         }
     }
@@ -96,6 +103,7 @@ public class NotificationController {
         try{
             notificationService.deleteNotificationById(notificationId);
         }catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new BadRequestException(Utils.substringErrorFromException(ex));
         }
     }

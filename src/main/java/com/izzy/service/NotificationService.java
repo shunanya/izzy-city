@@ -4,6 +4,7 @@ import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
 import com.izzy.exception.UnrecognizedPropertyException;
+import com.izzy.model.History;
 import com.izzy.model.Notification;
 import com.izzy.model.Order;
 import com.izzy.model.Task;
@@ -11,6 +12,8 @@ import com.izzy.repository.NotificationRepository;
 import com.izzy.repository.OrderRepository;
 import com.izzy.repository.TaskRepository;
 import com.izzy.security.custom.service.CustomService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -21,20 +24,24 @@ import java.util.List;
 
 @Service
 public class NotificationService {
+    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
     private final NotificationRepository notificationRepository;
     private final OrderRepository orderRepository;
     private final TaskRepository taskRepository;
     private final CustomService customService;
+    private final HistoryService historyService;
 
     public NotificationService(NotificationRepository notificationRepository,
                                OrderRepository orderRepository,
                                TaskRepository taskRepository,
-                               CustomService customService) {
+                               CustomService customService,
+                               HistoryService historyService) {
         this.notificationRepository = notificationRepository;
         this.orderRepository = orderRepository;
         this.taskRepository = taskRepository;
         this.customService = customService;
+        this.historyService = historyService;
     }
 
     /**
@@ -97,10 +104,12 @@ public class NotificationService {
         }
 
         Notification notification = notificationRepository.findNotificationByOrderIdAndScooterId(task.getOrderId(), task.getScooterId()).
-                orElse(new Notification(null, customService.currentUserHeadId(), task.getOrderId(), task.getScooterId()));
+                orElse(new Notification(customService.currentUserHeadId(), task.getOrderId(), task.getScooterId()));
 
         if (notification.getId() == null) {
             notification = notificationRepository.save(notification);
+            logger.info("Notification created: {}", notification);
+            addNotificationHistory(History.Action.CREATE.getValue(), notification.toJSONString());
         }
         return notification;
 
@@ -159,9 +168,16 @@ public class NotificationService {
             throw new AccessDeniedException("Not allowed to view notifications that aren't yours.");
         }
         switch (notification.getUserAction().toUpperCase()) {
-            case "REJECTED" -> notification.getTask().setActive(); // reassign task
-            case "APPROVED" -> // remove task; corresponding notification will be removed automatically.
-                    taskRepository.deleteByOrderAndScooterIds(notification.getOrderId(), notification.getScooterId());
+            case "REJECTED" -> {// reassign task
+                notification.getTask().setActive();
+                logger.info("Rejected notification: {}", notification);
+                addNotificationHistory(History.Action.REJECT.getValue(), notification.toJSONString());
+            }
+            case "APPROVED" -> {// remove task; corresponding notification will be removed automatically.
+                taskRepository.deleteByOrderAndScooterIds(notification.getOrderId(), notification.getScooterId());
+                logger.info("Approved notification: {}", notification);
+                addNotificationHistory(History.Action.APPROVE.getValue(), notification.toJSONString());
+            }
             default -> throw new NotAcceptableStatusException("Unrecognized user action");
         }
         // remove unnecessary notification
@@ -170,11 +186,18 @@ public class NotificationService {
 
     @Transactional
     public void deleteNotificationById(@NonNull Long notificationId) {
+        logger.info("Deleting notification: {}", notificationId);
         notificationRepository.deleteById(notificationId);
     }
 
     @Transactional
     public void deleteNotification(@NonNull Notification notification) {
+        logger.info("Deleting notification: {}", notification);
         notificationRepository.delete(notification);
     }
+
+    public void addNotificationHistory(@NonNull String action, @NonNull String description) {
+        historyService.insertHistory(History.Type.NOTIFICATION.getValue(), action, description);
+    }
+
 }

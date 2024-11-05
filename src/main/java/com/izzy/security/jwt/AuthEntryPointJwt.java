@@ -28,8 +28,6 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
         body.put("message", "Error: not authorized yet or token expired.");
 //    body.put("path", request.getServletPath());
 
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), body);
+        (new ObjectMapper()).writeValue(response.getOutputStream(), body);
     }
-
 }

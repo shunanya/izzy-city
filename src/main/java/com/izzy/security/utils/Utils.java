@@ -1,8 +1,12 @@
 package com.izzy.security.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.UnrecognizedPropertyException;
 import com.izzy.model.Task;
 import com.izzy.model.TaskDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -17,6 +21,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utils {
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+
     private static final Pattern[] pattern = {Pattern.compile("ERROR.*(?=\\n)"), Pattern.compile("^.*(?=\\()")};
     private static final String phoneRegEx = "^\\+?\\d{0,3}?[-.\\s]?\\(?\\d{1,4}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$";
 
@@ -87,7 +93,7 @@ public class Utils {
             add(min);
             add(max);
         }};
-         // Regular expression for splitting by '-', '<', '>', or '..'
+        // Regular expression for splitting by '-', '<', '>', or '..'
         String regex = "(-)|(<)|(>)|(\\.\\.)";
         String test = range.trim();
         // Split the range by separator and compose Integers list.
@@ -147,7 +153,7 @@ public class Utils {
         if (range == null || range.isBlank()) {
             return new ArrayList<>(Collections.nCopies(2, null));
         }
-        return parseDateRangeToPairOfInstants(range).stream().map(i-> i.atZone(ZoneOffset.UTC).toLocalDate()).collect(Collectors.toList());
+        return parseDateRangeToPairOfInstants(range).stream().map(i -> i.atZone(ZoneOffset.UTC).toLocalDate()).collect(Collectors.toList());
         // LocalDate localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate();
         // LocalDate localDate = timestamp.toLocalDateTime().toLocalDate();
         // LocalDate localDate = LocalDateTime.ofEpochSecond(unixTimestamp / 1000, 0, ZoneOffset.UTC).toLocalDate();
@@ -157,9 +163,9 @@ public class Utils {
      * parse range of Date representing by String
      *
      * @param range the string representing range of date
-     * <p>
-     * The separator can be one of '-', '<', '>', '..'
-     * </p>
+     *              <p>
+     *              The separator can be one of '-', '<', '>', '..'
+     *              </p>
      * @return the list of 2 date
      */
     public static List<Instant> parseDateRangeToPairOfInstants(@Nullable String range) {
@@ -169,7 +175,7 @@ public class Utils {
         Instant min = convertToInstant("2000"); // minimal value is 01/01/2000
 //        Instant max = LocalDate.now(ZoneOffset.UTC).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();// maximal value is end of the current day
         Instant max = convertToInstant_EndDate(Instant.now());  // maximal value is the start of next day
-        List<Instant> result = new ArrayList<>(2){{
+        List<Instant> result = new ArrayList<>(2) {{
             add(min);
             add(max);
         }};
@@ -203,6 +209,7 @@ public class Utils {
 
     /**
      * Convert date representing by string to Object
+     *
      * @param dateString Date representing by String in one of form "yyyy", "MM/yyyy", "dd/MM/yyyy"
      * @return one of Object ({@link Year}, {@link YearMonth}, {@link LocalDate})
      */
@@ -287,6 +294,7 @@ public class Utils {
      *     <li>05/01/2004 => 2004-01-06T00:00:00.0Z
      * </ul>
      * </p>
+     *
      * @param date the object representing one of {@link Year}, {@link YearMonth}, {@link LocalDate}
      * @return {@link Instant} object
      */
@@ -296,6 +304,7 @@ public class Utils {
 
     /**
      * Convert Object representing date to Instance
+     *
      * @param date the object representing one of {@link Year}, {@link YearMonth}, {@link LocalDate}
      * @param next boolean, convert to start of date on FALSE, convert to end of date on TRUE
      * @return {@link Instant} object
@@ -303,18 +312,18 @@ public class Utils {
     private static Instant convertToInstant(Object date, boolean next) {
         if (date instanceof Year year) {
             // Convert Year to Instant class using the first day of the year
-            LocalDateTime dateTime = year.plus(next?1:0, ChronoUnit.YEARS).atDay(1).atStartOfDay();
+            LocalDateTime dateTime = year.plus(next ? 1 : 0, ChronoUnit.YEARS).atDay(1).atStartOfDay();
             return dateTime.toInstant(ZoneOffset.UTC);
         } else if (date instanceof YearMonth yearMonth) {
             // Convert YearMonth to Instant class using the first day of the month
-            LocalDateTime dateTime = yearMonth.plus(next?1:0, ChronoUnit.MONTHS).atDay(1).atStartOfDay();
+            LocalDateTime dateTime = yearMonth.plus(next ? 1 : 0, ChronoUnit.MONTHS).atDay(1).atStartOfDay();
             return dateTime.toInstant(ZoneOffset.UTC);
         } else if (date instanceof LocalDate localDate) {
             // Convert LocalDate to Instant class using the start of the day
             LocalDateTime dateTime = localDate.plusDays(next ? 1 : 0).atStartOfDay();
             return dateTime.toInstant(ZoneOffset.UTC);
         } else if (date instanceof Instant instant) {
-            return instant.plus(next?1:0, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+            return instant.plus(next ? 1 : 0, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
         }
         throw new IllegalArgumentException(String.format("Unsupported date type: '%s'", date.toString()));
     }
@@ -341,7 +350,44 @@ public class Utils {
         return tasksDTO;
     }
 
+    /**
+     * Test the correctness for phone number
+     * @param phoneNumber phone number to be checked
+     * @return TRUE on success
+     */
     public static boolean isCorrectPhoneNumber(String phoneNumber) {
         return Pattern.matches(phoneRegEx, phoneNumber);
+    }
+
+    /**
+     * Extending the existing JSON string by new key-value pair
+     * <p>
+     *     Additionally, mask the password value if it exists.
+     * </p>
+     *
+     * @param jsonString Optional JSON string that needs extensions.
+     *                   <p>
+     *                   If this parameter is omitted,
+     *                   a new JSON string with a key-value pair will be created.
+     *                   </p>
+     * @param key        the key to be added to resulting json string
+     * @param value      the value to be added to resulting json string
+     * @return resulting json string
+     */
+    public static String appendKeyValuePairIntoJSONString(@Nullable String jsonString, @NonNull String key, @NonNull Object value) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            // Parse jsonString
+            Map<String, Object> map = new HashMap<>();
+            if (jsonString != null) {
+                map = mapper.readValue(jsonString, new TypeReference<>() {});
+            }
+            if (map.containsKey("password")) map.put("password", "***"); // masking password value
+            map.put(key, value); // Add the new key-value pair
+            return mapper.writeValueAsString(map); // Convert the Map back to JSON string
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return jsonString;
     }
 }

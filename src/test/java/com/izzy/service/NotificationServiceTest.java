@@ -1,14 +1,18 @@
 package com.izzy.service;
 
 import com.izzy.exception.ResourceNotFoundException;
-import com.izzy.model.*;
+import com.izzy.model.Notification;
+import com.izzy.model.Order;
+import com.izzy.model.Task;
+import com.izzy.model.User;
+import com.izzy.model.Role;
 import com.izzy.repository.*;
 import com.izzy.security.custom.service.CustomService;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.NotAcceptableStatusException;
 
 import java.util.ArrayList;
@@ -31,7 +35,7 @@ public class NotificationServiceTest {
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
-    private ScooterRepository scooterRepository;
+    private HistoryService historyService;
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
@@ -78,13 +82,13 @@ public class NotificationServiceTest {
     private void createNotifications(){
         notifications = new ArrayList<>();
 
-        Notification notification1 = new Notification(null, testUser.getId(), orderId, scooterId1);
+        Notification notification1 = new Notification(testUser.getId(), orderId, scooterId1);
             notification1.setUserAction(Notification.Action.APPROVED.getValue());
             notification1.setTask(tasks.get(0));
         notifications.add(notificationRepository.save(notification1));
 
 
-            Notification notification2 = new Notification(null, testUser.getId(), orderId, scooterId2);
+            Notification notification2 = new Notification(testUser.getId(), orderId, scooterId2);
             notification2.setUserAction(Notification.Action.REJECTED.getValue());
             notification2.setTask(tasks.get(1));
             notifications.add(notificationRepository.save(notification2));
@@ -106,8 +110,10 @@ public class NotificationServiceTest {
         // Arrange
         CustomService customService = mock(CustomService.class);
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService/*, scooterRepository*/);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(customService.currentUserId()).thenReturn(testUser.getId());
         when(notificationRepository.findNotificationsByFilters(anyLong(), anyString(), any())).thenReturn(notifications);
         when(notificationRepository.findAllByUserId(anyLong())).thenReturn(notifications);
@@ -128,8 +134,10 @@ public class NotificationServiceTest {
         TaskRepository taskRepository = mock(TaskRepository.class);
         CustomService customService = mock(CustomService.class);
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService/*, scooterRepository*/);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(customService.currentUserId()).thenReturn(testUser.getId());
         when(notificationRepository.findNotificationsByFilters(anyLong(), anyString(), anyInt())).thenReturn(notifications);
         when(notificationRepository.findAllByUserId(anyLong())).thenReturn(notifications);
@@ -153,8 +161,10 @@ public class NotificationServiceTest {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
         CustomService customService = mock(CustomService.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(taskRepository.findByIdOrderIdAndIdScooterId(orderId, scooterId1)).thenReturn(Optional.of(tasks.get(0)));
 
         Task task1 = taskRepository.findByIdOrderIdAndIdScooterId(orderId, scooterId1).orElse(null);
@@ -183,8 +193,10 @@ public class NotificationServiceTest {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
         CustomService customService = mock(CustomService.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(taskRepository.findByIdOrderIdAndIdScooterId(orderId, scooterId1)).thenReturn(Optional.of(tasks.get(0)));
 
         Task task1 = taskRepository.findByIdOrderIdAndIdScooterId(orderId, scooterId1).orElse(null);
@@ -201,8 +213,10 @@ public class NotificationServiceTest {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
         CustomService customService = mock(CustomService.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(customService.currentUserId()).thenReturn(testUser.getId());
         when(notificationRepository.findNotificationsByFilters(anyLong(), anyString(), anyInt())).thenReturn(notifications);
         when(notificationRepository.findAllByUserId(anyLong())).thenReturn(notifications);
@@ -233,11 +247,13 @@ public class NotificationServiceTest {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
         CustomService customService = mock(CustomService.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
         Long invalidNotificationId = 999L;
         String userAction = "approved";
 
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(notificationRepository.findById(invalidNotificationId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> notificationService.updateNotification(invalidNotificationId, userAction));
@@ -248,9 +264,11 @@ public class NotificationServiceTest {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
         CustomService customService = mock(CustomService.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
         Notification notification = notifications.get(0);
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(notificationRepository.findById(anyLong())).thenReturn(Optional.of(notification));
         when(customService.currentUserId()).thenReturn(testUser.getId());
 
@@ -265,9 +283,11 @@ public class NotificationServiceTest {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
         CustomService customService = mock(CustomService.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService,historyService);
 
         Long notificationId = 999L;
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         when(notificationRepository.findById(notificationId)).thenReturn(Optional.empty());
         when(customService.currentUserId()).thenReturn(testUser.getId());
 
@@ -281,10 +301,12 @@ public class NotificationServiceTest {
         NotificationRepository notificationRepository = mock(NotificationRepository.class);
         OrderRepository orderRepository = mock(OrderRepository.class);
         CustomService customService = mock(CustomService.class);
-        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService);
+        HistoryService historyService = mock(HistoryService.class);
+        NotificationService notificationService = new NotificationService(notificationRepository, orderRepository, taskRepository, customService, historyService);
 
         Long validNotificationId = 1L;
 
+        doNothing().when(historyService).insertHistory(anyString(), anyString(), anyString());
         doNothing().when(notificationRepository).deleteById(validNotificationId);
 
         notificationService.deleteNotificationById(validNotificationId);

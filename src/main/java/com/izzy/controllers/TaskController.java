@@ -9,6 +9,8 @@ import com.izzy.model.TaskDTO;
 import com.izzy.payload.response.ApiResponse;
 import com.izzy.security.utils.Utils;
 import com.izzy.service.TaskService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +27,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/izzy/tasks")
 public class TaskController {
+    private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
 
     private final TaskService taskService;
 
@@ -54,6 +57,7 @@ public class TaskController {
         try {
             return taskService.getTasksByFiltering(viewType, orderId, scooterId, priorities, status);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -83,6 +87,7 @@ public class TaskController {
                         throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
             }
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -115,6 +120,7 @@ public class TaskController {
                         throw new UnrecognizedPropertyException(String.format("unrecognized parameter '%s'", viewType));
             }
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -138,6 +144,7 @@ public class TaskController {
             TaskDTO taskDTO = (new ObjectMapper()).readValue(taskRequestString, TaskDTO.class);
             return taskService.appendTask(taskDTO);
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -163,6 +170,7 @@ public class TaskController {
             taskService.removeTask(taskDTO);
             return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task deleted {orderId: %s, scooterId: %s}", taskDTO.getOrderId(), taskDTO.getScooterId())));
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }
@@ -191,6 +199,7 @@ public class TaskController {
                     ResponseEntity.badRequest().body(new ApiResponse(HttpStatus.BAD_REQUEST, "Something went wrong.")) :
                     ResponseEntity.ok(new ApiResponse(HttpStatus.OK, String.format("Task %s marked as completed.", taskRequestString.replaceAll("\\s", ""))));
         } catch (Exception ex) {
+            logger.error(ex.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));
         }
     }

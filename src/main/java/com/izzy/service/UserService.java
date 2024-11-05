@@ -1,8 +1,11 @@
 package com.izzy.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.exception.AccessDeniedException;
 import com.izzy.exception.BadRequestException;
 import com.izzy.exception.ResourceNotFoundException;
+import com.izzy.model.History;
 import com.izzy.model.Role;
 import com.izzy.model.User;
 import com.izzy.model.Zone;
@@ -12,6 +15,8 @@ import com.izzy.repository.UserRepository;
 import com.izzy.repository.ZoneRepository;
 import com.izzy.security.custom.service.CustomService;
 import com.izzy.security.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,19 +31,24 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final ZoneRepository zoneRepository;
+    private final HistoryService historyService;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
     private final CustomService customService;
 
     public UserService(UserRepository userRepository,
                        ZoneRepository zoneRepository,
+                       HistoryService historyService,
                        PasswordEncoder passwordEncoder,
                        RoleService roleService,
                        CustomService customService) {
         this.userRepository = userRepository;
         this.zoneRepository = zoneRepository;
+        this.historyService = historyService;
         this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
         this.customService = customService;
@@ -85,7 +95,7 @@ public class UserService {
         if (createUser) {
             user.setCreatedBy(customService.currentUserId());
         } else if (aLong != null) {
-                throw new IllegalArgumentException("Error: not allow to change Creator in already existing user data.");
+            throw new IllegalArgumentException("Error: not allow to change Creator in already existing user data.");
         }
         Timestamp ts = userRequest.getCreatedAt();
         if (createUser) {
@@ -97,7 +107,7 @@ public class UserService {
         if (aLong != null) {
             if (userRepository.findById(aLong).isPresent()) user.setUserManager(aLong);
             else throw new IllegalArgumentException(String.format("Error: userManager with ID '%s' not found.", aLong));
-        } else if (createUser){
+        } else if (createUser) {
             throw new BadRequestException("User Manager should be defined.");
         }
         List<String> rawRole = userRequest.getRole();
@@ -114,7 +124,7 @@ public class UserService {
     /**
      * Converts User structure to UserInfo
      *
-     * @param user user entity {@link User}
+     * @param user      user entity {@link User}
      * @param shortView declare view the user data in one of 'simple', 'short', 'detailed' style
      * @return UserInfo structured data {@link UserInfo}
      */
@@ -174,9 +184,11 @@ public class UserService {
                 usersList.add(u);
             }
         }
-        return switch (viewType==null?"simple":viewType) {
-            case "short" -> usersList.stream().map(user -> connvertUserToUserInfo(user, true)).collect(Collectors.toList());
-            case "detailed" -> usersList.stream().map(user -> connvertUserToUserInfo(user, false)).collect(Collectors.toList());
+        return switch (viewType == null ? "simple" : viewType) {
+            case "short" ->
+                    usersList.stream().map(user -> connvertUserToUserInfo(user, true)).collect(Collectors.toList());
+            case "detailed" ->
+                    usersList.stream().map(user -> connvertUserToUserInfo(user, false)).collect(Collectors.toList());
             default -> usersList;
         };
     }
@@ -249,4 +261,13 @@ public class UserService {
             throw new AccessDeniedException("not allowed to delete user with above your role");
     }
 
+    /**
+     * Add to history provided action
+     *
+     * @param action      the provided action (allowed: 'create', 'update', 'delete')
+     * @param description the description for action
+     */
+    public void addUserHistory(@NonNull String action, @NonNull String description) {
+        historyService.insertHistory(History.Type.USER.getValue(), action, description);
+    }
 }
