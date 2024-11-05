@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console appender for local development -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File appender with rolling policy -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/izzy.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/izzy-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>1MB</maxFileSize>
+            <maxHistory>5</maxHistory>
+            <totalSizeCap>5MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Profile-specific configuration for local environment -->
+    <springProfile name="local">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- Profile-specific configuration for AWS environment -->
+    <springProfile name="aws">
+        <!-- Only file appender is used in AWS for log rotation -->
+        <appender name="AWS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/var/log/api/izzy.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>/var/log/api/izzy-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>20MB</maxFileSize>
+                <maxHistory>10</maxHistory>
+                <totalSizeCap>200MB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>{"timestamp":"%d{ISO8601}", "level":"%p", "logger":"%logger{36}", "message":"%msg"}%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="AWS_FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- Default configuration if no specific profile is set -->
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
