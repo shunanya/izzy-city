@@ -1,5 +1,7 @@
 package com.izzy.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.izzy.model.History;
 import com.izzy.security.utils.Utils;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,11 +30,12 @@ class HistoryRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        historyRepository.save(new History("user", "create", userId, "create kuku blin"));
-        historyRepository.save(new History("user", "update", userId, "update kuku blin"));
-        historyRepository.save(new History("user", "delete", userId, "delete kuku blin"));
-        historyRepository.save(new History("task", "create", userId, "create task blin"));
-        historyRepository.save(new History("task", "update", userId, "update task blin"));
+        String msg = "{\"firstName\":\"Charger_32\",\"phoneNumber\":\"32001122\",\"userManager\":26,\"role\":[\"charger\"],\"id\":1291}";
+        historyRepository.save(new History("user", "create", userId, msg));
+        historyRepository.save(new History("user", "update", userId, msg));
+        historyRepository.save(new History("user", "delete", userId, msg));
+        historyRepository.save(new History("task", "create", userId, msg));
+        historyRepository.save(new History("task", "update", userId, msg));
 //        System.out.println(historyRepository.findAll(PageRequest.of(0, 10, Sort.by("createdAt").descending())).getTotalElements());
     }
 
@@ -67,5 +70,16 @@ class HistoryRepositoryTest {
         Page<History> historyPage = historyRepository.findByFiltering(range.get(0), range.get(1), null, null, userId, PageRequest.of(0, 10));
         assertNotNull(historyPage, "Should find any history");
         assertTrue(historyPage.getContent().isEmpty(), "Should find no any history");
+    }
+
+    @Test
+    public void findByFilteringForUserId() throws JsonProcessingException {
+        Page<History> historyPage = historyRepository.findByFiltering(null, null, null, null, userId, PageRequest.of(0, 10));
+        assertNotNull(historyPage, "Should find any history");
+        assertFalse(historyPage.getContent().isEmpty(), "Should find any history");
+        assertEquals(5, historyPage.getTotalElements(),"Should find 5 history records");
+        History history = historyPage.getContent().get(0);
+        String str = (new ObjectMapper()).writeValueAsString(history);
+        System.out.println(str);
     }
 }

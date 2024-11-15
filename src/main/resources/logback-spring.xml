@@ -33,12 +33,12 @@
     <springProfile name="aws">
         <!-- Only file appender is used in AWS for log rotation -->
         <appender name="AWS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>/var/log/api/izzy.log</file>
+            <file>/var/app/current/logs/izzy.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-                <fileNamePattern>/var/log/api/izzy-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-                <maxFileSize>20MB</maxFileSize>
+                <fileNamePattern>/var/app/current/logs/izzy-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>10MB</maxFileSize>
                 <maxHistory>10</maxHistory>
-                <totalSizeCap>200MB</totalSizeCap>
+                <totalSizeCap>100MB</totalSizeCap>
             </rollingPolicy>
             <encoder>
                 <pattern>{"timestamp":"%d{ISO8601}", "level":"%p", "logger":"%logger{36}", "message":"%msg"}%n</pattern>

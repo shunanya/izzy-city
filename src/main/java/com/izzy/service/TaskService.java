@@ -367,7 +367,7 @@ public class TaskService {
         return Utils.rearrangeTasksPriorities(getTasksByOrderId(orderId));
     }
 
-    public void addTaskHistory(@NonNull String action, @NonNull String description) {
-        historyService.insertHistory(History.Type.TASK.getValue(), action, description);
+    public void addTaskHistory(@NonNull String action, @NonNull String msg) {
+        historyService.insertHistory(History.Type.TASK.getValue(), action, msg);
     }
 }

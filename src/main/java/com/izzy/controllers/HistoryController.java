@@ -25,7 +25,7 @@ public class HistoryController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Admin','Manager','Supervisor')")
-    public ResponseEntity<Page<History>> getFilteredHistory(
+    public ResponseEntity<Page<?>> getFilteredHistory(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -34,7 +34,7 @@ public class HistoryController {
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String createdAt) {
         try {
-            Page<History> historyPage = historyService.getHistory(page, size, sortBy, type,action, userId, createdAt);
+            Page<?> historyPage = historyService.getHistory(page, size, sortBy, type,action, userId, createdAt);
             return ResponseEntity.ok(historyPage);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Utils.substringErrorFromException(ex));

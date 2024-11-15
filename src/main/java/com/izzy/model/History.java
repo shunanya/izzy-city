@@ -30,16 +30,16 @@ public class History {
     private Long userId;
 
     @Column(name = "description")
-    private String description;
+    private String msg;
 
     public History() {
     }
 
-    public History(String type, String action, Long userId, String description) {
+    public History(String type, String action, Long userId, String msg) {
         this.type = type;
         this.action = action;
         this.userId = userId;
-        this.description = description;
+        this.msg = msg;
     }
 
     public void setId(Long id) {
@@ -83,11 +83,11 @@ public class History {
     }
 
     public String getDescription() {
-        return description;
+        return msg;
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.msg = description;
     }
 
     public enum Type {

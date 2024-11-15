@@ -196,8 +196,8 @@ public class NotificationService {
         notificationRepository.delete(notification);
     }
 
-    public void addNotificationHistory(@NonNull String action, @NonNull String description) {
-        historyService.insertHistory(History.Type.NOTIFICATION.getValue(), action, description);
+    public void addNotificationHistory(@NonNull String action, @NonNull String msg) {
+        historyService.insertHistory(History.Type.NOTIFICATION.getValue(), action, msg);
     }
 
 }

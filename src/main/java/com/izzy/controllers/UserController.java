@@ -116,7 +116,7 @@ public class UserController {
     /**
      * Creates a new user.
      *
-     * @param userRequestString the request payload containing user details.
+     * @param userRequestString the request payload (json string) containing user details.
      * @return a ResponseEntity containing a created user details.
      * @throws AccessDeniedException if operation is not permitted for current user
      */
@@ -128,9 +128,9 @@ public class UserController {
             UserRequest userRequest = (new ObjectMapper()).readValue(userRequestString, UserRequest.class);
             // processing
             User user = userService.saveUser(userService.getUserFromUserRequest(null, userRequest));
-            String description = Utils.appendKeyValuePairIntoJSONString(userRequestString, "id", user.getId());
-            userService.addUserHistory("create", description);
-            logger.info("User created: {}", description);
+            String msg = Utils.appendKeyValuePairIntoJSONString(userRequestString, "id", user.getId());
+            userService.addUserHistory("create", msg);
+            logger.info("User created: {}", msg);
             return ResponseEntity.ok(user);
         } catch (Exception ex) {
             logger.error(ex.getMessage());
@@ -156,9 +156,9 @@ public class UserController {
             // processing
             User user = userService.updateUser(id, userService.getUserFromUserRequest(id, userRequest));
             if (user != null) {
-                String description = Utils.appendKeyValuePairIntoJSONString(userRequestString, "id", id);
-                logger.info("User updated: {}", description);
-                userService.addUserHistory("update", description);
+                String msg = Utils.appendKeyValuePairIntoJSONString(userRequestString, "id", id);
+                logger.info("User updated: {}", msg);
+                userService.addUserHistory("update", msg);
                 return ResponseEntity.ok(user);
             }
             return ResponseEntity.notFound().build();

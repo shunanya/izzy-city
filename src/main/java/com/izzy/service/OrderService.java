@@ -264,8 +264,8 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    public void addOrderHistory(@NonNull String action, @NonNull String description) {
-        historyService.insertHistory(History.Type.ORDER.getValue(), action, description);
+    public void addOrderHistory(@NonNull String action, @NonNull String msg) {
+        historyService.insertHistory(History.Type.ORDER.getValue(), action, msg);
     }
 
 }

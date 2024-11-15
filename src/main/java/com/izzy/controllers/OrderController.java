@@ -95,9 +95,9 @@ public class OrderController {
             OrderRequest orderRequest = (new ObjectMapper()).readValue(orderRequestString, OrderRequest.class);
             // processing
             Order order = orderService.createOrder(orderService.getOrderFromOrderRequest(orderRequest, null));
-            String description = Utils.appendKeyValuePairIntoJSONString(orderRequestString, "id", order.getId());
-            logger.info("Order created {}", description);
-            orderService.addOrderHistory("create", description);
+            String msg = Utils.appendKeyValuePairIntoJSONString(orderRequestString, "id", order.getId());
+            logger.info("Order created {}", msg);
+            orderService.addOrderHistory("create", msg);
             return ResponseEntity.ok(orderService.getOrderById(order.getId()));
         } catch (Exception ex) {
             logger.error(ex.getMessage());
@@ -123,9 +123,9 @@ public class OrderController {
             // processing
             Order order = orderService.getOrderFromOrderRequest(orderRequest, id);
             if (id.equals(orderService.updateOrder(order))) {
-                String description = Utils.appendKeyValuePairIntoJSONString(orderRequestString, "id", order.getId());
-                logger.info("Order updated {}", description);
-                orderService.addOrderHistory("update", description);
+                String msg = Utils.appendKeyValuePairIntoJSONString(orderRequestString, "id", order.getId());
+                logger.info("Order updated {}", msg);
+                orderService.addOrderHistory("update", msg);
                 return ResponseEntity.ok(orderService.getOrderById(id));
             }
             return ResponseEntity.notFound().build();
@@ -148,9 +148,9 @@ public class OrderController {
     public ResponseEntity<Void> deleteOrderById(@PathVariable Long id) {
         try {
             orderService.deleteOrder(id);
-            String description = Utils.appendKeyValuePairIntoJSONString(null, "id", id);
-            logger.info("Order deleted {}", description);
-            orderService.addOrderHistory("delete", description);
+            String msg = Utils.appendKeyValuePairIntoJSONString(null, "id", id);
+            logger.info("Order deleted {}", msg);
+            orderService.addOrderHistory("delete", msg);
             return ResponseEntity.noContent().build();
         } catch (Exception ex) {
             logger.error(ex.getMessage());

@@ -13,7 +13,7 @@ import java.util.List;
 @JsonPropertyOrder({
         "id",
         "name",
-        "description",
+        "msg",
         "action",
         "status",
         "assigned_to",

@@ -265,9 +265,9 @@ public class UserService {
      * Add to history provided action
      *
      * @param action      the provided action (allowed: 'create', 'update', 'delete')
-     * @param description the description for action
+     * @param msg the msg for action
      */
-    public void addUserHistory(@NonNull String action, @NonNull String description) {
-        historyService.insertHistory(History.Type.USER.getValue(), action, description);
+    public void addUserHistory(@NonNull String action, @NonNull String msg) {
+        historyService.insertHistory(History.Type.USER.getValue(), action, msg);
     }
 }
