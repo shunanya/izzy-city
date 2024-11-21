@@ -30,6 +30,7 @@ ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS "FK_UserR
 ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS "FK_UserRole_Role_Id";
 ALTER TABLE IF EXISTS ONLY public.tasks DROP CONSTRAINT IF EXISTS "FK_Task_Scooter_Id";
 ALTER TABLE IF EXISTS ONLY public.tasks DROP CONSTRAINT IF EXISTS "FK_Task_Order_Id";
+DROP INDEX IF EXISTS public.history_created_at_idx;
 ALTER TABLE IF EXISTS ONLY public.zones DROP CONSTRAINT IF EXISTS zones_pkey;
 ALTER TABLE IF EXISTS ONLY public.zones DROP CONSTRAINT IF EXISTS "zones_name unique";
 ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
@@ -44,6 +45,7 @@ ALTER TABLE IF EXISTS ONLY public.orders DROP CONSTRAINT IF EXISTS orders_pkey;
 ALTER TABLE IF EXISTS ONLY public.orders DROP CONSTRAINT IF EXISTS orders_name_unique;
 ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_unique;
 ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_pk;
+ALTER TABLE IF EXISTS ONLY public.history DROP CONSTRAINT IF EXISTS history_pk;
 ALTER TABLE IF EXISTS ONLY public.roles DROP CONSTRAINT IF EXISTS "PK_roles";
 ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS "PK_UserRole";
 ALTER TABLE IF EXISTS ONLY public.tasks DROP CONSTRAINT IF EXISTS "PK_Task";
@@ -53,6 +55,7 @@ ALTER TABLE IF EXISTS public.scooters ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.roles ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.orders ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE IF EXISTS public.notifications ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.history ALTER COLUMN id DROP DEFAULT;
 DROP SEQUENCE IF EXISTS public.zones_id_seq;
 DROP TABLE IF EXISTS public.zones;
 DROP SEQUENCE IF EXISTS public.users_id_seq;
@@ -69,9 +72,48 @@ DROP SEQUENCE IF EXISTS public.orders_id_seq;
 DROP TABLE IF EXISTS public.orders;
 DROP SEQUENCE IF EXISTS public.notifications_id_seq;
 DROP TABLE IF EXISTS public.notifications;
+DROP SEQUENCE IF EXISTS public.history_id_seq;
+DROP TABLE IF EXISTS public.history;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: history; Type: TABLE; Schema: public; Owner: root
+--
+
+CREATE TABLE public.history (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP(0),
+    type character varying,
+    action character varying,
+    description character varying,
+    user_id bigint
+);
+
+
+ALTER TABLE public.history OWNER TO root;
+
+--
+-- Name: history_id_seq; Type: SEQUENCE; Schema: public; Owner: root
+--
+
+CREATE SEQUENCE public.history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.history_id_seq OWNER TO root;
+
+--
+-- Name: history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root
+--
+
+ALTER SEQUENCE public.history_id_seq OWNED BY public.history.id;
+
 
 --
 -- Name: notifications; Type: TABLE; Schema: public; Owner: root
@@ -520,6 +562,13 @@ ALTER SEQUENCE public.zones_id_seq OWNED BY public.zones.id;
 
 
 --
+-- Name: history id; Type: DEFAULT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.history ALTER COLUMN id SET DEFAULT nextval('public.history_id_seq'::regclass);
+
+
+--
 -- Name: notifications id; Type: DEFAULT; Schema: public; Owner: root
 --
 
@@ -562,10 +611,19 @@ ALTER TABLE ONLY public.zones ALTER COLUMN id SET DEFAULT nextval('public.zones_
 
 
 --
+-- Data for Name: history; Type: TABLE DATA; Schema: public; Owner: root
+--
+
+INSERT INTO public.history VALUES (401, '2024-11-10 18:31:58.450957+04', 'user', 'create', '{"firstName":"Charger_32","phoneNumber":"32001122","userManager":26,"role":["charger"],"id":1291}', 3);
+INSERT INTO public.history VALUES (402, '2024-11-10 18:32:49.252233+04', 'user', 'update', '{"gender":"Male","password":"***","id":1291}', 3);
+INSERT INTO public.history VALUES (403, '2024-11-10 18:33:15.873201+04', 'user', 'delete', '{"id":1291}', 3);
+
+
+--
 -- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-INSERT INTO public.notifications VALUES (6, 314, '2024-09-19 16:28:08.084071+04', 49, 1, 'approved');
+INSERT INTO public.notifications VALUES (3, 675, '2024-10-13 15:18:01.444405+04', 19, 3, NULL);
 
 
 --
@@ -586,8 +644,9 @@ INSERT INTO public.orders VALUES (54, 'Move', 'order26', 'test-order', 3, '2024-
 INSERT INTO public.refreshtoken VALUES (17, '2024-08-17 22:22:06.535785+04', '0dc2645d-ac93-4433-a0a8-38e12b488a31', 25);
 INSERT INTO public.refreshtoken VALUES (11, '2024-09-17 20:08:05.278574+04', '86b14380-be34-4a37-8dfc-20b4f611e811', 26);
 INSERT INTO public.refreshtoken VALUES (12, '2024-08-01 17:38:23.737976+04', '074e54ba-374b-483a-b69b-e205a8f67952', 29);
-INSERT INTO public.refreshtoken VALUES (16, '2024-08-21 11:13:39.575383+04', '9afde03e-eaf8-422f-a6a8-967744581ef9', 39);
-INSERT INTO public.refreshtoken VALUES (9, '2024-09-24 11:27:00.996156+04', 'adac2024-d44a-49da-9052-5b0322584719', 6);
+INSERT INTO public.refreshtoken VALUES (16, '2024-11-09 19:37:16.093002+04', 'ba87e214-61b2-4206-be28-0a551444065d', 39);
+INSERT INTO public.refreshtoken VALUES (27, '2024-11-16 19:47:13.717707+04', 'c5f94b1b-c218-4a99-ab87-e787bf1b1ad3', 3);
+INSERT INTO public.refreshtoken VALUES (9, '2024-10-14 15:07:58.292228+04', '962a4079-220e-4331-b619-e289c1cf8130', 6);
 INSERT INTO public.refreshtoken VALUES (22, '2024-09-15 17:41:09.893009+04', '2b625703-ec45-405b-8590-a3f7a4eb7fbb', 533);
 
 
@@ -612,7 +671,6 @@ INSERT INTO public.scooters VALUES (2, '3367', 'Active', 80, 2, 45);
 INSERT INTO public.scooters VALUES (4, '4466', 'Active', 40, 3, 100);
 INSERT INTO public.scooters VALUES (5, '4444', 'Active', 40, 1, 50);
 INSERT INTO public.scooters VALUES (6, '4455', 'Active', 40, 2, 50);
-INSERT INTO public.scooters VALUES (7, NULL, NULL, NULL, NULL, NULL);
 
 
 --
@@ -620,17 +678,15 @@ INSERT INTO public.scooters VALUES (7, NULL, NULL, NULL, NULL, NULL);
 --
 
 INSERT INTO public.tasks VALUES (49, 3, 1, NULL);
-INSERT INTO public.tasks VALUES (49, 1, -1, 'Scooter not found in place
-Manager approved your decision.');
-INSERT INTO public.tasks VALUES (19, 3, 1, NULL);
 INSERT INTO public.tasks VALUES (51, 1, 1, NULL);
 INSERT INTO public.tasks VALUES (51, 2, 2, NULL);
 INSERT INTO public.tasks VALUES (52, 1, 1, NULL);
 INSERT INTO public.tasks VALUES (52, 2, 2, NULL);
 INSERT INTO public.tasks VALUES (54, 2, 2, NULL);
 INSERT INTO public.tasks VALUES (54, 3, 1, NULL);
-INSERT INTO public.tasks VALUES (19, 1, 2, NULL);
 INSERT INTO public.tasks VALUES (54, 1, 2, NULL);
+INSERT INTO public.tasks VALUES (19, 3, 0, 'Task is completed');
+INSERT INTO public.tasks VALUES (19, 1, 1, NULL);
 
 
 --
@@ -638,6 +694,7 @@ INSERT INTO public.tasks VALUES (54, 1, 2, NULL);
 --
 
 INSERT INTO public.user_roles VALUES (3, 1);
+INSERT INTO public.user_roles VALUES (1160, 4);
 INSERT INTO public.user_roles VALUES (6, 5);
 INSERT INTO public.user_roles VALUES (533, 4);
 INSERT INTO public.user_roles VALUES (25, 4);
@@ -654,14 +711,15 @@ INSERT INTO public.user_roles VALUES (39, 4);
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: root
 --
 
+INSERT INTO public.users VALUES (1160, 'Charger', NULL, '$2a$10$oAi4L9XaR8zIrBxwUQ5W6eUsV46nLZuhwjvFYJYndUB4Y/cN5o472', '38001122', 'Male', NULL, NULL, NULL, 3, '2024-10-25 11:14:57.333828+04', 26);
 INSERT INTO public.users VALUES (6, 'Scout', 'Smith', '$2a$10$Rj4uSPNVaHiEf338Ft3xIe9jfOF5xqRYKPJaVAi3evpU1b/BHZP8e', '71001122', 'Female', NULL, 3, 'night', 3, '2024-07-17 20:51:43.468797+04', 3);
 INSERT INTO public.users VALUES (533, 'Charger', NULL, '$2a$10$fkTiCdFaHU51ullnuHNpW.UCdW9t9FomYXJEJH7FIbOBIPI1zdjbG', '33001122', 'Male', NULL, NULL, NULL, 3, '2024-09-14 17:35:52.3373+04', 26);
-INSERT INTO public.users VALUES (29, 'user_scout', NULL, '$2a$10$Ziiq1DJCCNk3yYqEAUZTPuAxkigvWeWKo/oBnZPKYSLc1bWAc0nrq', '95001122', NULL, NULL, NULL, NULL, NULL, NULL, 3);
 INSERT INTO public.users VALUES (3, 'duty_admin', 'Blinken', '$2a$10$Ep0QyL0tmsYQpQ02gZcfgOVmDxUxnybNiloAmgnNcG5iQ2T38hIsS', '55001122', 'Female', '2024-07-16', 2, 'day', 6, '2024-07-16 21:49:22.325+04', NULL);
-INSERT INTO public.users VALUES (25, 'user_scout', NULL, '$2a$10$Hj6VjoSlmyYD/Gqjjb.nhupngoGqZR2I4NmPn1KQ2HBHHN8Clwe/2', '94001122', 'Male', NULL, 1, NULL, 3, '2024-07-27 14:47:43.379171+04', 3);
-INSERT INTO public.users VALUES (26, 'manager', NULL, '$2a$10$0xDTxLnPWk972eEX9UJfJObssahQMNrFYjXmlPy6ojYPGWoRyE1h.', '77553311', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.users VALUES (25, 'user_scout', NULL, '$2a$10$Hj6VjoSlmyYD/Gqjjb.nhupngoGqZR2I4NmPn1KQ2HBHHN8Clwe/2', '94001122', 'Male', NULL, 1, 'day', 3, '2024-07-27 14:47:43.379171+04', 3);
 INSERT INTO public.users VALUES (39, 'Supervisor', NULL, '$2a$10$atYUerVtgumF/tL9Zy7iR.X0ExqfLaLIhRAfzhdgF.gf2alEXr11G', '73001122', 'Male', NULL, 1, NULL, 3, '2024-08-02 20:34:58.935859+04', NULL);
-INSERT INTO public.users VALUES (27, 'admin', NULL, '$2a$10$WZXVlLM/q7jKNwZNy8gSIesnCZEI.SUgSk34IDQFvEVdKfAB95RwK', '56001122', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO public.users VALUES (26, 'manager', NULL, '$2a$10$0xDTxLnPWk972eEX9UJfJObssahQMNrFYjXmlPy6ojYPGWoRyE1h.', '77553311', NULL, NULL, NULL, NULL, NULL, '2024-07-27 14:47:43.379+04', NULL);
+INSERT INTO public.users VALUES (27, 'admin', NULL, '$2a$10$WZXVlLM/q7jKNwZNy8gSIesnCZEI.SUgSk34IDQFvEVdKfAB95RwK', '56001122', NULL, NULL, NULL, NULL, NULL, '2024-07-27 14:47:43.379+04', NULL);
+INSERT INTO public.users VALUES (29, 'user_scout', NULL, '$2a$10$Ziiq1DJCCNk3yYqEAUZTPuAxkigvWeWKo/oBnZPKYSLc1bWAc0nrq', '95001122', NULL, NULL, NULL, NULL, NULL, '2024-07-27 14:47:43.379+04', 3);
 
 
 --
@@ -674,24 +732,31 @@ INSERT INTO public.zones VALUES (3, 'z03');
 
 
 --
+-- Name: history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
+--
+
+SELECT pg_catalog.setval('public.history_id_seq', 617, true);
+
+
+--
 -- Name: notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.notifications_id_seq', 486, true);
+SELECT pg_catalog.setval('public.notifications_id_seq', 915, true);
 
 
 --
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 232, true);
+SELECT pg_catalog.setval('public.orders_id_seq', 619, true);
 
 
 --
 -- Name: refreshtoken_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.refreshtoken_id_seq', 26, true);
+SELECT pg_catalog.setval('public.refreshtoken_id_seq', 28, true);
 
 
 --
@@ -705,21 +770,21 @@ SELECT pg_catalog.setval('public.roles_id_seq', 5, true);
 -- Name: scooters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.scooters_id_seq', 7, true);
+SELECT pg_catalog.setval('public.scooters_id_seq', 8, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 803, true);
+SELECT pg_catalog.setval('public.users_id_seq', 1345, true);
 
 
 --
 -- Name: zones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.zones_id_seq', 1, false);
+SELECT pg_catalog.setval('public.zones_id_seq', 2, true);
 
 
 --
@@ -744,6 +809,14 @@ ALTER TABLE ONLY public.user_roles
 
 ALTER TABLE ONLY public.roles
     ADD CONSTRAINT "PK_roles" PRIMARY KEY (id);
+
+
+--
+-- Name: history history_pk; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.history
+    ADD CONSTRAINT history_pk PRIMARY KEY (id);
 
 
 --
@@ -856,6 +929,13 @@ ALTER TABLE ONLY public.zones
 
 ALTER TABLE ONLY public.zones
     ADD CONSTRAINT zones_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: history_created_at_idx; Type: INDEX; Schema: public; Owner: root
+--
+
+CREATE INDEX history_created_at_idx ON public.history USING btree (created_at);
 
 
 --
