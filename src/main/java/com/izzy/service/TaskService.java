@@ -125,11 +125,11 @@ public class TaskService {
         // identical task not found - add a new one
         if (updated) {
             logger.info("Task updated: {}", taskDTO);
-            addTaskHistory(History.Action.UPDATE.getValue(), taskDTO.toJSONString());
+            addTaskHistory(History.Action.UPDATE.getValue(), taskDTO.toString());
         } else {
             tasks.add(new Task(taskDTO));
             logger.info("Task added: {}", taskDTO);
-            addTaskHistory(History.Action.CREATE.getValue(), taskDTO.toJSONString());
+            addTaskHistory(History.Action.CREATE.getValue(), taskDTO.toString());
         }
 
 //        taskRepository.deleteAllByIdOrderId(tasks.get(0).getOrderId()); // remove old tasks
@@ -154,12 +154,12 @@ public class TaskService {
             case "completed" -> {
                 tasks = markTask(new Task(taskDTO), Task.Status.COMPLETED);
                 logger.info("Task completed: {}", taskDTO);
-                addTaskHistory(History.Action.COMPLETE.getValue(), taskDTO.toJSONString());
+                addTaskHistory(History.Action.COMPLETE.getValue(), taskDTO.toString());
             }
             case "canceled" -> {
                 tasks = markTask(new Task(taskDTO), Task.Status.CANCELED);
                 logger.info("Task canceled: {}", taskDTO);
-                addTaskHistory(History.Action.CANCEL.getValue(), taskDTO.toJSONString());
+                addTaskHistory(History.Action.CANCEL.getValue(), taskDTO.toString());
             }
             default -> throw new UnrecognizedPropertyException("status", taskDTO.getStatus());
         }
@@ -270,7 +270,7 @@ public class TaskService {
                             throw new ResourceNotFoundException("Task", "", String.format("{orderId: %s, scooterId: %s}", orderId, scooterId));
                         });
         logger.info("Task {} removed.", taskDTO);
-        addTaskHistory(History.Action.DELETE.getValue(), taskDTO.toJSONString());
+        addTaskHistory(History.Action.DELETE.getValue(), taskDTO.toString());
     }
 
     private Order getOrderByOrderId(Long orderId) {

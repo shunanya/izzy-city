@@ -66,11 +66,12 @@ public class TaskDTO {
         this.status = status;
     }
 
-    public String toJSONString() {
+    @Override
+    public String toString() {
         try {
             return ((new ObjectMapper()).writeValueAsString(this));
         } catch (Exception ex) {
-            return null; //TODO ???
+            return super.toString(); //TODO ???
         }
     }
 }

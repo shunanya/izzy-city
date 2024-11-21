@@ -109,7 +109,7 @@ public class NotificationService {
         if (notification.getId() == null) {
             notification = notificationRepository.save(notification);
             logger.info("Notification created: {}", notification);
-            addNotificationHistory(History.Action.CREATE.getValue(), notification.toJSONString());
+            addNotificationHistory(History.Action.CREATE.getValue(), notification.toString());
         }
         return notification;
 
@@ -171,12 +171,12 @@ public class NotificationService {
             case "REJECTED" -> {// reassign task
                 notification.getTask().setActive();
                 logger.info("Rejected notification: {}", notification);
-                addNotificationHistory(History.Action.REJECT.getValue(), notification.toJSONString());
+                addNotificationHistory(History.Action.REJECT.getValue(), notification.toString());
             }
             case "APPROVED" -> {// remove task; corresponding notification will be removed automatically.
                 taskRepository.deleteByOrderAndScooterIds(notification.getOrderId(), notification.getScooterId());
                 logger.info("Approved notification: {}", notification);
-                addNotificationHistory(History.Action.APPROVE.getValue(), notification.toJSONString());
+                addNotificationHistory(History.Action.APPROVE.getValue(), notification.toString());
             }
             default -> throw new NotAcceptableStatusException("Unrecognized user action");
         }

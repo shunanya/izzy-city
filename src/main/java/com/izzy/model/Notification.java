@@ -104,14 +104,15 @@ public class Notification {
         this.task = task;
     }
 
-    public String toJSONString() {
+    @Override
+    public String toString() {
         try {
             return ((new ObjectMapper()).writeValueAsString(this));
         } catch (Exception e) {
-            System.err.println(e.getMessage()); //TODO ???
+            return super.toString(); //TODO ???
         }
-        return null;
     }
+
     public enum Action {
         REJECTED("rejected"), APPROVED("approved"), UNDEFINED("undefined");
         private final String value;
