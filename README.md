@@ -30,3 +30,4 @@ The Authentication is based on the following principals
 - Certainly, the Refresh token must be valid when refreshing; otherwise, the user will have to go through the full sign-in procedure.
 
 More details over requests can be found in [online API description](https://apidog.com/apidoc/shared-f273c0bb-43ad-4e2c-8933-b2b010936182)
+Detailed document can be found in [backend design doc](https://docs.google.com/document/d/1BCJDxCQm1cxbGme3nD_mjg3hG_enfjJW)
