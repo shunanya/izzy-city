@@ -29,4 +29,4 @@ The Authentication is based on the following principals
 - For security purposes, Access tokens are typically valid for a short period. Once they expire, the Refresh token must be used to renew/regenerate the access token.
 - Certainly, the Refresh token must be valid when refreshing; otherwise, the user will have to go through the full sign-in procedure.
 
-More details over requests can be found in [online API description](https://www.apidog.com/apidoc/shared-e73a2c74-7c21-458a-aa63-4996ca140aa7 "API")
+More details over requests can be found in [online API description](https://apidog.com/apidoc/shared-f273c0bb-43ad-4e2c-8933-b2b010936182)
